@@ -4,3 +4,7 @@ node_modules/
 .env.*
 !.env.example
 .DS_Store
+
+# Chaves privadas e credenciais
+*service-account*.json
+*firebase-adminsdk*.json
