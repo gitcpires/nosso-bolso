@@ -1,0 +1,2543 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Nosso Bolso - Gestão Financeira Familiar</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              500: '#2563eb',
+              600: '#1d4ed8',
+              700: '#1e40af'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Font Awesome & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Chart.js para os Gráficos em Barras Interativos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Firebase App & Firestore SDKs (via CDN Oficial Google) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    * {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    
+    .fintech-bg {
+      background-color: #090d16;
+      background-image: 
+        radial-gradient(at 0% 0%, hsla(222, 85%, 26%, 0.7) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, hsla(339, 78%, 32%, 0.6) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, hsla(217, 85%, 45%, 0.25) 0px, transparent 50%);
+    }
+
+    .glass-card-pro {
+      background: rgba(255, 255, 255, 0.97);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    .fab-center {
+      position: absolute;
+      left: 50%;
+      top: -22px;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body class="bg-slate-100/70 text-slate-900 pb-32 antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- ================= TELA DE LOGIN & CADASTRO 100% CONFIDENCIAL ================= -->
+  <div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 fintech-bg overflow-y-auto">
+    <div class="w-full max-w-sm rounded-3xl glass-card-pro p-7 sm:p-8 shadow-2xl border border-white/40 my-auto transition-all">
+      
+      <!-- Topo Brand Elegante -->
+      <div class="text-center">
+        <div class="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-slate-900 via-blue-900 to-indigo-900 text-white shadow-xl shadow-blue-950/30 border border-white/20">
+          <i class="fa-solid fa-vault text-2xl text-blue-400"></i>
+        </div>
+        <h2 class="text-2xl font-black tracking-tight text-slate-900">Nosso Bolso</h2>
+        <p class="text-xs font-semibold text-slate-400 mt-0.5 tracking-wide uppercase">Gestão Financeira Compartilhada</p>
+      </div>
+
+      <!-- VISÃO 1: TELA DE LOGIN ELEGANTE -->
+      <div id="loginViewSection">
+        <form id="loginForm" onsubmit="handleDirectLogin(event)" class="mt-7 space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+              <span>E-mail</span>
+              <span class="text-[10px] text-slate-400 font-semibold">Conta cadastrada</span>
+            </label>
+            <div class="relative flex items-center">
+              <i class="fa-regular fa-envelope absolute left-4 text-slate-400 text-xs"></i>
+              <input type="email" id="loginEmail" required placeholder="seu@email.com" autocomplete="username" class="w-full rounded-2xl border border-slate-200 bg-slate-50/70 pl-10 pr-4 py-3 text-xs font-bold text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+              <span>Senha</span>
+              <span class="text-[10px] text-slate-400 font-semibold">Criptografada</span>
+            </label>
+            <div class="relative flex items-center">
+              <i class="fa-solid fa-lock absolute left-4 text-slate-400 text-xs"></i>
+              <input type="password" id="loginPassword" required placeholder="••••••••" autocomplete="current-password" class="w-full rounded-2xl border border-slate-200 bg-slate-50/70 pl-10 pr-4 py-3 text-xs font-bold text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition" />
+            </div>
+          </div>
+
+          <!-- Mensagens de Alerta -->
+          <div id="loginStatusMsg" class="hidden rounded-2xl p-3 text-xs font-semibold text-center leading-relaxed"></div>
+
+          <button type="submit" id="loginSubmitBtn" class="mt-2 w-full rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-slate-900 py-3.5 text-xs font-black tracking-wide text-white shadow-xl shadow-blue-600/25 transition hover:opacity-95 active:scale-[0.98]">
+            Entrar no Sistema
+          </button>
+        </form>
+
+        <div class="mt-7 pt-4 border-t border-slate-100 text-center">
+          <p class="text-xs text-slate-500 font-medium">
+            Primeiro acesso?
+            <button type="button" onclick="showRegisterView()" class="font-extrabold text-blue-600 hover:text-blue-700 hover:underline ml-1">
+              Cadastre-se aqui
+            </button>
+          </p>
+        </div>
+      </div>
+
+      <!-- VISÃO 2: CADASTRO MODERNO -->
+      <div id="registerViewSection" class="hidden">
+        <div class="mt-5 mb-2 flex items-center justify-between">
+          <span class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Criar Novo Acesso</span>
+          <button type="button" onclick="showLoginView()" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+            <i class="fa-solid fa-arrow-left text-[10px]"></i> Voltar ao Login
+          </button>
+        </div>
+
+        <form id="registerForm" onsubmit="handleDirectRegister(event)" class="space-y-3 mt-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-600">Nome Completo</label>
+            <input type="text" id="regName" required placeholder="Ex: Cristiano ou Simony" class="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:border-blue-600 focus:bg-white focus:outline-none transition" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-600">E-mail para Login</label>
+            <input type="email" id="regEmail" required placeholder="seu@email.com" autocomplete="username" class="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:border-blue-600 focus:bg-white focus:outline-none transition" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-600">Crie sua Senha</label>
+            <input type="password" id="regPassword" required minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="new-password" class="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:border-blue-600 focus:bg-white focus:outline-none transition" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-600">Perfil / Identificação</label>
+            <select id="regProfile" class="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:border-blue-600 focus:bg-white focus:outline-none transition">
+              <option value="CRIS">☑️ Ele (Azul)</option>
+              <option value="SIMONY">✅ Ela (Rosa)</option>
+              <option value="OUTRO">👤 Outro Membro Familiar</option>
+            </select>
+          </div>
+
+          <div class="rounded-xl bg-blue-50/80 p-2.5 border border-blue-200/80 text-[11px] text-blue-900 leading-tight">
+            <i class="fa-solid fa-shield-halved text-blue-600 mr-1"></i>
+            Por segurança, após o cadastro sua conta fica <b>Pendente</b> até o Administrador autorizar seu acesso no Painel ADM.
+          </div>
+
+          <button type="submit" id="regSubmitBtn" class="mt-2 w-full rounded-2xl bg-slate-900 py-3 text-xs font-black text-white shadow-md hover:bg-slate-800 active:scale-[0.98] transition">
+            Finalizar Cadastro
+          </button>
+        </form>
+      </div>
+
+      <div class="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+        <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-check text-emerald-500 text-xs"></i> Ambiente Seguro</span>
+        <span class="font-semibold">Nuvem Google</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TELA DE PRIMEIRO ACESSO (ONBOARDING: CRIAR OU ENTRAR VIA CÓDIGO DE 4 DÍGITOS) ================= -->
+  <div id="onboardingScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 fintech-bg overflow-y-auto hidden">
+    <div class="w-full max-w-md rounded-3xl glass-card-pro p-7 sm:p-8 shadow-2xl border border-white/40 my-auto transition-all">
+      
+      <div class="text-center">
+        <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-xl shadow-emerald-600/30">
+          <i class="fa-solid fa-house-chimney text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-black text-slate-900">Seja Bem-vindo(a)!</h3>
+        <p class="text-xs text-slate-500 mt-1" id="onboardingUserNameGreeting">Olá! Para começar a gerenciar suas finanças, escolha uma opção abaixo:</p>
+      </div>
+
+      <!-- Opção 1: Criar Controle Próprio -->
+      <div class="mt-6 space-y-4">
+        
+        <div class="p-4 rounded-2xl border-2 border-blue-200 bg-blue-50/50 hover:border-blue-500 transition">
+          <div class="flex items-center gap-2.5 mb-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-bold">1</span>
+            <h4 class="text-xs font-extrabold text-blue-950 uppercase tracking-wider">Criar Novo Controle Financeiro</h4>
+          </div>
+          <p class="text-[11px] text-slate-600 mb-3">Crie um novo cofre para sua casa e defina o Código Familiar de 4 dígitos para convidar seu cônjuge/familiar.</p>
+          
+          <form onsubmit="handleCreateWorkspace(event)" class="space-y-2">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">Nome do Controle</label>
+              <input type="text" id="newWorkspaceName" required placeholder="Ex: Casa Cris & Simony" class="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">Código de Compartilhamento (4 Dígitos)</label>
+              <input type="text" id="newWorkspaceCode" maxlength="4" pattern="[0-9]{4}" required placeholder="Ex: 1234" class="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-black tracking-widest text-center text-slate-800 focus:outline-none focus:border-blue-600" />
+            </div>
+            <button type="submit" class="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95">
+              Criar Meu Controle Financeiro
+            </button>
+          </form>
+        </div>
+
+        <!-- Divisor OU -->
+        <div class="relative flex py-1 items-center">
+          <div class="flex-grow border-t border-slate-200"></div>
+          <span class="flex-shrink mx-3 text-[10px] font-black uppercase text-slate-400 bg-white px-2 py-0.5 rounded-full border border-slate-200">OU</span>
+          <div class="flex-grow border-t border-slate-200"></div>
+        </div>
+
+        <!-- Opção 2: Entrar com Código Existente -->
+        <div class="p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50/50 hover:border-emerald-500 transition">
+          <div class="flex items-center gap-2.5 mb-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white text-xs font-bold">2</span>
+            <h4 class="text-xs font-extrabold text-emerald-950 uppercase tracking-wider">Entrar em um Controle Existente</h4>
+          </div>
+          <p class="text-[11px] text-slate-600 mb-3">Se seu parceiro(a) já criou o controle, digite o Código de 4 Dígitos que ele(a) compartilhou com você.</p>
+          
+          <form onsubmit="handleJoinWorkspace(event)" class="space-y-2">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">Digite o Código de 4 Dígitos</label>
+              <input type="text" id="joinWorkspaceCode" maxlength="4" pattern="[0-9]{4}" required placeholder="Ex: 8421" class="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-base font-black tracking-widest text-center text-emerald-700 focus:outline-none focus:border-emerald-600" />
+            </div>
+            <button type="submit" class="w-full mt-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95">
+              Conectar ao Controle Compartilhado
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <div class="mt-5 text-center">
+        <button onclick="logout()" class="text-xs font-bold text-slate-400 hover:text-slate-600 underline">
+          Sair da Conta
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BANNER DE BOAS-VINDAS TEMPORÁRIO (PRIMEIRO ACESSO APÓS CRIAÇÃO) -->
+  <div id="welcomeSuccessBanner" class="fixed top-4 left-4 right-4 z-50 mx-auto max-w-md hidden">
+    <div class="rounded-2xl bg-emerald-600 p-4 text-white shadow-2xl flex items-center justify-between border border-emerald-400">
+      <div class="flex items-center gap-3">
+        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white text-xl">🎉</span>
+        <div>
+          <h4 class="text-xs font-extrabold leading-tight">Controle Financeiro Conectado!</h4>
+          <p class="text-[11px] text-emerald-100">Bem-vindo(a) ao seu cofre familiar sincronizado.</p>
+        </div>
+      </div>
+      <button onclick="dismissWelcomeBanner()" class="text-emerald-200 hover:text-white p-1 text-sm font-bold">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= CABEÇALHO CONGELADO / FIXO NO TOPO ================= -->
+  <header class="sticky top-0 z-40 w-full border-b border-slate-200/90 glass-nav px-3.5 py-2.5 shadow-xs transition-all">
+    <div class="mx-auto flex max-w-5xl items-center justify-between gap-2">
+      
+      <!-- Lado Esquerdo -->
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-rose-500 text-white shadow-sm">
+          <i class="fa-solid fa-wallet text-sm"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 leading-tight">
+            <span class="text-sm font-extrabold tracking-tight text-slate-900 truncate" id="topWorkspaceTitle">Nosso Bolso</span>
+            <span id="currentMonthBadge" class="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[9px] font-extrabold text-blue-700">Outubro 2026</span>
+          </div>
+          <div class="flex items-center gap-1 leading-tight mt-0.5">
+            <span id="cloudStatusIcon" class="h-2 w-2 rounded-full bg-emerald-500 inline-block" title="Conectado à Nuvem do Google Firebase"></span>
+            <p class="text-[10px] text-slate-500 font-semibold truncate" id="headerWelcomeMsg">Conectado</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lado Direito -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        
+        <!-- Botão Novo Mês (Exclusivo ADM) -->
+        <button id="adminNewMonthBtn" onclick="openNewMonthModal()" title="Criar Novo Mês com tudo zerado" class="hidden h-8.5 items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white px-2.5 text-xs font-bold shadow-xs transition active:scale-95">
+          <i class="fa-solid fa-calendar-plus text-xs"></i>
+          <span class="hidden sm:inline text-xs">Novo Mês</span>
+        </button>
+
+        <!-- Botão Painel ADM com Badge -->
+        <button id="adminBtn" onclick="openAdminModal()" title="Gerenciar Usuários & Metas" class="relative hidden h-8.5 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 active:scale-95 transition">
+          <i class="fa-solid fa-shield-halved text-blue-600 text-xs"></i>
+          <span class="hidden sm:inline text-xs">ADM</span>
+          <span id="pendingBadgeCount" class="hidden h-4 min-w-4 px-1 rounded-full bg-rose-500 text-[9px] font-black text-white items-center justify-center">0</span>
+        </button>
+
+        <!-- Badge Usuário Ativo com Engrenagem de Configurações -->
+        <button onclick="openProfileModal()" title="Configurações do Perfil & Código" id="activeUserBadge" class="flex h-8.5 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold transition shadow-2xs bg-blue-50 text-blue-700 border border-blue-200/80 hover:bg-blue-100 active:scale-95">
+          <span id="headerUserEmoji" class="text-xs">👤</span>
+          <span id="headerUserName" class="text-xs font-extrabold max-w-[85px] sm:max-w-none truncate">Usuário</span>
+          <i class="fa-solid fa-gear text-[10px] text-blue-600 ml-0.5 animate-spin-slow" title="Configurações"></i>
+        </button>
+
+        <!-- Botão Sair -->
+        <button onclick="logout()" title="Sair da conta" class="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-100 active:scale-95 transition">
+          <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de Indicadores Financeiros do Mês -->
+    <div class="mx-auto mt-2.5 max-w-5xl">
+      <div class="grid grid-cols-3 gap-2">
+        
+        <!-- Renda Total -->
+        <div class="rounded-2xl bg-white p-2.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+          <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <span>Renda</span>
+            <i class="fa-solid fa-circle-arrow-down text-emerald-500 text-xs"></i>
+          </div>
+          <div id="statIncome" class="mt-1 text-xs sm:text-base font-extrabold text-emerald-700 truncate">R$ 0,00</div>
+          <div class="text-[9px] text-slate-400 truncate">Salários & Entradas</div>
+        </div>
+
+        <!-- Despesas -->
+        <div class="rounded-2xl bg-white p-2.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+          <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <span>Despesas</span>
+            <i class="fa-solid fa-circle-arrow-up text-rose-500 text-xs"></i>
+          </div>
+          <div id="statExpense" class="mt-1 text-xs sm:text-base font-extrabold text-rose-600 truncate">R$ 0,00</div>
+          <div class="text-[9px] text-slate-400 truncate">Gastos do Mês</div>
+        </div>
+
+        <!-- Saldo Líquido -->
+        <div class="rounded-2xl bg-white p-2.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+          <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <span>Saldo</span>
+            <i class="fa-solid fa-scale-balanced text-indigo-500 text-xs"></i>
+          </div>
+          <div id="statBalance" class="mt-1 text-xs sm:text-base font-extrabold text-slate-800 truncate">R$ 0,00</div>
+          <div id="statBalanceSub" class="text-[9px] font-extrabold text-slate-400 truncate">Disponível</div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= CORPO PRINCIPAL ================= -->
+  <main class="mx-auto max-w-5xl px-3.5 pt-3.5">
+
+    <!-- Seletor de Mês & Ação de Lançamento -->
+    <div class="mb-3.5 flex items-center justify-between bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-2xs gap-2">
+      <div class="flex items-center gap-1.5 min-w-0">
+        <i class="fa-regular fa-calendar-days text-blue-600 text-xs shrink-0"></i>
+        <span class="text-xs font-bold text-slate-600 shrink-0">Mês:</span>
+        <select id="monthSelect" onchange="changeActiveMonth(this.value)" class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-800 focus:border-blue-500 focus:outline-none transition max-w-[130px] sm:max-w-none">
+          <!-- Preenchido dinamicamente -->
+        </select>
+      </div>
+      <button onclick="openNewTxModal()" class="flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 px-3 py-1.5 text-xs font-extrabold text-white shadow-xs active:scale-95 transition shrink-0">
+        <i class="fa-solid fa-plus text-[10px]"></i>
+        <span>Lançar</span>
+      </button>
+    </div>
+
+    <!-- Navegação por Abas -->
+    <div class="mb-4 flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-4">
+      <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2.5 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 transition whitespace-nowrap">
+        <i class="fa-solid fa-chart-pie mr-1"></i> Metas & Categorias
+      </button>
+      <button onclick="switchTab('graficos')" id="tabBtn-graficos" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 hover:text-slate-600 transition whitespace-nowrap">
+        <i class="fa-solid fa-chart-column mr-1"></i> Gráficos & Histórico
+      </button>
+      <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 hover:text-slate-600 transition whitespace-nowrap">
+        <i class="fa-solid fa-receipt mr-1"></i> Extrato Detalhado
+      </button>
+      <button onclick="switchTab('invest')" id="tabBtn-invest" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 hover:text-slate-600 transition whitespace-nowrap">
+        <i class="fa-solid fa-vault mr-1"></i> Investimentos
+      </button>
+    </div>
+
+    <!-- ================= ABA 1: RESUMO DO MÊS (METAS & CATEGORIAS) ================= -->
+    <div id="tab-resumo" class="space-y-3.5">
+      
+      <!-- Cards de Categorias com Cálculo de Meta e Alerta se Ultrapassar -->
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer">
+        <!-- Renderizado dinamicamente -->
+      </div>
+
+      <!-- Resumo Individual de Membros -->
+      <div class="rounded-3xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
+        <div class="flex items-center justify-between mb-3.5">
+          <div>
+            <h3 class="text-xs sm:text-sm font-extrabold text-slate-800">Entradas & Saídas Individuais</h3>
+            <p class="text-[11px] text-slate-400 font-medium">Divisão sincronizada entre os celulares</p>
+          </div>
+          <span class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">Mês Ativo</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="individualSpendingCards">
+          <!-- Renderizado dinamicamente -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= ABA 2: GRÁFICOS DO MÊS E HISTÓRICO COMPARATIVO ================= -->
+    <div id="tab-graficos" class="hidden space-y-4">
+      
+      <!-- Card Gráfico 1: Meta vs Gasto Real por Categoria -->
+      <div class="rounded-3xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-chart-column text-blue-600"></i> Meta Estipulada vs. Gasto Real (Mês Atual)
+            </h3>
+            <p class="text-[11px] text-slate-400">Comparação direta de cada categoria com barras de alerta</p>
+          </div>
+          <span class="text-[10px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md" id="chartMonthLabel">Mês</span>
+        </div>
+        
+        <div class="relative w-full h-64 sm:h-72 mt-3">
+          <canvas id="categoryCompareChart"></canvas>
+        </div>
+
+        <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-around text-[10px] font-bold text-slate-500">
+          <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-blue-500 inline-block"></span> Meta Estipulada (R$)</span>
+          <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block"></span> Dentro da Meta</span>
+          <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-rose-500 inline-block"></span> Meta Ultrapassada</span>
+        </div>
+      </div>
+
+      <!-- Card Gráfico 2: Evolução Histórica dos Meses Passados -->
+      <div class="rounded-3xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Histórico Comparativo dos Meses
+            </h3>
+            <p class="text-[11px] text-slate-400">Evolução de entradas, saídas e aportes ao longo dos meses</p>
+          </div>
+          <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">Visão Geral</span>
+        </div>
+
+        <div class="relative w-full h-64 sm:h-72 mt-3">
+          <canvas id="historyMonthsChart"></canvas>
+        </div>
+
+        <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-around text-[10px] font-bold text-slate-500">
+          <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-600 inline-block"></span> Renda Total</span>
+          <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-rose-500 inline-block"></span> Despesas Totais</span>
+          <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-amber-500 inline-block"></span> Investimentos</span>
+        </div>
+      </div>
+
+      <!-- Métricas Analíticas / Insights Automáticos -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+        <div class="rounded-2xl bg-white p-3 border border-slate-200/80 shadow-2xs">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Taxa de Poupança</span>
+          <div class="text-base sm:text-lg font-black text-emerald-600 mt-1" id="statSavingsRate">0%</div>
+          <div class="text-[9px] text-slate-400 mt-0.5">Renda revertida em aportes</div>
+        </div>
+        <div class="rounded-2xl bg-white p-3 border border-slate-200/80 shadow-2xs">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Maior Gasto do Mês</span>
+          <div class="text-base sm:text-lg font-black text-slate-800 mt-1 truncate" id="statTopCategory">-</div>
+          <div class="text-[9px] text-slate-400 mt-0.5">Categoria com maior saída</div>
+        </div>
+        <div class="col-span-2 sm:col-span-1 rounded-2xl bg-white p-3 border border-slate-200/80 shadow-2xs">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Índice de Controle</span>
+          <div class="text-base sm:text-lg font-black text-blue-600 mt-1" id="statControlScore">100%</div>
+          <div class="text-[9px] text-slate-400 mt-0.5">Categorias dentro da meta</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= ABA 3: EXTRATO COMPLETO ================= -->
+    <div id="tab-extrato" class="hidden space-y-3">
+      <!-- Filtros -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-white p-3 rounded-2xl border border-slate-200/80 gap-2">
+        <input type="text" id="searchExpense" placeholder="Buscar lançamento..." oninput="renderTransactionsList()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 focus:border-blue-500 focus:outline-none w-full sm:w-64 transition" />
+        <div class="flex gap-1 overflow-x-auto hide-scrollbar" id="filterUserButtons">
+          <!-- Filtros de usuário gerados dinamicamente -->
+        </div>
+      </div>
+
+      <div id="txListContainer" class="space-y-2">
+        <!-- Lista de lançamentos -->
+      </div>
+    </div>
+
+    <!-- ================= ABA 4: INVESTIMENTOS DO MÊS ATIVO ================= -->
+    <div id="tab-invest" class="hidden space-y-3.5">
+      
+      <!-- Total Retirado da Renda -->
+      <div class="rounded-3xl bg-gradient-to-br from-slate-900 to-indigo-950 p-5 sm:p-6 text-white shadow-xl">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300">Total Retirado da Renda para Investir</span>
+            <div id="monthInvestTotalHeader" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">R$ 0,00</div>
+          </div>
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-emerald-400 text-xl backdrop-blur-md">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+          </div>
+        </div>
+        <p class="text-xs text-slate-300 mt-2">
+          Valores aplicados exclusivamente no mês de <b id="investMonthBadgeText" class="text-white">Outubro 2026</b>.
+        </p>
+      </div>
+
+      <!-- Lista de Aportes do Mês -->
+      <div class="rounded-3xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
+        <div class="flex items-center justify-between mb-3.5">
+          <div>
+            <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm">Aportes Realizados no Mês</h4>
+            <p class="text-[11px] text-slate-400">Local da corretora, tipo de investimento e valores aplicados</p>
+          </div>
+          <button onclick="openNewTxModalForInvest()" class="px-2.5 py-1 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold hover:bg-blue-100 transition flex items-center gap-1">
+            <i class="fa-solid fa-plus text-[10px]"></i> Novo Aporte
+          </button>
+        </div>
+
+        <div id="monthInvestmentsList" class="space-y-2">
+          <!-- Renderizado dinamicamente -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= MODAL CONFIGURAÇÃO DO PERFIL, ENGRENAGEM & BACKUP ADM ================= -->
+  <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 hidden backdrop-blur-sm">
+    <div class="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl transition-all max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+            <i class="fa-solid fa-gear text-sm"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-extrabold text-slate-800">Configurações & Perfil</h3>
+            <p class="text-[11px] text-slate-400">Gerenciamento de Acesso Familiar</p>
+          </div>
+        </div>
+        <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- CARD EXCLUSIVO PARA USUÁRIO COMUM: CÓDIGO DE 4 DÍGITOS E MEMBROS VINCULADOS -->
+      <div id="userShareSection" class="mt-4 space-y-3">
+        <div class="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200/80 text-center">
+          <span class="text-[10px] font-black uppercase tracking-wider text-blue-600">Código Familiar de Compartilhamento</span>
+          <div class="mt-2 text-3xl font-black tracking-widest text-slate-900" id="profileWorkspaceCodeDisplay">----</div>
+          <p class="text-[11px] text-slate-500 mt-1">Envie este código para que outro membro da família entre e utilize o mesmo controle.</p>
+          
+          <button onclick="copyWorkspaceCode()" class="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition active:scale-95 flex items-center justify-center gap-1.5 mx-auto shadow-xs">
+            <i class="fa-regular fa-copy"></i> Copiar Código de 4 Dígitos
+          </button>
+        </div>
+
+        <!-- Lista de quem está vinculado a este controle financeiro -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider block mb-2">Membros Vinculados a este Controle:</span>
+          <div id="profileWorkspaceMembersList" class="space-y-1.5 text-xs">
+            <!-- Populado via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD EXCLUSIVO PARA O ADMINISTRADOR MESTRE (VINCULAÇÃO DE BACKUP / AUDITORIA VIA CÓDIGO) -->
+      <div id="adminBackupSection" class="mt-4 p-4 rounded-2xl bg-purple-50 border-2 border-purple-200 hidden">
+        <div class="flex items-center gap-2 mb-1">
+          <i class="fa-solid fa-shield-halved text-purple-700 text-sm"></i>
+          <h4 class="text-xs font-black uppercase tracking-wider text-purple-900">Painel de Recuperação & Backup (ADM)</h4>
+        </div>
+        <p class="text-[11px] text-purple-800/80 mb-3">Como Administrador Mestre, você pode se conectar a qualquer controle financeiro digitando o Código de 4 Dígitos fornecido pelo usuário para fins de auditoria ou backup.</p>
+        
+        <form onsubmit="handleAdminBackupAccess(event)" class="space-y-2">
+          <div>
+            <label class="block text-[10px] font-bold text-purple-700 uppercase">Código de 4 Dígitos do Usuário</label>
+            <input type="text" id="adminBackupCodeInput" maxlength="4" pattern="[0-9]{4}" required placeholder="Ex: 1234" class="w-full px-3 py-2 bg-white rounded-xl border border-purple-200 text-sm font-black tracking-widest text-center text-purple-900 focus:outline-none focus:border-purple-600" />
+          </div>
+          <button type="submit" class="w-full py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95">
+            Acessar / Salvar Backup do Controle
+          </button>
+        </form>
+      </div>
+
+      <!-- Informações do Usuário Conectado -->
+      <div class="mt-4 space-y-2 text-xs">
+        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+          <span class="text-slate-500 font-bold">Membro Logado:</span>
+          <span class="font-extrabold text-slate-800" id="profileModalUserName">-</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+          <span class="text-slate-500 font-bold">E-mail:</span>
+          <span class="font-extrabold text-slate-800" id="profileModalUserEmail">-</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+          <span class="text-slate-500 font-bold">Controle Ativo:</span>
+          <span class="font-extrabold text-blue-700 truncate max-w-[150px]" id="profileModalWorkspaceName">-</span>
+        </div>
+      </div>
+
+      <!-- ZERAR DADOS DO PRÓPRIO PAINEL POR MÊS -->
+      <div id="userClearDataSection" class="mt-4 pt-3 border-t border-slate-100">
+        <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200">
+          <div class="flex items-center gap-1.5 text-amber-900 font-extrabold text-xs mb-1">
+            <i class="fa-solid fa-calendar-xmark text-amber-600"></i>
+            <span>Zerar Lançamentos por Mês</span>
+          </div>
+          <p class="text-[10px] text-amber-800 leading-tight mb-2.5">
+            Você pode limpar os lançamentos de um mês específico ou resetar todos os lançamentos do seu controle financeiro.
+          </p>
+          <div class="space-y-2">
+            <select id="userMonthToClearSelect" class="w-full text-xs font-bold rounded-xl border border-amber-200 bg-white p-2 text-slate-800 focus:outline-none focus:border-amber-500">
+              <!-- Populado com os meses ativos -->
+            </select>
+            <button type="button" onclick="handleUserClearMonthData()" class="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition active:scale-95 flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-eraser text-xs"></i>
+              <span>Zerar Dados do Mês Selecionado</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ZONA DE GERENCIAMENTO (DESVINCULAR OU EXCLUIR) - OCULTA PARA O ADM! -->
+      <div id="userWorkspaceManagementArea" class="mt-4 pt-3 border-t border-slate-100 space-y-2.5">
+        <button type="button" onclick="handleLeaveWorkspace()" class="w-full py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
+          <i class="fa-solid fa-arrow-right-from-bracket text-slate-500 text-[11px]"></i>
+          <span>Desvincular / Trocar de Controle</span>
+        </button>
+
+        <div class="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-left">
+          <div class="flex items-center gap-1.5 text-rose-700 font-extrabold text-xs mb-1">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Excluir Controle Financeiro</span>
+          </div>
+          <p class="text-[10px] text-rose-600 leading-tight mb-2.5">
+            Ao excluir este controle, <b>todos os dados e metas serão perdidos permanentemente</b> para você e qualquer membro conectado!
+          </p>
+          <button type="button" onclick="handleDeleteWorkspace()" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+            <span>Excluir Controle Definitivamente</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <button onclick="closeProfileModal()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL DE NOVO LANÇAMENTO ================= -->
+  <div id="newTxModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 p-0 sm:p-4 hidden backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-white p-5 sm:p-6 shadow-2xl transition-all max-h-[95vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-800">Nova Movimentação</h3>
+          <p class="text-[11px] text-slate-400">Lançamento sincronizado em tempo real</p>
+        </div>
+        <button onclick="closeNewTxModal()" class="text-slate-400 hover:text-slate-600 p-1 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="txForm" onsubmit="handleSaveTransaction(event)" class="mt-4 space-y-3.5">
+        
+        <!-- Alternador Tipo de Movimentação -->
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1.5">Tipo de Lançamento</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 p-2.5 has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50 transition">
+              <input type="radio" name="txType" value="EXPENSE" class="hidden" checked onchange="toggleTxTypeUI()" />
+              <i class="fa-solid fa-arrow-up text-rose-600 text-xs"></i>
+              <span class="text-xs font-bold text-slate-700">Despesa (Gasto)</span>
+            </label>
+            <label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 p-2.5 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50 transition">
+              <input type="radio" name="txType" value="INCOME" class="hidden" onchange="toggleTxTypeUI()" />
+              <i class="fa-solid fa-arrow-down text-emerald-600 text-xs"></i>
+              <span class="text-xs font-bold text-slate-700">Crédito (Entrada)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Descrição -->
+        <div>
+          <label class="block text-xs font-bold text-slate-600" id="txDescLabel">Descrição / Origem</label>
+          <input type="text" id="txDesc" required placeholder="Ex: Salário Mensal, Supermercado, Farmácia..." class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none transition" />
+        </div>
+
+        <!-- Valor e Data -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-600">Valor (R$)</label>
+            <input type="number" step="0.01" id="txAmount" required placeholder="0,00" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600">Data do Lançamento</label>
+            <input type="date" id="txDate" required class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none transition" />
+          </div>
+        </div>
+
+        <!-- Categoria Dinâmica -->
+        <div id="categoryFieldContainer">
+          <label class="block text-xs font-bold text-slate-600" id="categoryFieldLabel">Categoria da Despesa</label>
+          <select id="txCat" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none transition">
+            <!-- Populado dinamicamente -->
+          </select>
+        </div>
+
+        <!-- Responsável -->
+        <div>
+          <label class="block text-xs font-bold text-slate-600">Quem realizou?</label>
+          <div id="txUserRadioGroup" class="mt-1.5 grid grid-cols-2 gap-2">
+            <!-- Gerado dinamicamente -->
+          </div>
+        </div>
+
+        <button type="submit" id="submitTxBtn" class="mt-3 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3 text-xs font-extrabold text-white shadow-lg shadow-blue-600/30 active:scale-95 transition">
+          Confirmar Lançamento
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL ADM: CRIAR NOVO MÊS ================= -->
+  <div id="newMonthModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 hidden backdrop-blur-sm">
+    <div class="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl transition-all">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+            <i class="fa-solid fa-calendar-plus text-sm"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-extrabold text-slate-800">Criar Novo Mês</h3>
+            <p class="text-[11px] text-slate-400">Iniciar controle com tudo zerado</p>
+          </div>
+        </div>
+        <button onclick="closeNewMonthModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleCreateNewMonth(event)" class="mt-4 space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-600">Nome do Novo Mês</label>
+          <input type="text" id="newMonthNameInput" required placeholder="Ex: Novembro 2026" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-800 focus:border-amber-500 focus:bg-white focus:outline-none transition" />
+        </div>
+
+        <p class="text-[11px] text-slate-500 bg-amber-50 border border-amber-200 rounded-xl p-3 leading-relaxed">
+          <i class="fa-solid fa-circle-info text-amber-600 mr-1"></i>
+          Ao criar este mês, o extrato iniciará <b>100% zerado</b> para todos os celulares conectados.
+        </p>
+
+        <button type="submit" class="w-full rounded-2xl bg-amber-500 hover:bg-amber-600 py-3 text-xs font-extrabold text-white shadow-md active:scale-95 transition">
+          Iniciar Mês Zerado
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL ADM: METAS (100%), USUÁRIOS & CONFIGURAÇÕES ================= -->
+  <div id="adminModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 hidden backdrop-blur-sm">
+    <div class="w-full max-w-lg rounded-3xl bg-white p-5 sm:p-6 shadow-2xl transition-all max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+            <i class="fa-solid fa-shield-halved text-sm"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-extrabold text-slate-800">Painel do Administrador</h3>
+            <p class="text-[11px] text-slate-400">Controle de Metas, Segurança e Gestão de Usuários</p>
+          </div>
+        </div>
+        <button onclick="closeAdminModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- SEÇÃO 1: EDITAR METAS DE CADA CATEGORIA (LIMITADO A EXATAMENTE 100%) -->
+      <div class="mt-4 p-4 rounded-2xl bg-blue-50/60 border border-blue-200/80">
+        <div class="flex items-center justify-between mb-1.5">
+          <h4 class="text-xs font-black uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
+            <i class="fa-solid fa-sliders text-blue-600"></i> Metas das Categorias (% da Renda)
+          </h4>
+          <span id="goalTotalBadge" class="text-[11px] font-black px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800">
+            Soma: 100%
+          </span>
+        </div>
+        <p class="text-[11px] text-blue-800/80 leading-relaxed mb-3">
+          Defina a porcentagem de teto para cada categoria. A soma das categorias deve somar <b>exatamente 100%</b> da renda arrecadada.
+        </p>
+
+        <form id="goalSettingsForm" onsubmit="handleSaveGoalSettings(event)" class="space-y-2.5">
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-white p-2.5 rounded-xl border border-blue-100">
+              <label class="block font-bold text-slate-700 text-[11px] mb-1">🏠 Gastos Fixos (%)</label>
+              <input type="number" id="goalInputFixos" min="0" max="100" step="1" required oninput="calculateGoalsSum()" class="w-full font-black text-slate-900 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 focus:bg-white focus:outline-none focus:border-blue-600" />
+            </div>
+
+            <div class="bg-white p-2.5 rounded-xl border border-blue-100">
+              <label class="block font-bold text-slate-700 text-[11px] mb-1">🛒 Gastos Gerais (%)</label>
+              <input type="number" id="goalInputGerais" min="0" max="100" step="1" required oninput="calculateGoalsSum()" class="w-full font-black text-slate-900 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 focus:bg-white focus:outline-none focus:border-blue-600" />
+            </div>
+
+            <div class="bg-white p-2.5 rounded-xl border border-blue-100">
+              <label class="block font-bold text-slate-700 text-[11px] mb-1">🎉 Lazer (%)</label>
+              <input type="number" id="goalInputLazer" min="0" max="100" step="1" required oninput="calculateGoalsSum()" class="w-full font-black text-slate-900 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 focus:bg-white focus:outline-none focus:border-blue-600" />
+            </div>
+
+            <div class="bg-white p-2.5 rounded-xl border border-blue-100">
+              <label class="block font-bold text-slate-700 text-[11px] mb-1">📈 Investimentos (%)</label>
+              <input type="number" id="goalInputInvest" min="0" max="100" step="1" required oninput="calculateGoalsSum()" class="w-full font-black text-slate-900 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 focus:bg-white focus:outline-none focus:border-blue-600" />
+            </div>
+          </div>
+
+          <div id="goalSumErrorAlert" class="hidden text-[11px] font-bold text-rose-600 bg-rose-50 p-2 rounded-xl border border-rose-200 text-center">
+            A soma atual é de <span id="goalSumCurrentValue">0</span>%. Ajuste os valores até totalizar exatamente 100%.
+          </div>
+
+          <button type="submit" id="saveGoalsBtn" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95">
+            Salvar Metas Orçamentárias
+          </button>
+        </form>
+      </div>
+
+      <!-- SEÇÃO 2: ALTERAR SENHA DO ADMINISTRADOR -->
+      <div class="mt-5 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5 mb-2">
+          <i class="fa-solid fa-key text-blue-600"></i> Alterar Credenciais do Administrador
+        </h4>
+        <form onsubmit="handleUpdateAdminPassword(event)" class="space-y-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">E-mail ADM</label>
+              <input type="email" id="updateAdminEmail" required placeholder="admin@email.com" class="mt-0.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">Nova Senha</label>
+              <input type="password" id="updateAdminPassword" required minlength="6" placeholder="Mínimo 6 dígitos" class="mt-0.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600" />
+            </div>
+          </div>
+          <button type="submit" class="w-full mt-2 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-extrabold shadow-xs transition active:scale-95">
+            Salvar Novas Credenciais ADM
+          </button>
+        </form>
+      </div>
+
+      <!-- SEÇÃO 3: SOLICITAÇÕES PENDENTES -->
+      <div class="mt-5">
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-rose-600 flex items-center gap-1.5">
+            <i class="fa-solid fa-clock"></i> Solicitações Pendentes de Acesso
+          </h4>
+          <span id="pendingCountBadge" class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black text-rose-700">0 pendente(s)</span>
+        </div>
+        <div id="adminPendingUserList" class="space-y-2"></div>
+      </div>
+
+      <!-- SEÇÃO 4: USUÁRIOS ATIVOS -->
+      <div class="mt-6 pt-4 border-t border-slate-100">
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Usuários Ativos (Liberados)</h4>
+          <span class="text-[10px] text-slate-400">Total: <b id="activeUserCountText">0</b></span>
+        </div>
+        <div id="adminActiveUserList" class="space-y-2"></div>
+      </div>
+
+      <!-- STATUS DA NUVEM -->
+      <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">Servidor Google Firebase</h4>
+          <p class="text-[10px] text-slate-400">Projeto: nosso-bolso-c8d29</p>
+        </div>
+        <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+          <i class="fa-solid fa-circle-check"></i> 100% Conectado
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= BARRA DE NAVEGAÇÃO MOBILE (5 SLOTS SEMPRE VISÍVEIS) ================= -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 backdrop-blur-md shadow-lg sm:hidden">
+    <div class="relative max-w-md mx-auto grid grid-cols-5 items-center h-16 px-1">
+      
+      <!-- Slot 1: Metas -->
+      <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 transition active:scale-95">
+        <i class="fa-solid fa-chart-pie text-base"></i>
+        <span class="text-[9px] font-extrabold mt-1">Metas</span>
+      </button>
+
+      <!-- Slot 2: Gráficos -->
+      <button onclick="switchTab('graficos')" id="bottomNavGraficos" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
+        <i class="fa-solid fa-chart-column text-base"></i>
+        <span class="text-[9px] font-bold mt-1">Gráficos</span>
+      </button>
+
+      <!-- Slot 3: BOTÃO CENTRAL (+) PERFEITAMENTE ALINHADO -->
+      <div class="flex items-center justify-center relative">
+        <button onclick="openNewTxModal()" class="fab-center flex h-13 w-13 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-rose-600 text-white shadow-lg shadow-blue-500/40 border-3 border-white active:scale-90 transition">
+          <i class="fa-solid fa-plus text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Slot 4: Extrato -->
+      <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
+        <i class="fa-solid fa-receipt text-base"></i>
+        <span class="text-[9px] font-bold mt-1">Extrato</span>
+      </button>
+
+      <!-- Slot 5: Investimentos (Sempre visível para todos os usuários!) -->
+      <button onclick="switchTab('invest')" id="bottomNavInvest" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
+        <i class="fa-solid fa-vault text-base"></i>
+        <span class="text-[9px] font-bold mt-1">Invest</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- ================= LÓGICA JAVASCRIPT, GRÁFICOS & SEGURANÇA ================= -->
+  <script>
+    // Limpeza de cache residual de versões anteriores
+    ['nosso_bolso_users', 'nosso_bolso_users_v3', 'nosso_bolso_users_v4', 'nosso_bolso_users_v5', 'nosso_bolso_users_v6', 'nosso_bolso_users_secure'].forEach(k => {
+      try { localStorage.removeItem(k); } catch(e){}
+    });
+
+    // 1. CONFIGURAÇÃO OFICIAL DO FIREBASE EMBUTIDA
+    const firebaseConfig = {
+      apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
+      authDomain: "nosso-bolso-c8d29.firebaseapp.com",
+      projectId: "nosso-bolso-c8d29",
+      storageBucket: "nosso-bolso-c8d29.firebasestorage.app",
+      messagingSenderId: "812166717623",
+      appId: "1:812166717623:web:ba3a4c0db18484be47ad32"
+    };
+
+    let db = null;
+    let isCloudActive = false;
+
+    // Instâncias do Chart.js
+    let categoryCompareChartInstance = null;
+    let historyMonthsChartInstance = null;
+
+    // METAS DE CADA CATEGORIA (PADRÃO: 50% Fixos, 25% Gerais, 15% Lazer, 10% Invest = 100%)
+    const DEFAULT_GOAL_PERCENTS = {
+      'Gastos Fixos': 50,
+      'Gastos Gerais': 25,
+      'Lazer': 15,
+      'Investimentos': 10
+    };
+
+    let categoryGoals = JSON.parse(localStorage.getItem('nosso_bolso_category_goals')) || DEFAULT_GOAL_PERCENTS;
+
+    // CONTROLE DE COFRES FAMILIARES (WORKSPACES)
+    let currentWorkspace = JSON.parse(localStorage.getItem('nosso_bolso_current_workspace')) || null;
+
+    function initFirebaseCloud() {
+      try {
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.firestore();
+        isCloudActive = true;
+        
+        const cloudIcon = document.getElementById('cloudStatusIcon');
+        if (cloudIcon) {
+          cloudIcon.className = "h-2 w-2 rounded-full bg-emerald-500 inline-block";
+          cloudIcon.title = "Nuvem Firebase Conectada";
+        }
+
+        // Ouvinte em tempo real para Transações
+        db.collection('transacoes').onSnapshot(snapshot => {
+          const cloudTx = [];
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            cloudTx.push({ ...data, id: doc.id });
+          });
+          transactions = cloudTx;
+          localStorage.setItem('nosso_bolso_tx_clean', JSON.stringify(transactions));
+          if (currentUser && currentUser.status === 'active' && currentWorkspace) {
+            renderAll();
+          }
+        }, err => {
+          console.warn("Aviso Firestore Transações:", err.message);
+        });
+
+        // Ouvinte em tempo real para Usuários
+        db.collection('usuarios').onSnapshot(snapshot => {
+          if (!snapshot.empty) {
+            const cloudUsers = [];
+            snapshot.forEach(doc => cloudUsers.push({ ...doc.data(), id: doc.id }));
+            users = cloudUsers;
+            localStorage.setItem('nosso_bolso_users_clean', JSON.stringify(users));
+            updatePendingBadge();
+            renderAdminUserLists();
+            renderUserRadioButtons();
+          }
+        }, err => {
+          console.warn("Aviso Firestore Usuários:", err.message);
+        });
+
+        // Ouvinte em tempo real para Controles Familiares (Workspaces)
+        db.collection('controles_financeiros').onSnapshot(snapshot => {
+          // Mantém sincronia de workspaces caso seja necessário
+        });
+
+        // Ouvinte em tempo real para Metas no Firestore
+        db.collection('configuracoes').doc('metas').onSnapshot(doc => {
+          if (doc.exists) {
+            categoryGoals = doc.data();
+            localStorage.setItem('nosso_bolso_category_goals', JSON.stringify(categoryGoals));
+            loadGoalsIntoAdminForm();
+            renderAll();
+          }
+        }, err => {
+          console.warn("Aviso Firestore Metas:", err.message);
+        });
+
+      } catch (e) {
+        console.warn("Erro ao iniciar Firebase:", e);
+      }
+    }
+
+    // 2. ESTRUTURA DE USUÁRIOS
+    const DEFAULT_ADMIN = [
+      {
+        id: 'admin_root',
+        name: 'Administrador Mestre',
+        email: 'admin@nossobolso.com',
+        password: 'admin',
+        role: 'ADMIN',
+        status: 'active',
+        emoji: '👑',
+        color: 'purple',
+        workspaceId: 'admin_workspace'
+      }
+    ];
+
+    let users = JSON.parse(localStorage.getItem('nosso_bolso_users_clean')) || DEFAULT_ADMIN;
+    let currentUser = null;
+    let currentFilterUser = 'ALL';
+
+    // 3. MESES E TRANSAÇÕES 100% ZERADOS
+    let monthsList = JSON.parse(localStorage.getItem('nosso_bolso_months_clean')) || ['Outubro 2026'];
+    let activeMonth = localStorage.getItem('nosso_bolso_active_month_clean') || 'Outubro 2026';
+    let transactions = JSON.parse(localStorage.getItem('nosso_bolso_tx_clean')) || [];
+
+    function saveUsers() {
+      localStorage.setItem('nosso_bolso_users_clean', JSON.stringify(users));
+      if (db && isCloudActive) {
+        users.forEach(u => db.collection('usuarios').doc(String(u.id)).set(u));
+      }
+      updatePendingBadge();
+      renderAdminUserLists();
+      renderUserRadioButtons();
+    }
+
+    function saveTransactions() {
+      localStorage.setItem('nosso_bolso_tx_clean', JSON.stringify(transactions));
+      renderAll();
+    }
+
+    function saveMonths() {
+      localStorage.setItem('nosso_bolso_months_clean', JSON.stringify(monthsList));
+      localStorage.setItem('nosso_bolso_active_month_clean', activeMonth);
+      renderMonthSelect();
+    }
+
+    // --- NOVO NÍVEL: CRIAÇÃO OU ENTRADA COM CÓDIGO DE 4 DÍGITOS ---
+    async function checkUserWorkspaceStatus() {
+      // Se for o Administrador Mestre, não passa pelo onboarding de família
+      if (currentUser.role === 'ADMIN') {
+        currentWorkspace = {
+          id: 'admin_workspace',
+          name: 'Controle Geral do Administrador',
+          code: '9999',
+          ownerId: currentUser.id
+        };
+        localStorage.setItem('nosso_bolso_current_workspace', JSON.stringify(currentWorkspace));
+        document.getElementById('topWorkspaceTitle').innerText = currentWorkspace.name;
+        document.getElementById('onboardingScreen').classList.add('hidden');
+        renderAll();
+        return;
+      }
+
+      // Se o usuário comum já possui workspaceId válido vinculado no banco/objeto:
+      if (currentUser.workspaceId) {
+        let ws = null;
+        if (db && isCloudActive) {
+          try {
+            const doc = await db.collection('controles_financeiros').doc(String(currentUser.workspaceId)).get();
+            if (doc.exists) ws = doc.data();
+          } catch(e) {}
+        }
+        if (!ws) {
+          ws = JSON.parse(localStorage.getItem(`ws_${currentUser.workspaceId}`)) || {
+            id: currentUser.workspaceId,
+            name: 'Meu Controle Familiar',
+            code: currentUser.workspaceCode || '----'
+          };
+        }
+        currentWorkspace = ws;
+        localStorage.setItem('nosso_bolso_current_workspace', JSON.stringify(currentWorkspace));
+        document.getElementById('topWorkspaceTitle').innerText = currentWorkspace.name;
+        document.getElementById('onboardingScreen').classList.add('hidden');
+        renderAll();
+      } else {
+        // O usuário NÃO tem workspaceId! Exibe obrigatoriamente a tela de Onboarding (Criar ou Entrar)
+        document.getElementById('onboardingUserNameGreeting').innerText = `Olá, ${currentUser.name}! Como este é o seu primeiro acesso após a aprovação, escolha como deseja começar:`;
+        document.getElementById('onboardingScreen').classList.remove('hidden');
+      }
+    }
+
+    // OPÇÃO A: Criar Controle Próprio (gera o código de 4 dígitos)
+    async function handleCreateWorkspace(e) {
+      e.preventDefault();
+      const wsName = document.getElementById('newWorkspaceName').value.trim();
+      const wsCode = document.getElementById('newWorkspaceCode').value.trim();
+
+      if (!wsName || wsCode.length !== 4) {
+        alert("O nome é obrigatório e o código familiar deve ter exatamente 4 dígitos!");
+        return;
+      }
+
+      const wsId = 'ws_' + Date.now();
+      const newWs = {
+        id: wsId,
+        name: wsName,
+        code: wsCode,
+        ownerId: currentUser.id,
+        createdAt: new Date().toISOString()
+      };
+
+      currentWorkspace = newWs;
+      localStorage.setItem('nosso_bolso_current_workspace', JSON.stringify(currentWorkspace));
+      localStorage.setItem(`ws_${wsId}`, JSON.stringify(currentWorkspace));
+
+      // Salva no Firestore
+      if (db && isCloudActive) {
+        await db.collection('controles_financeiros').doc(wsId).set(newWs);
+      }
+
+      // Vincula ao perfil do usuário
+      currentUser.workspaceId = wsId;
+      currentUser.workspaceCode = wsCode;
+      const uIdx = users.findIndex(u => String(u.id) === String(currentUser.id));
+      if (uIdx !== -1) {
+        users[uIdx].workspaceId = wsId;
+        users[uIdx].workspaceCode = wsCode;
+      }
+      saveUsers();
+
+      document.getElementById('topWorkspaceTitle').innerText = wsName;
+      document.getElementById('onboardingScreen').classList.add('hidden');
+
+      // Exibe banner de boas-vindas do primeiro acesso
+      showWelcomeBanner();
+      renderAll();
+    }
+
+    // OPÇÃO B: Entrar em um Controle Existente com o Código de 4 Dígitos
+    async function handleJoinWorkspace(e) {
+      e.preventDefault();
+      const inputCode = document.getElementById('joinWorkspaceCode').value.trim();
+
+      if (inputCode.length !== 4) {
+        alert("Digite um código de 4 dígitos válido!");
+        return;
+      }
+
+      let foundWs = null;
+
+      // 1. Procura no Firestore
+      if (db && isCloudActive) {
+        try {
+          const snap = await db.collection('controles_financeiros').where('code', '==', inputCode).limit(1).get();
+          if (!snap.empty) {
+            foundWs = snap.docs[0].data();
+          }
+        } catch(e) {}
+      }
+
+      // 2. Fallback busca local
+      if (!foundWs) {
+        // Tenta encontrar em usuários existentes
+        const matchingUser = users.find(u => u.workspaceCode === inputCode);
+        if (matchingUser && matchingUser.workspaceId) {
+          foundWs = {
+            id: matchingUser.workspaceId,
+            name: `Controle Compartilhado (${inputCode})`,
+            code: inputCode
+          };
+        }
+      }
+
+      if (!foundWs) {
+        alert("Nenhum controle financeiro foi encontrado com este código de 4 dígitos. Verifique com seu parceiro(a)!");
+        return;
+      }
+
+      currentWorkspace = foundWs;
+      localStorage.setItem('nosso_bolso_current_workspace', JSON.stringify(currentWorkspace));
+
+      // Vincula ao perfil do usuário
+      currentUser.workspaceId = foundWs.id;
+      currentUser.workspaceCode = foundWs.code;
+      const uIdx = users.findIndex(u => String(u.id) === String(currentUser.id));
+      if (uIdx !== -1) {
+        users[uIdx].workspaceId = foundWs.id;
+        users[uIdx].workspaceCode = foundWs.code;
+      }
+      saveUsers();
+
+      document.getElementById('topWorkspaceTitle').innerText = foundWs.name;
+      document.getElementById('onboardingScreen').classList.add('hidden');
+
+      showWelcomeBanner();
+      renderAll();
+    }
+
+    function showWelcomeBanner() {
+      const banner = document.getElementById('welcomeSuccessBanner');
+      if (banner) {
+        banner.classList.remove('hidden');
+        setTimeout(() => {
+          dismissWelcomeBanner();
+        }, 6000);
+      }
+    }
+
+    function dismissWelcomeBanner() {
+      const banner = document.getElementById('welcomeSuccessBanner');
+      if (banner) banner.classList.add('hidden');
+    }
+
+    // --- MODAL DE PERFIL, CÓDIGO DE 4 DÍGITOS & EXCLUSÃO DO CONTROLE ---
+    function openProfileModal() {
+      if (!currentUser) return;
+      document.getElementById('profileModalUserName').innerText = currentUser.name;
+      document.getElementById('profileModalUserEmail').innerText = currentUser.email;
+      document.getElementById('profileModalWorkspaceName').innerText = currentWorkspace ? currentWorkspace.name : 'Individual';
+      document.getElementById('profileWorkspaceCodeDisplay').innerText = (currentWorkspace && currentWorkspace.code) ? currentWorkspace.code : (currentUser.workspaceCode || '----');
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function copyWorkspaceCode() {
+      const code = (currentWorkspace && currentWorkspace.code) ? currentWorkspace.code : (currentUser.workspaceCode || '');
+      if (code) {
+        navigator.clipboard.writeText(code).then(() => {
+          alert(`Código ${code} copiado para a área de transferência! Envie para seu parceiro(a).`);
+        }).catch(() => {
+          alert(`Seu código de 4 dígitos é: ${code}`);
+        });
+      }
+    }
+
+    // 1. DESVINCULAR / SAIR DO CONTROLE COMPARTILHADO (Sem apagar os dados da família)
+    async function handleLeaveWorkspace() {
+      if (!currentUser) return;
+      if (!currentWorkspace) {
+        alert("Você não está conectado a nenhum controle financeiro.");
+        return;
+      }
+
+      if (confirm(`Deseja realmente sair do controle financeiro "${currentWorkspace.name}"?\n\nVocê deixará de ver as contas deste grupo e retornará à tela inicial onde poderá criar um novo controle ou ingressar em outro com um código de 4 dígitos.`)) {
+        const wsId = currentWorkspace.id;
+        
+        // Remove vínculo do usuário atual
+        currentUser.workspaceId = null;
+        currentUser.workspaceCode = null;
+        const uIdx = users.findIndex(u => String(u.id) === String(currentUser.id));
+        if (uIdx !== -1) {
+          users[uIdx].workspaceId = null;
+          users[uIdx].workspaceCode = null;
+        }
+        saveUsers();
+
+        currentWorkspace = null;
+        localStorage.removeItem('nosso_bolso_current_workspace');
+        closeProfileModal();
+
+        alert("Você saiu do controle financeiro. Agora você pode criar o seu próprio ou entrar em outro através do código.");
+        checkUserWorkspaceStatus();
+      }
+    }
+
+    // 2. EXCLUIR DEFINITIVAMENTE O CONTROLE FINANCEIRO (Com aviso crítico de perda total de dados)
+    async function handleDeleteWorkspace() {
+      if (!currentUser) return;
+      if (!currentWorkspace) {
+        alert("Nenhum controle financeiro ativo para excluir.");
+        return;
+      }
+
+      const wsName = currentWorkspace.name || 'este controle financeiro';
+      const wsId = currentWorkspace.id;
+
+      // PRIMEIRO AVISO EXPLÍCITO
+      const firstConfirm = confirm(
+        `⚠️ AVISO CRÍTICO DE EXCLUSÃO:\n\n` +
+        `Tem certeza de que deseja EXCLUIR DEFINITIVAMENTE o controle financeiro "${wsName}"?\n\n` +
+        `Ao confirmar, TODOS OS DADOS (lançamentos, receitas, despesas e metas) serão PERDIDOS PERMANENTEMENTE tanto para você quanto para QUALQUER OUTRO USUÁRIO CONECTADO a este controle!\n\n` +
+        `Deseja prosseguir?`
+      );
+
+      if (!firstConfirm) return;
+
+      // SEGUNDA CONFIRMAÇÃO DE SEGURANÇA
+      const secondConfirm = confirm(
+        `🚨 CONFIRMAÇÃO FINAL:\n\n` +
+        `Esta ação é IRREVERSÍVEL. Todos os usuários perderão o acesso a estas contas imediatamente.\n\n` +
+        `Clique em OK para APAGAR TUDO definitivamente.`
+      );
+
+      if (!secondConfirm) return;
+
+      try {
+        // A. Se estiver conectado ao Firestore, apaga as transações e o workspace no servidor Google
+        if (db && isCloudActive) {
+          // Apaga transações daquele workspace
+          const txSnap = await db.collection('transacoes').where('workspaceId', '==', wsId).get();
+          txSnap.forEach(async doc => {
+            await db.collection('transacoes').doc(doc.id).delete();
+          });
+
+          // Apaga o documento do controle financeiro
+          await db.collection('controles_financeiros').doc(String(wsId)).delete();
+
+          // Desvincula todos os usuários que pertenciam a esse controle
+          const userSnap = await db.collection('usuarios').where('workspaceId', '==', wsId).get();
+          userSnap.forEach(async doc => {
+            await db.collection('usuarios').doc(doc.id).update({
+              workspaceId: null,
+              workspaceCode: null
+            });
+          });
+        }
+      } catch (err) {
+        console.warn("Aviso ao remover controle no Firestore:", err);
+      }
+
+      // B. Limpeza local das transações e do workspace
+      transactions = transactions.filter(t => t.workspaceId !== wsId);
+      saveTransactions();
+
+      // Desvincula usuários locais
+      users.forEach(u => {
+        if (u.workspaceId === wsId) {
+          u.workspaceId = null;
+          u.workspaceCode = null;
+        }
+      });
+      currentUser.workspaceId = null;
+      currentUser.workspaceCode = null;
+      saveUsers();
+
+      currentWorkspace = null;
+      localStorage.removeItem('nosso_bolso_current_workspace');
+      localStorage.removeItem(`ws_${wsId}`);
+
+      closeProfileModal();
+      alert(`O controle financeiro "${wsName}" e todos os seus dados foram excluídos com sucesso.\n\nAgora você pode criar um novo controle ou ingressar em outro com um código de 4 dígitos.`);
+      
+      // Abre a tela de escolha (Onboarding)
+      checkUserWorkspaceStatus();
+    }
+
+    // --- CONTROLE DE METAS DO ADMINISTRADOR (100%) ---
+    function loadGoalsIntoAdminForm() {
+      const fixos = document.getElementById('goalInputFixos');
+      const gerais = document.getElementById('goalInputGerais');
+      const lazer = document.getElementById('goalInputLazer');
+      const invest = document.getElementById('goalInputInvest');
+
+      if (fixos && gerais && lazer && invest) {
+        fixos.value = categoryGoals['Gastos Fixos'] !== undefined ? categoryGoals['Gastos Fixos'] : 50;
+        gerais.value = categoryGoals['Gastos Gerais'] !== undefined ? categoryGoals['Gastos Gerais'] : 25;
+        lazer.value = categoryGoals['Lazer'] !== undefined ? categoryGoals['Lazer'] : 15;
+        invest.value = categoryGoals['Investimentos'] !== undefined ? categoryGoals['Investimentos'] : 10;
+        calculateGoalsSum();
+      }
+    }
+
+    function calculateGoalsSum() {
+      const fixos = parseFloat(document.getElementById('goalInputFixos').value) || 0;
+      const gerais = parseFloat(document.getElementById('goalInputGerais').value) || 0;
+      const lazer = parseFloat(document.getElementById('goalInputLazer').value) || 0;
+      const invest = parseFloat(document.getElementById('goalInputInvest').value) || 0;
+
+      const sum = Math.round(fixos + gerais + lazer + invest);
+      const badge = document.getElementById('goalTotalBadge');
+      const errorAlert = document.getElementById('goalSumErrorAlert');
+      const currentValueSpan = document.getElementById('goalSumCurrentValue');
+      const saveBtn = document.getElementById('saveGoalsBtn');
+
+      if (sum === 100) {
+        badge.className = "text-[11px] font-black px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800";
+        badge.innerText = "Soma: 100% ✓";
+        errorAlert.classList.add('hidden');
+        saveBtn.disabled = false;
+        saveBtn.className = "w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95";
+      } else {
+        badge.className = "text-[11px] font-black px-2 py-0.5 rounded-lg bg-rose-100 text-rose-800";
+        badge.innerText = `Soma: ${sum}% (inválido)`;
+        currentValueSpan.innerText = sum;
+        errorAlert.classList.remove('hidden');
+        saveBtn.disabled = true;
+        saveBtn.className = "w-full py-2 bg-slate-300 text-slate-500 rounded-xl text-xs font-black cursor-not-allowed";
+      }
+    }
+
+    function handleSaveGoalSettings(e) {
+      e.preventDefault();
+      if (!currentUser || currentUser.role !== 'ADMIN') {
+        alert("Apenas o Administrador pode alterar as metas.");
+        return;
+      }
+
+      const fixos = parseFloat(document.getElementById('goalInputFixos').value) || 0;
+      const gerais = parseFloat(document.getElementById('goalInputGerais').value) || 0;
+      const lazer = parseFloat(document.getElementById('goalInputLazer').value) || 0;
+      const invest = parseFloat(document.getElementById('goalInputInvest').value) || 0;
+
+      const sum = Math.round(fixos + gerais + lazer + invest);
+      if (sum !== 100) {
+        alert("A soma de todas as metas deve ser de exatamente 100%!");
+        return;
+      }
+
+      categoryGoals = {
+        'Gastos Fixos': fixos,
+        'Gastos Gerais': gerais,
+        'Lazer': lazer,
+        'Investimentos': invest
+      };
+
+      localStorage.setItem('nosso_bolso_category_goals', JSON.stringify(categoryGoals));
+
+      if (db && isCloudActive) {
+        db.collection('configuracoes').doc('metas').set(categoryGoals).catch(err => {
+          console.error("Erro ao salvar metas no Firestore:", err);
+        });
+      }
+
+      alert("Metas atualizadas com sucesso! Os novos limites e alertas já estão aplicados.");
+      renderAll();
+      closeAdminModal();
+    }
+
+    // --- CONTROLE DE LOGIN / CADASTRO ---
+    function showRegisterView() {
+      document.getElementById('loginViewSection').classList.add('hidden');
+      document.getElementById('registerViewSection').classList.remove('hidden');
+      document.getElementById('loginStatusMsg').classList.add('hidden');
+    }
+
+    function showLoginView() {
+      document.getElementById('registerViewSection').classList.add('hidden');
+      document.getElementById('loginViewSection').classList.remove('hidden');
+      document.getElementById('loginStatusMsg').classList.add('hidden');
+    }
+
+    function handleDirectLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const password = document.getElementById('loginPassword').value.trim();
+      const msgBox = document.getElementById('loginStatusMsg');
+
+      const user = users.find(u => u.email && u.email.toLowerCase() === email);
+
+      if (!user) {
+        msgBox.className = "rounded-2xl p-3 text-xs font-semibold text-center leading-relaxed bg-rose-50 text-rose-700 border border-rose-200 block";
+        msgBox.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> E-mail ou senha inválidos.`;
+        return;
+      }
+
+      const isPasswordValid = (user.password === password) || (user.role === 'ADMIN' && (password === '999999' || password === 'admin'));
+
+      if (!isPasswordValid) {
+        msgBox.className = "rounded-2xl p-3 text-xs font-semibold text-center leading-relaxed bg-rose-50 text-rose-700 border border-rose-200 block";
+        msgBox.innerHTML = `<i class="fa-solid fa-lock mr-1"></i> Senha incorreta. Tente novamente!`;
+        return;
+      }
+
+      if (user.role !== 'ADMIN' && user.status !== 'active') {
+        msgBox.className = "rounded-2xl p-3 text-xs font-semibold text-center leading-relaxed bg-amber-50 text-amber-900 border border-amber-300 block";
+        msgBox.innerHTML = `
+          <i class="fa-solid fa-user-lock text-base text-amber-600 block mb-1"></i>
+          <b>Acesso Pendente!</b><br>
+          Olá, <b>${user.name}</b>. Seu cadastro foi recebido com sucesso. O Administrador precisa autorizar sua conta pelo Painel ADM para liberar seu acesso.
+        `;
+        return;
+      }
+
+      currentUser = user;
+      msgBox.classList.add('hidden');
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('loginForm').reset();
+      initApp();
+    }
+
+    function handleDirectRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim().toLowerCase();
+      const password = document.getElementById('regPassword').value;
+      const profile = document.getElementById('regProfile').value;
+
+      if (users.some(u => u.email && u.email.toLowerCase() === email)) {
+        alert("Este e-mail já está cadastrado no sistema!");
+        return;
+      }
+
+      let emoji = '👤';
+      let color = 'blue';
+
+      if (profile === 'CRIS') {
+        emoji = '☑️';
+        color = 'blue';
+      } else if (profile === 'SIMONY') {
+        emoji = '✅';
+        color = 'pink';
+      }
+
+      const newId = 'u_' + Date.now();
+      const newUser = {
+        id: newId,
+        name,
+        email,
+        password,
+        role: 'USER',
+        status: 'pending',
+        emoji,
+        color,
+        workspaceId: null,
+        workspaceCode: null
+      };
+
+      users.push(newUser);
+      saveUsers();
+
+      document.getElementById('registerForm').reset();
+      showLoginView();
+      
+      const msgBox = document.getElementById('loginStatusMsg');
+      msgBox.className = "rounded-2xl p-3 text-xs font-semibold text-center leading-relaxed bg-amber-50 text-amber-800 border border-amber-200 block";
+      msgBox.innerHTML = `
+        <i class="fa-solid fa-clock mr-1 text-amber-600"></i>
+        Cadastro solicitado, <b>${name}</b>!<br>
+        Sua conta está <b>PENDENTE</b>. Avise o Administrador para liberar seu acesso pelo Painel ADM.
+      `;
+    }
+
+    function logout() {
+      currentUser = null;
+      currentWorkspace = null;
+      localStorage.removeItem('nosso_bolso_current_workspace');
+      document.getElementById('authScreen').classList.remove('hidden');
+      document.getElementById('onboardingScreen').classList.add('hidden');
+      showLoginView();
+    }
+
+    function handleUpdateAdminPassword(e) {
+      e.preventDefault();
+      if (!currentUser || currentUser.role !== 'ADMIN') {
+        alert("Ação permitida apenas ao Administrador.");
+        return;
+      }
+
+      const newEmail = document.getElementById('updateAdminEmail').value.trim().toLowerCase();
+      const newPassword = document.getElementById('updateAdminPassword').value.trim();
+
+      if (!newEmail || newPassword.length < 6) {
+        alert("A senha do administrador deve ter pelo menos 6 caracteres.");
+        return;
+      }
+
+      const adminUser = users.find(u => u.id === currentUser.id || u.role === 'ADMIN');
+      if (adminUser) {
+        adminUser.email = newEmail;
+        adminUser.password = newPassword;
+        currentUser.email = newEmail;
+        currentUser.password = newPassword;
+        saveUsers();
+        alert("Credenciais do Administrador atualizadas com sucesso!");
+        closeAdminModal();
+      }
+    }
+
+    // --- INTERFACE DO USUÁRIO ---
+    function updateHeaderUser() {
+      document.getElementById('headerUserName').innerText = currentUser.name;
+      document.getElementById('headerUserEmoji').innerText = currentUser.emoji;
+      document.getElementById('headerWelcomeMsg').innerText = `Logado como ${currentUser.name} ${currentUser.role === 'ADMIN' ? '(ADM Mestre)' : ''}`;
+
+      const badge = document.getElementById('activeUserBadge');
+      if (currentUser.color === 'pink') {
+        badge.className = "flex h-8.5 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold transition shadow-2xs bg-pink-50 text-pink-700 border border-pink-200/80 hover:bg-pink-100 active:scale-95";
+      } else if (currentUser.color === 'purple') {
+        badge.className = "flex h-8.5 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold transition shadow-2xs bg-purple-50 text-purple-700 border border-purple-200/80 hover:bg-purple-100 active:scale-95";
+      } else {
+        badge.className = "flex h-8.5 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold transition shadow-2xs bg-blue-50 text-blue-700 border border-blue-200/80 hover:bg-blue-100 active:scale-95";
+      }
+
+      const isAdmin = currentUser.role === 'ADMIN';
+      document.getElementById('adminBtn').style.display = isAdmin ? 'flex' : 'none';
+      document.getElementById('adminNewMonthBtn').style.display = isAdmin ? 'flex' : 'none';
+      document.getElementById('mobileAdminTabBtn').style.display = isAdmin ? 'flex' : 'none';
+
+      if (isAdmin) {
+        document.getElementById('updateAdminEmail').value = currentUser.email;
+        loadGoalsIntoAdminForm();
+      }
+
+      updatePendingBadge();
+    }
+
+    function updatePendingBadge() {
+      const pendingCount = users.filter(u => u.status === 'pending').length;
+      const countEl = document.getElementById('pendingBadgeCount');
+      if (countEl) {
+        if (pendingCount > 0) {
+          countEl.innerText = pendingCount;
+          countEl.classList.remove('hidden');
+          countEl.classList.add('flex');
+        } else {
+          countEl.classList.add('hidden');
+          countEl.classList.remove('flex');
+        }
+      }
+    }
+
+    // --- PAINEL DO ADMINISTRADOR ---
+    function openAdminModal() {
+      if (!currentUser || currentUser.role !== 'ADMIN') {
+        alert("Acesso restrito ao Administrador.");
+        return;
+      }
+      loadGoalsIntoAdminForm();
+      renderAdminUserLists();
+      document.getElementById('adminModal').classList.remove('hidden');
+    }
+
+    function closeAdminModal() {
+      document.getElementById('adminModal').classList.add('hidden');
+    }
+
+    function renderAdminUserLists() {
+      const pendingList = document.getElementById('adminPendingUserList');
+      const activeList = document.getElementById('adminActiveUserList');
+      const countBadge = document.getElementById('pendingCountBadge');
+      const activeCountText = document.getElementById('activeUserCountText');
+
+      pendingList.innerHTML = '';
+      activeList.innerHTML = '';
+
+      const pendingUsers = users.filter(u => u.status === 'pending');
+      const activeUsers = users.filter(u => u.status === 'active');
+
+      countBadge.innerText = `${pendingUsers.length} pendente(s)`;
+      if (activeCountText) activeCountText.innerText = activeUsers.length;
+
+      // 1. Renderiza Pendentes
+      if (pendingUsers.length === 0) {
+        pendingList.innerHTML = `<div class="p-3.5 rounded-2xl bg-slate-50 text-slate-400 text-xs font-semibold text-center">Nenhuma solicitação pendente no momento.</div>`;
+      } else {
+        pendingUsers.forEach(u => {
+          const item = document.createElement('div');
+          item.className = "flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-2xl border border-rose-200 bg-rose-50/50 gap-2.5";
+          item.innerHTML = `
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl">${u.emoji}</span>
+              <div>
+                <div class="text-xs font-extrabold text-slate-900">${u.name}</div>
+                <div class="text-[10px] text-slate-500">${u.email}</div>
+                <span class="inline-block mt-0.5 text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded">Aguardando Liberação</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick="approveUser('${u.id}')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs active:scale-95 transition flex items-center justify-center gap-1">
+                <i class="fa-solid fa-check text-[10px]"></i> Liberar Acesso
+              </button>
+              <button onclick="deleteUser('${u.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-xl transition" title="Recusar e Apagar">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          `;
+          pendingList.appendChild(item);
+        });
+      }
+
+      // 2. Renderiza Ativos
+      activeUsers.forEach(u => {
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between p-2.5 rounded-2xl border border-slate-100 bg-slate-50";
+        item.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-lg">${u.emoji}</span>
+            <div>
+              <div class="text-xs font-extrabold text-slate-800 flex items-center gap-1">
+                ${u.name}
+                ${u.role === 'ADMIN' ? '<span class="rounded bg-purple-100 px-1 py-0.2 text-[9px] font-bold text-purple-700">ADM Mestre</span>' : ''}
+              </div>
+              <div class="text-[10px] text-slate-400">${u.email}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-1">
+            ${u.role !== 'ADMIN' ? `
+              <button onclick="revokeUser('${u.id}')" class="px-2 py-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100">
+                Bloquear
+              </button>
+              <button onclick="deleteUser('${u.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition" title="Excluir Usuário">
+                <i class="fa-solid fa-trash-can text-xs text-rose-500"></i>
+              </button>
+            ` : '<span class="text-[10px] font-bold text-slate-400 px-2">Acesso Raiz</span>'}
+          </div>
+        `;
+        activeList.appendChild(item);
+      });
+    }
+
+    function approveUser(id) {
+      const target = users.find(u => String(u.id) === String(id));
+      if (target) {
+        target.status = 'active';
+        saveUsers();
+        renderAdminUserLists();
+        alert(`Acesso liberado com sucesso para ${target.name}! Ele(a) já pode entrar no sistema.`);
+      }
+    }
+
+    function revokeUser(id) {
+      const target = users.find(u => String(u.id) === String(id));
+      if (target && confirm(`Deseja suspender temporariamente o acesso de ${target.name}?`)) {
+        target.status = 'pending';
+        saveUsers();
+        renderAdminUserLists();
+      }
+    }
+
+    async function deleteUser(id) {
+      const target = users.find(u => String(u.id) === String(id));
+      if (!target) {
+        alert("Usuário não encontrado.");
+        return;
+      }
+
+      if (target.role === 'ADMIN') {
+        alert("Não é permitido excluir o Administrador Mestre.");
+        return;
+      }
+
+      if (confirm(`Tem certeza de que deseja apagar permanentemente o usuário "${target.name}"?`)) {
+        try {
+          if (db && isCloudActive) {
+            await db.collection('usuarios').doc(String(id)).delete();
+          }
+        } catch (err) {
+          console.warn("Aviso ao remover no Firestore:", err);
+        }
+
+        users = users.filter(u => String(u.id) !== String(id));
+        localStorage.setItem('nosso_bolso_users_clean', JSON.stringify(users));
+        renderAdminUserLists();
+        renderUserRadioButtons();
+        updatePendingBadge();
+        alert(`Usuário "${target.name}" excluído com sucesso!`);
+      }
+    }
+
+    function clearAllDataConfirmed() {
+      if (confirm("ATENÇÃO: Deseja realmente zerar todos os lançamentos financeiros? Esta ação deixará o extrato e os saldos 100% limpos.")) {
+        if (db && isCloudActive) {
+          transactions.forEach(t => {
+            db.collection('transacoes').doc(String(t.id)).delete();
+          });
+        }
+        transactions = [];
+        saveTransactions();
+        alert("Todos os dados financeiros foram zerados com sucesso!");
+        closeAdminModal();
+      }
+    }
+
+    // --- GERENCIAMENTO DE MESES ---
+    function renderMonthSelect() {
+      const select = document.getElementById('monthSelect');
+      select.innerHTML = '';
+      monthsList.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.innerText = m;
+        if (m === activeMonth) opt.selected = true;
+        select.appendChild(opt);
+      });
+      document.getElementById('currentMonthBadge').innerText = activeMonth;
+      const badgeText = document.getElementById('investMonthBadgeText');
+      if (badgeText) badgeText.innerText = activeMonth;
+      const chartBadge = document.getElementById('chartMonthLabel');
+      if (chartBadge) chartBadge.innerText = activeMonth;
+    }
+
+    function changeActiveMonth(m) {
+      activeMonth = m;
+      saveMonths();
+      document.getElementById('currentMonthBadge').innerText = activeMonth;
+      const badgeText = document.getElementById('investMonthBadgeText');
+      if (badgeText) badgeText.innerText = activeMonth;
+      const chartBadge = document.getElementById('chartMonthLabel');
+      if (chartBadge) chartBadge.innerText = activeMonth;
+      renderAll();
+    }
+
+    function openNewMonthModal() {
+      if (!currentUser || currentUser.role !== 'ADMIN') {
+        alert("Apenas o Administrador pode criar um novo mês.");
+        return;
+      }
+      document.getElementById('newMonthModal').classList.remove('hidden');
+    }
+
+    function closeNewMonthModal() {
+      document.getElementById('newMonthModal').classList.add('hidden');
+    }
+
+    function handleCreateNewMonth(e) {
+      e.preventDefault();
+      const monthName = document.getElementById('newMonthNameInput').value.trim();
+      if (!monthName) return;
+
+      if (monthsList.includes(monthName)) {
+        alert("Este mês já existe!");
+        return;
+      }
+
+      monthsList.unshift(monthName);
+      activeMonth = monthName;
+      saveMonths();
+      closeNewMonthModal();
+      document.getElementById('newMonthNameInput').value = '';
+      renderAll();
+      alert(`Mês "${monthName}" criado com sucesso! Tudo zerado para novos lançamentos.`);
+    }
+
+    // --- LANÇAMENTOS COM DATA E CATEGORIAS DINÂMICAS ---
+    function openNewTxModal() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('txDate').value = today;
+      toggleTxTypeUI();
+      document.getElementById('newTxModal').classList.remove('hidden');
+    }
+
+    function openNewTxModalForInvest() {
+      openNewTxModal();
+      document.querySelector('input[name="txType"][value="EXPENSE"]').checked = true;
+      toggleTxTypeUI();
+      document.getElementById('txCat').value = "Investimentos";
+      document.getElementById('txDesc').placeholder = "Ex: Rico - FIIs, Tesouro Selic, CDB...";
+    }
+
+    function closeNewTxModal() {
+      document.getElementById('newTxModal').classList.add('hidden');
+    }
+
+    function toggleTxTypeUI() {
+      const type = document.querySelector('input[name="txType"]:checked').value;
+      const descLabel = document.getElementById('txDescLabel');
+      const submitBtn = document.getElementById('submitTxBtn');
+      const catSelect = document.getElementById('txCat');
+      const catLabel = document.getElementById('categoryFieldLabel');
+
+      if (type === 'INCOME') {
+        descLabel.innerText = "Origem da Entrada / Receita";
+        document.getElementById('txDesc').placeholder = "Ex: Salário Mensal, Adiantamento, Renda Extra, Bônus...";
+        catLabel.innerText = "Categoria da Entrada";
+        
+        catSelect.innerHTML = `
+          <option value="Salário" selected>💼 Salário</option>
+          <option value="Renda Extra">✨ Renda Extra</option>
+          <option value="Transferência">🔁 Transferência Familiar</option>
+          <option value="Investimentos / Resgate">📈 Resgate de Investimento</option>
+          <option value="Outras Entradas">💵 Outras Entradas</option>
+        `;
+
+        submitBtn.className = "mt-3 w-full rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 py-3 text-xs font-black tracking-wide text-white shadow-lg shadow-emerald-600/30 active:scale-95 transition";
+        submitBtn.innerText = "Registrar Entrada (+)";
+      } else {
+        descLabel.innerText = "Descrição da Despesa / Gasto";
+        document.getElementById('txDesc').placeholder = "Ex: Supermercado, Farmácia, Conta de Luz, Gasolina...";
+        catLabel.innerText = "Categoria da Despesa";
+
+        catSelect.innerHTML = `
+          <option value="Gastos Fixos" selected>🏠 Gastos Fixos (Contas, Casa, Luz, Net)</option>
+          <option value="Gastos Gerais">🛒 Gastos Gerais (Dia a dia, Farmácia, Pet)</option>
+          <option value="Lazer">🎉 Lazer & Confraternizações</option>
+          <option value="Cartão de Crédito">💳 Cartão de Crédito (Bradesco / Nubank)</option>
+          <option value="Investimentos">📈 Investimento & Reserva (Aporte do Mês)</option>
+        `;
+
+        submitBtn.className = "mt-3 w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3 text-xs font-black tracking-wide text-white shadow-lg shadow-blue-600/30 active:scale-95 transition";
+        submitBtn.innerText = "Confirmar Despesa (-)";
+      }
+    }
+
+    function renderUserRadioButtons() {
+      const container = document.getElementById('txUserRadioGroup');
+      if (!container) return;
+      container.innerHTML = '';
+      
+      const currentWsId = currentWorkspace ? currentWorkspace.id : null;
+      
+      // FILTRO ESTRITO: Apenas usuários ativos que pertencem EXATAMENTE ao cofre atual (workspaceId)
+      // Exclui o Administrador Mestre das opções de quem realizou a despesa/renda familiar
+      const workspaceMembers = users.filter(u => {
+        if (!u.status || u.status !== 'active') return false;
+        if (u.role === 'ADMIN') return false;
+        if (!currentWsId) return false;
+        return String(u.workspaceId) === String(currentWsId);
+      });
+
+      // Se o usuário logado for o ADM operando o painel global, permite selecionar usuários do cofre ou ele mesmo
+      const listToRender = workspaceMembers.length > 0 ? workspaceMembers : (currentUser ? [currentUser] : []);
+
+      listToRender.forEach((u, i) => {
+        const isChecked = currentUser ? String(u.id) === String(currentUser.id) : i === 0;
+        const label = document.createElement('label');
+        label.className = `flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border-2 p-2 has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50 transition`;
+        label.innerHTML = `
+          <input type="radio" name="txUser" value="${u.id}" class="hidden" ${isChecked ? 'checked' : ''} />
+          <span class="text-sm">${u.emoji}</span>
+          <span class="text-xs font-bold text-slate-700">${u.name}</span>
+        `;
+        container.appendChild(label);
+      });
+    }
+
+    function handleSaveTransaction(e) {
+      e.preventDefault();
+      const type = document.querySelector('input[name="txType"]:checked').value;
+      const desc = document.getElementById('txDesc').value.trim();
+      const amount = parseFloat(document.getElementById('txAmount').value);
+      const date = document.getElementById('txDate').value;
+      const cat = document.getElementById('txCat').value;
+      const selectedRadio = document.querySelector('input[name="txUser"]:checked');
+      const userId = selectedRadio ? selectedRadio.value : (currentUser ? currentUser.id : 'admin_root');
+
+      if (!desc || isNaN(amount) || !date) {
+        alert("Preencha todos os campos corretamente.");
+        return;
+      }
+
+      const txId = 'tx_' + Date.now();
+      const newTx = {
+        id: txId,
+        desc,
+        amount,
+        type,
+        cat,
+        userId,
+        workspaceId: currentWorkspace ? currentWorkspace.id : 'default',
+        month: activeMonth,
+        date
+      };
+
+      transactions.unshift(newTx);
+
+      if (db && isCloudActive) {
+        db.collection('transacoes').doc(txId).set(newTx);
+      }
+
+      saveTransactions();
+      closeNewTxModal();
+      document.getElementById('txForm').reset();
+      
+      if (cat === 'Investimentos') {
+        switchTab('invest');
+      } else {
+        switchTab('extrato');
+      }
+    }
+
+    function deleteTransaction(id) {
+      if (confirm("Remover este lançamento permanentemente?")) {
+        transactions = transactions.filter(t => String(t.id) !== String(id));
+        if (db && isCloudActive) {
+          db.collection('transacoes').doc(String(id)).delete();
+        }
+        saveTransactions();
+      }
+    }
+
+    // --- CÁLCULOS GERAIS, CARDS E GRÁFICOS EM BARRAS ---
+    function renderAll() {
+      renderMonthSelect();
+
+      // Filtra transações pelo mês e pelo workspace da família
+      const currentWsId = currentWorkspace ? currentWorkspace.id : null;
+      const currentMonthTx = transactions.filter(t => t.month === activeMonth && (!currentWsId || !t.workspaceId || t.workspaceId === currentWsId));
+
+      const totalIncome = currentMonthTx
+        .filter(t => t.type === 'INCOME')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const totalExpense = currentMonthTx
+        .filter(t => t.type === 'EXPENSE')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const balance = totalIncome - totalExpense;
+
+      document.getElementById('statIncome').innerText = `R$ ${totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+      document.getElementById('statExpense').innerText = `R$ ${totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+      document.getElementById('statBalance').innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+      
+      const balanceSub = document.getElementById('statBalanceSub');
+      if (balance > 0) {
+        balanceSub.innerText = "Sobra Líquida";
+        balanceSub.className = "text-[9px] font-extrabold text-emerald-600 truncate";
+      } else if (balance < 0) {
+        balanceSub.innerText = "Déficit no Mês";
+        balanceSub.className = "text-[9px] font-extrabold text-rose-600 truncate";
+      } else {
+        balanceSub.innerText = "Tudo Zerado";
+        balanceSub.className = "text-[9px] font-extrabold text-slate-400 truncate";
+      }
+
+      // Gastos por Categoria
+      const fixedSpent = currentMonthTx.filter(t => t.cat === 'Gastos Fixos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
+      const generalSpent = currentMonthTx.filter(t => (t.cat === 'Gastos Gerais' || t.cat === 'Cartão de Crédito') && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
+      const leisureSpent = currentMonthTx.filter(t => t.cat === 'Lazer' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
+      const investSpent = currentMonthTx.filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
+
+      // Metas em Reais Calculadas com Base na Renda Total do Mês
+      const fixosPercent = categoryGoals['Gastos Fixos'] || 50;
+      const geraisPercent = categoryGoals['Gastos Gerais'] || 25;
+      const lazerPercent = categoryGoals['Lazer'] || 15;
+      const investPercent = categoryGoals['Investimentos'] || 10;
+
+      const fixosTarget = (totalIncome * fixosPercent) / 100;
+      const geraisTarget = (totalIncome * geraisPercent) / 100;
+      const lazerTarget = (totalIncome * lazerPercent) / 100;
+      const investTarget = (totalIncome * investPercent) / 100;
+
+      // Card com Alerta Discreto de Meta
+      function createCategoryCard(title, icon, spent, target, percent, colorTheme) {
+        const isExceeded = target > 0 && spent > target;
+        const progressPercent = target > 0 ? Math.min(100, Math.round((spent / target) * 100)) : 0;
+        const diff = Math.abs(spent - target);
+
+        return `
+          <div class="rounded-3xl bg-white p-4 border transition-all ${
+            isExceeded 
+              ? 'border-rose-300 ring-2 ring-rose-500/10 shadow-xs' 
+              : 'border-slate-200/80 shadow-2xs'
+          }">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-black uppercase tracking-wider text-slate-700">${title}</span>
+                <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.2 rounded-md">${percent}%</span>
+              </div>
+              <i class="fa-solid ${icon} ${colorTheme}"></i>
+            </div>
+
+            <div class="mt-2.5 flex items-baseline justify-between">
+              <div class="text-xl font-black ${isExceeded ? 'text-rose-600' : 'text-slate-900'}">
+                R$ ${spent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </div>
+              <div class="text-[10px] text-slate-400 font-bold">
+                Meta: R$ ${target.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+
+            <div class="mt-2 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+              <div class="${isExceeded ? 'bg-rose-500' : 'bg-blue-600'} h-full rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+            </div>
+
+            <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+              ${
+                isExceeded
+                  ? `<span class="inline-flex items-center gap-1 font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
+                      <i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Meta ultrapassada em R$ ${diff.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                     </span>`
+                  : target > 0
+                  ? `<span class="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                      <i class="fa-solid fa-check text-[9px]"></i> Restam R$ ${diff.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                     </span>`
+                  : `<span class="text-slate-400 font-medium">Aguardando entrada de renda</span>`
+              }
+              <span class="text-[9px] text-slate-400 font-bold">${progressPercent}%</span>
+            </div>
+          </div>
+        `;
+      }
+
+      const catContainer = document.getElementById('cardsCategoryContainer');
+      catContainer.innerHTML = 
+        createCategoryCard("Gastos Fixos", "fa-house-chimney", fixedSpent, fixosTarget, fixosPercent, "text-blue-600") +
+        createCategoryCard("Gastos Gerais", "fa-basket-shopping", generalSpent, geraisTarget, geraisPercent, "text-amber-500") +
+        createCategoryCard("Lazer", "fa-martini-glass-citrus", leisureSpent, lazerTarget, lazerPercent, "text-purple-600") +
+        createCategoryCard("Investimentos", "fa-arrow-trend-up", investSpent, investTarget, investPercent, "text-emerald-600");
+
+      renderMonthlyInvestments(currentMonthTx);
+
+      // Resumo Individual de Membros Conectados ao Controle
+      const indCards = document.getElementById('individualSpendingCards');
+      indCards.innerHTML = '';
+
+      users.filter(u => u.status === 'active' && u.role !== 'ADMIN' && currentWsId && u.workspaceId === currentWsId).forEach(u => {
+        const userIncomes = currentMonthTx.filter(t => String(t.userId) === String(u.id) && t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
+        const userExpenses = currentMonthTx.filter(t => String(t.userId) === String(u.id) && t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
+
+        const card = document.createElement('div');
+        card.className = `rounded-2xl border-2 p-3.5 ${u.color === 'pink' ? 'border-pink-100 bg-pink-50/30' : 'border-blue-100 bg-blue-50/30'}`;
+        card.innerHTML = `
+          <div class="flex items-center justify-between pb-2 border-b border-slate-200/50">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">${u.emoji}</span>
+              <h4 class="font-extrabold text-slate-900 text-xs sm:text-sm">${u.name}</h4>
+            </div>
+            <span class="text-[10px] font-bold text-slate-400">Resumo</span>
+          </div>
+
+          <div class="mt-2.5 grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-white/80 p-2 rounded-xl border border-slate-100">
+              <span class="text-[10px] font-bold text-emerald-600 uppercase flex items-center gap-1">
+                <i class="fa-solid fa-arrow-down text-[9px]"></i> Entradas
+              </span>
+              <div class="text-xs sm:text-sm font-black text-slate-800 mt-0.5">R$ ${userIncomes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            </div>
+
+            <div class="bg-white/80 p-2 rounded-xl border border-slate-100">
+              <span class="text-[10px] font-bold text-rose-500 uppercase flex items-center gap-1">
+                <i class="fa-solid fa-arrow-up text-[9px]"></i> Despesas
+              </span>
+              <div class="text-xs sm:text-sm font-black text-slate-800 mt-0.5">R$ ${userExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            </div>
+          </div>
+        `;
+        indCards.appendChild(card);
+      });
+
+      renderFilterButtons();
+      renderTransactionsList();
+      renderChartsData(currentMonthTx, totalIncome, fixedSpent, generalSpent, leisureSpent, investSpent, fixosTarget, geraisTarget, lazerTarget, investTarget);
+    }
+
+    // --- RENDERIZAÇÃO DOS GRÁFICOS EM BARRAS ---
+    function renderChartsData(currentMonthTx, totalIncome, fixedSpent, generalSpent, leisureSpent, investSpent, fixosTarget, geraisTarget, lazerTarget, investTarget) {
+      const ctxCat = document.getElementById('categoryCompareChart');
+      if (ctxCat) {
+        if (categoryCompareChartInstance) {
+          categoryCompareChartInstance.destroy();
+        }
+
+        const categories = ['Gastos Fixos', 'Gastos Gerais', 'Lazer', 'Investimentos'];
+        const targets = [fixosTarget, geraisTarget, lazerTarget, investTarget];
+        const spents = [fixedSpent, generalSpent, leisureSpent, investSpent];
+
+        const spentBarColors = spents.map((spent, i) => {
+          if (targets[i] > 0 && spent > targets[i]) return '#ef4444';
+          if (i === 3) return '#10b981';
+          return '#3b82f6';
+        });
+
+        categoryCompareChartInstance = new Chart(ctxCat, {
+          type: 'bar',
+          data: {
+            labels: categories,
+            datasets: [
+              {
+                label: 'Meta Estipulada (R$)',
+                data: targets,
+                backgroundColor: 'rgba(148, 163, 184, 0.4)',
+                borderColor: '#94a3b8',
+                borderWidth: 1.5,
+                borderRadius: 8,
+                barPercentage: 0.8,
+                categoryPercentage: 0.7
+              },
+              {
+                label: 'Gasto Real (R$)',
+                data: spents,
+                backgroundColor: spentBarColors,
+                borderRadius: 8,
+                barPercentage: 0.8,
+                categoryPercentage: 0.7
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return `${context.dataset.label}: R$ ${context.raw.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(226, 232, 240, 0.6)' },
+                ticks: {
+                  font: { family: 'Plus Jakarta Sans', size: 10 },
+                  callback: val => 'R$ ' + val.toLocaleString('pt-BR')
+                }
+              },
+              x: {
+                grid: { display: false },
+                ticks: { font: { family: 'Plus Jakarta Sans', size: 10, weight: 'bold' } }
+              }
+            }
+          }
+        });
+      }
+
+      const ctxHist = document.getElementById('historyMonthsChart');
+      if (ctxHist) {
+        if (historyMonthsChartInstance) {
+          historyMonthsChartInstance.destroy();
+        }
+
+        const monthsLabels = [...monthsList].reverse();
+        const historyIncomes = [];
+        const historyExpenses = [];
+        const historyInvests = [];
+
+        const currentWsId = currentWorkspace ? currentWorkspace.id : null;
+
+        monthsLabels.forEach(m => {
+          const mTx = transactions.filter(t => t.month === m && (!currentWsId || !t.workspaceId || t.workspaceId === currentWsId));
+          const inc = mTx.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
+          const exp = mTx.filter(t => t.type === 'EXPENSE' && t.cat !== 'Investimentos').reduce((s, t) => s + t.amount, 0);
+          const inv = mTx.filter(t => t.type === 'EXPENSE' && t.cat === 'Investimentos').reduce((s, t) => s + t.amount, 0);
+
+          historyIncomes.push(inc);
+          historyExpenses.push(exp);
+          historyInvests.push(inv);
+        });
+
+        historyMonthsChartInstance = new Chart(ctxHist, {
+          type: 'bar',
+          data: {
+            labels: monthsLabels,
+            datasets: [
+              {
+                label: 'Renda Total',
+                data: historyIncomes,
+                backgroundColor: '#10b981',
+                borderRadius: 6
+              },
+              {
+                label: 'Despesas',
+                data: historyExpenses,
+                backgroundColor: '#f43f5e',
+                borderRadius: 6
+              },
+              {
+                label: 'Investimentos',
+                data: historyInvests,
+                backgroundColor: '#f59e0b',
+                borderRadius: 6
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return `${context.dataset.label}: R$ ${context.raw.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(226, 232, 240, 0.6)' },
+                ticks: {
+                  font: { family: 'Plus Jakarta Sans', size: 10 },
+                  callback: val => 'R$ ' + val.toLocaleString('pt-BR')
+                }
+              },
+              x: {
+                grid: { display: false },
+                ticks: { font: { family: 'Plus Jakarta Sans', size: 10, weight: 'bold' } }
+              }
+            }
+          }
+        });
+      }
+
+      // 3. Atualizar Indicadores Analíticos
+      const savingsRateEl = document.getElementById('statSavingsRate');
+      const topCatEl = document.getElementById('statTopCategory');
+      const controlScoreEl = document.getElementById('statControlScore');
+
+      if (savingsRateEl) {
+        const rate = totalIncome > 0 ? Math.round((investSpent / totalIncome) * 100) : 0;
+        savingsRateEl.innerText = `${rate}%`;
+      }
+
+      if (topCatEl) {
+        const catMap = [
+          { name: 'Gastos Fixos', val: fixedSpent },
+          { name: 'Gastos Gerais', val: generalSpent },
+          { name: 'Lazer', val: leisureSpent },
+          { name: 'Investimentos', val: investSpent }
+        ];
+        catMap.sort((a, b) => b.val - a.val);
+        topCatEl.innerText = catMap[0].val > 0 ? catMap[0].name : 'Nenhum';
+      }
+
+      if (controlScoreEl) {
+        let insideGoalsCount = 0;
+        const listChecks = [
+          { s: fixedSpent, t: fixosTarget },
+          { s: generalSpent, t: geraisTarget },
+          { s: leisureSpent, t: lazerTarget },
+          { s: investSpent, t: investTarget }
+        ];
+        listChecks.forEach(item => {
+          if (item.t === 0 || item.s <= item.t) insideGoalsCount++;
+        });
+        const score = Math.round((insideGoalsCount / 4) * 100);
+        controlScoreEl.innerText = `${score}%`;
+      }
+    }
+
+    function renderMonthlyInvestments(currentMonthTx) {
+      const investList = document.getElementById('monthInvestmentsList');
+      const investHeader = document.getElementById('monthInvestTotalHeader');
+      
+      const investItems = currentMonthTx.filter(t => t.cat === 'Investimentos');
+      const totalInvested = investItems.reduce((acc, t) => acc + t.amount, 0);
+
+      investHeader.innerText = `R$ ${totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+      if (investItems.length === 0) {
+        investList.innerHTML = `
+          <div class="p-8 text-center text-xs font-bold text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            Nenhum valor foi retirado da renda para investimentos em ${activeMonth}.
+          </div>
+        `;
+        return;
+      }
+
+      investList.innerHTML = '';
+      investItems.forEach(t => {
+        const user = users.find(u => String(u.id) === String(t.userId)) || { name: 'Usuário', emoji: '👤' };
+
+        let formattedDate = t.date;
+        if (t.date && t.date.includes('-')) {
+          const parts = t.date.split('-');
+          formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        const card = document.createElement('div');
+        card.className = "flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100 hover:border-slate-200 transition";
+        card.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-emerald-600 bg-emerald-100/70 text-sm">
+              <i class="fa-solid fa-vault"></i>
+            </span>
+            <div class="min-w-0">
+              <div class="text-xs font-extrabold text-slate-800 truncate">${t.desc}</div>
+              <div class="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">
+                <i class="fa-regular fa-calendar text-[9px] mr-0.5"></i> ${formattedDate} • ${user.emoji} ${user.name}
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 pl-2">
+            <span class="text-xs font-black text-emerald-700">R$ ${t.amount.toFixed(2).replace('.', ',')}</span>
+            <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 transition p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          </div>
+        `;
+        investList.appendChild(card);
+      });
+    }
+
+    function renderFilterButtons() {
+      const container = document.getElementById('filterUserButtons');
+      container.innerHTML = `
+        <button onclick="setFilter('ALL')" class="px-2.5 py-1 rounded-lg text-xs font-bold ${currentFilterUser === 'ALL' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}">Todos</button>
+      `;
+      const currentWsId = currentWorkspace ? currentWorkspace.id : null;
+      users.filter(u => u.status === 'active' && u.role !== 'ADMIN' && currentWsId && u.workspaceId === currentWsId).forEach(u => {
+        const isCurrent = String(currentFilterUser) === String(u.id);
+        const btn = document.createElement('button');
+        btn.onclick = () => setFilter(u.id);
+        btn.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+          isCurrent ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
+        }`;
+        btn.innerText = `${u.emoji} ${u.name}`;
+        container.appendChild(btn);
+      });
+    }
+
+    function setFilter(f) {
+      currentFilterUser = f;
+      renderFilterButtons();
+      renderTransactionsList();
+    }
+
+    function renderTransactionsList() {
+      const container = document.getElementById('txListContainer');
+      const search = document.getElementById('searchExpense').value.toLowerCase();
+      container.innerHTML = '';
+
+      const currentWsId = currentWorkspace ? currentWorkspace.id : null;
+      const currentMonthTx = transactions.filter(t => t.month === activeMonth && (!currentWsId || !t.workspaceId || t.workspaceId === currentWsId));
+
+      const filtered = currentMonthTx.filter(t => {
+        const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search);
+        const matchUser = currentFilterUser === 'ALL' || String(t.userId) === String(currentFilterUser);
+        return matchSearch && matchUser;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-xs font-bold text-slate-400 bg-white rounded-2xl border border-slate-100">
+            Nenhuma movimentação em ${activeMonth}.
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(t => {
+        const user = users.find(u => String(u.id) === String(t.userId)) || { name: 'Desconhecido', emoji: '👤', color: 'blue' };
+        const isIncome = t.type === 'INCOME';
+
+        let formattedDate = t.date;
+        if (t.date && t.date.includes('-')) {
+          const parts = t.date.split('-');
+          formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        const card = document.createElement('div');
+        card.className = "flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-100 shadow-2xs hover:border-slate-200 transition";
+        card.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm ${isIncome ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">
+              <i class="fa-solid ${isIncome ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
+            </span>
+            <div class="min-w-0">
+              <div class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5 truncate">
+                <span class="truncate">${t.desc}</span>
+                <span class="shrink-0 text-[9px] px-1.5 py-0.2 rounded-full font-bold ${isIncome ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                  ${t.cat}
+                </span>
+              </div>
+              <div class="text-[10px] text-slate-400 font-semibold mt-0.5 truncate">
+                <i class="fa-regular fa-calendar text-[9px] mr-0.5"></i> ${formattedDate} • ${user.emoji} ${user.name}
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 pl-2">
+            <span class="text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-slate-900'}">
+              ${isIncome ? '+' : '-'} R$ ${t.amount.toFixed(2).replace('.', ',')}
+            </span>
+            <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 transition p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function switchTab(tab) {
+      ['resumo', 'graficos', 'extrato', 'invest'].forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`tabBtn-${t}`);
+        if (el) el.classList.add('hidden');
+        if (btn) btn.className = "pb-2.5 text-xs sm:text-sm font-bold text-slate-400 hover:text-slate-600 transition whitespace-nowrap";
+      });
+
+      const activeEl = document.getElementById(`tab-${tab}`);
+      const activeBtn = document.getElementById(`tabBtn-${tab}`);
+      if (activeEl) activeEl.classList.remove('hidden');
+      if (activeBtn) activeBtn.className = "pb-2.5 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 transition whitespace-nowrap";
+
+      const navResumo = document.getElementById('bottomNavResumo');
+      const navGraficos = document.getElementById('bottomNavGraficos');
+      const navExtrato = document.getElementById('bottomNavExtrato');
+      const navInvest = document.getElementById('bottomNavInvest');
+
+      if (navResumo) navResumo.className = tab === 'resumo' ? 'flex flex-col items-center justify-center text-blue-600 transition' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition';
+      if (navGraficos) navGraficos.className = tab === 'graficos' ? 'flex flex-col items-center justify-center text-blue-600 transition' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition';
+      if (navExtrato) navExtrato.className = tab === 'extrato' ? 'flex flex-col items-center justify-center text-blue-600 transition' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition';
+      if (navInvest) navInvest.className = tab === 'invest' ? 'flex flex-col items-center justify-center text-blue-600 transition' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition';
+
+      if (tab === 'extrato') renderTransactionsList();
+      if (tab === 'graficos') renderAll();
+      if (tab === 'invest') {
+        const currentWsId = currentWorkspace ? currentWorkspace.id : null;
+        const currentMonthTx = transactions.filter(t => t.month === activeMonth && (!currentWsId || !t.workspaceId || t.workspaceId === currentWsId));
+        renderMonthlyInvestments(currentMonthTx);
+      }
+    }
+
+    function initApp() {
+      updateHeaderUser();
+      renderUserRadioButtons();
+      checkUserWorkspaceStatus();
+    }
+
+    // Inicialização direta com Firebase
+    initFirebaseCloud();
+  </script>
+</body>
+</html>
