@@ -1,0 +1,10 @@
+{
+  "name": "nosso-bolso",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Estrutura de migração segura do Nosso Bolso para Netlify Functions e Firebase Admin SDK",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "firebase-admin": "^13.5.0"
+  }
+}
