@@ -3,20 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teste de Segurança - Nosso Bolso</title>
+  <title>Nosso Bolso - Acesso Seguro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-slate-900 text-white flex items-center justify-center min-h-screen p-4 font-sans">
 
-  <div class="bg-slate-800 p-6 rounded-3xl shadow-xl w-full max-w-sm border border-slate-700">
-    <div class="text-center mb-6">
-      <h2 class="text-2xl font-black text-white">Teste do Servidor</h2>
-      <p class="text-xs text-slate-400 mt-1">Validação de Comunicação Segura</p>
+  <div class="bg-slate-800 p-8 rounded-3xl shadow-xl w-full max-w-md border border-slate-700">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-black text-blue-500 mb-2">Nosso Bolso</h1>
+      <p id="form-subtitle" class="text-sm text-slate-400">Faça login para acessar seu controle</p>
     </div>
     
-    <form id="loginForm" onsubmit="testarLogin(event)" class="space-y-4">
+    <!-- Formulário Principal -->
+    <form id="auth-form" class="space-y-5">
       <div>
         <label class="block text-xs font-bold text-slate-400 mb-1.5">E-mail</label>
         <input type="email" id="email" required placeholder="seu@email.com" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
@@ -25,16 +27,23 @@
         <label class="block text-xs font-bold text-slate-400 mb-1.5">Senha</label>
         <input type="password" id="senha" required placeholder="••••••••" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
       </div>
-      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition active:scale-95">
-        Testar Conexão com Netlify
+      
+      <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition active:scale-95">
+        Entrar no Sistema
       </button>
     </form>
 
-    <div id="resultado" class="mt-5 text-xs font-semibold text-center p-3 rounded-xl hidden"></div>
+    <!-- Mensagens do Sistema -->
+    <div id="mensagem" class="mt-5 text-sm font-semibold text-center p-3 rounded-xl hidden"></div>
+
+    <!-- Alternar entre Login e Cadastro -->
+    <div class="mt-6 text-center text-sm text-slate-400">
+      <span id="toggle-text">Não tem uma conta?</span> 
+      <button type="button" onclick="alternarModo()" id="toggle-btn" class="text-blue-400 font-bold hover:text-blue-300 ml-1">Solicitar Acesso</button>
+    </div>
   </div>
 
   <script>
-    // Suas credenciais originais do projeto
     const firebaseConfig = {
       apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
       authDomain: "nosso-bolso-c8d29.firebaseapp.com",
@@ -48,42 +57,105 @@
       firebase.initializeApp(firebaseConfig);
     }
     const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    async function testarLogin(e) {
+    let modoCadastro = false;
+
+    function alternarModo() {
+      modoCadastro = !modoCadastro;
+      const subtitle = document.getElementById('form-subtitle');
+      const btn = document.getElementById('submit-btn');
+      const toggleText = document.getElementById('toggle-text');
+      const toggleBtn = document.getElementById('toggle-btn');
+      const divMensagem = document.getElementById('mensagem');
+
+      divMensagem.classList.add('hidden');
+
+      if (modoCadastro) {
+        subtitle.innerText = "Crie sua conta para ingressar em um grupo";
+        btn.innerText = "Criar Conta";
+        toggleText.innerText = "Já possui acesso?";
+        toggleBtn.innerText = "Fazer Login";
+      } else {
+        subtitle.innerText = "Faça login para acessar seu controle";
+        btn.innerText = "Entrar no Sistema";
+        toggleText.innerText = "Não tem uma conta?";
+        toggleBtn.innerText = "Solicitar Acesso";
+      }
+    }
+
+    function mostrarMensagem(texto, tipo) {
+      const div = document.getElementById('mensagem');
+      div.classList.remove('hidden', 'bg-emerald-900/30', 'text-emerald-400', 'border-emerald-800', 'bg-rose-900/30', 'text-rose-400', 'border-rose-800', 'bg-blue-900/30', 'text-blue-400', 'border-blue-800');
+      
+      if (tipo === 'sucesso') div.classList.add('bg-emerald-900/30', 'text-emerald-400', 'border', 'border-emerald-800', 'block');
+      else if (tipo === 'erro') div.classList.add('bg-rose-900/30', 'text-rose-400', 'border', 'border-rose-800', 'block');
+      else div.classList.add('bg-blue-900/30', 'text-blue-400', 'border', 'border-blue-800', 'block');
+      
+      div.innerHTML = texto;
+    }
+
+    document.getElementById('auth-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = document.getElementById('email').value.trim();
       const senha = document.getElementById('senha').value.trim();
-      const resultDiv = document.getElementById('resultado');
-
-      resultDiv.className = "mt-5 text-xs font-semibold text-center p-3 rounded-xl bg-blue-900/30 text-blue-400 border border-blue-800 block";
-      resultDiv.innerText = "1. Validando credenciais no Firebase...";
+      
+      mostrarMensagem("Aguarde...", "info");
 
       try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, senha);
-        const token = await userCredential.user.getIdToken();
+        if (modoCadastro) {
+          // CADASTRO DE NOVO USUÁRIO
+          const userCred = await auth.createUserWithEmailAndPassword(email, senha);
+          
+          // Salva no banco com status 'pendente'
+          await db.collection('usuarios').doc(userCred.user.uid).set({
+            email: email,
+            status: 'pendente',
+            dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
+          });
 
-        resultDiv.innerText = "2. Firebase OK! Enviando token para o Netlify...";
-
-        const response = await fetch('/.netlify/functions/auth', {
-          method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.ok) {
-          resultDiv.className = "mt-5 text-xs font-semibold text-center p-3 rounded-xl bg-emerald-900/30 text-emerald-400 border border-emerald-800 block";
-          resultDiv.innerHTML = `<b>SUCESSO!</b><br>${data.mensagem}<br><span class="text-[10px] text-emerald-600">Sua conta: ${data.email}</span>`;
+          // Desloga imediatamente para forçar aguardar aprovação
+          await auth.signOut();
+          mostrarMensagem("<b>Conta criada!</b><br>Aguardando a aprovação do Administrador para liberar seu acesso.", "sucesso");
+          
         } else {
-          resultDiv.className = "mt-5 text-xs font-semibold text-center p-3 rounded-xl bg-rose-900/30 text-rose-400 border border-rose-800 block";
-          resultDiv.innerText = "ERRO DO SERVIDOR: " + (data.error || "Desconhecido");
-        }
+          // LOGIN DE USUÁRIO EXISTENTE
+          const userCred = await auth.signInWithEmailAndPassword(email, senha);
+          const userDoc = await db.collection('usuarios').doc(userCred.user.uid).get();
+          
+          if (userDoc.exists && userDoc.data().status === 'pendente') {
+            await auth.signOut();
+            mostrarMensagem("Sua conta ainda está em análise pelo Administrador. Tente novamente mais tarde.", "erro");
+            return;
+          }
 
+          const token = await userCred.user.getIdToken();
+          
+          // Valida a entrada com o Servidor Seguro (Netlify)
+          const response = await fetch('/.netlify/functions/auth', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok && data.ok) {
+            mostrarMensagem("Acesso liberado! Redirecionando...", "sucesso");
+            setTimeout(() => {
+              window.location.href = "painel.html"; // Próxima página que criaremos
+            }, 1500);
+          } else {
+            await auth.signOut();
+            mostrarMensagem(data.error || "Falha na comunicação com o servidor seguro.", "erro");
+          }
+        }
       } catch (error) {
-        resultDiv.className = "mt-5 text-xs font-semibold text-center p-3 rounded-xl bg-rose-900/30 text-rose-400 border border-rose-800 block";
-        resultDiv.innerText = "ERRO DE LOGIN: " + error.message;
+        let msg = "Ocorreu um erro. Verifique seus dados.";
+        if (error.code === 'auth/email-already-in-use') msg = "Este e-mail já está cadastrado.";
+        if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') msg = "E-mail ou senha incorretos.";
+        mostrarMensagem(msg, "erro");
       }
-    }
+    });
   </script>
 </body>
 </html>
