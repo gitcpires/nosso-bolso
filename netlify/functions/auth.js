@@ -21,8 +21,7 @@ function getFirebaseAdmin() {
 }
 
 exports.handler = async (event) => {
-  const headers = { "Content-Type": "application/json", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" };
-
+  const headers = { "Content-Type": "application/json" };
   try {
     const firebaseAdmin = getFirebaseAdmin();
     const db = firebaseAdmin.firestore();
@@ -31,35 +30,29 @@ exports.handler = async (event) => {
     const match = authHeader.match(/^Bearer\s+(.+)$/i);
     if (!match) throw new Error("Token ausente.");
 
-    // Desencripta a identidade do Google
     const decodedToken = await firebaseAdmin.auth().verifyIdToken(match[1]);
     const uid = decodedToken.uid;
+    const expectedAdminUid = process.env.ADMIN_UID; 
 
-    // O SERVIDOR verifica o banco de dados de forma segura
     const userRef = db.collection('usuarios').doc(uid);
     const userDoc = await userRef.get();
 
-    // Se não existir, é um utilizador novo. O servidor cria como pendente.
+    // REGRA VIP: Se for você (Administrador)
+    if (uid === expectedAdminUid) {
+      await userRef.set({ email: decodedToken.email, status: 'admin', ultimoAcesso: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, mensagem: "Bem-vindo, Chefe! Acesso VIP liberado." }) };
+    }
+
     if (!userDoc.exists) {
-      await userRef.set({
-        email: decodedToken.email,
-        status: 'pendente',
-        dataCriacao: admin.firestore.FieldValue.serverTimestamp()
-      });
+      await userRef.set({ email: decodedToken.email, status: 'pendente', dataCriacao: admin.firestore.FieldValue.serverTimestamp() });
       return { statusCode: 403, headers, body: JSON.stringify({ error: "Conta criada! Aguardando a aprovação do Administrador." }) };
     }
 
-    // Se existir, verifica se já foi aprovado
     if (userDoc.data().status === 'pendente') {
       return { statusCode: 403, headers, body: JSON.stringify({ error: "Sua conta ainda está em análise pelo Administrador." }) };
     }
 
-    // Aprovado!
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ ok: true, mensagem: "Acesso liberado!" })
-    };
+    return { statusCode: 200, headers, body: JSON.stringify({ ok: true, mensagem: "Acesso liberado!" }) };
   } catch (error) {
     return { statusCode: 401, headers, body: JSON.stringify({ error: error.message }) };
   }
