@@ -1,221 +1,329 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nosso Bolso - Painel Financeiro</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Nosso Bolso - Painel de Controle Financeiro</title>
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Font Awesome & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Chart.js para os Gráficos em Barras Interativos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Firebase App & Firestore SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-</head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen pb-12">
 
-  <!-- Cabeçalho Moderno / Barra Superior -->
-  <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3.5 flex items-center justify-between">
-    <div class="flex items-center space-x-3">
-      <div class="bg-blue-600 text-white p-2.5 rounded-2xl shadow-lg shadow-blue-600/30">
-        <i class="fa-solid fa-wallet text-lg"></i>
+  <style>
+    * {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    
+    .fab-center {
+      position: absolute;
+      left: 50%;
+      top: -22px;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body class="bg-slate-100/70 text-slate-900 pb-32 antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- ================= TELA DE ESCOLHA / ONBOARDING (CRIAR OU ENTRAR VIA CÓDIGO) ================= -->
+  <div id="onboardingScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md overflow-y-auto hidden">
+    <div class="w-full max-w-md rounded-3xl bg-white p-7 sm:p-8 shadow-2xl border border-white/40 my-auto transition-all">
+      
+      <div class="text-center">
+        <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-600/30">
+          <i class="fa-solid fa-wallet text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-black text-slate-900">Controle Financeiro</h3>
+        <p class="text-xs text-slate-500 mt-1" id="onboardingUserNameGreeting">Escolha como deseja configurar o seu painel:</p>
       </div>
-      <div>
-        <h1 class="font-extrabold text-lg text-white leading-tight">Nosso Bolso</h1>
-        <span class="text-xs text-slate-400 flex items-center gap-1">
-          <i class="fa-solid fa-users text-[10px] text-blue-400"></i> Grupo: <span id="grupo-id" class="text-slate-200 font-medium">8660</span>
-        </span>
+
+      <div class="mt-6 space-y-4">
+        <!-- Opção 1: Criar Controle Próprio -->
+        <div class="p-4 rounded-2xl border-2 border-blue-200 bg-blue-50/50">
+          <div class="flex items-center gap-2.5 mb-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-bold">1</span>
+            <h4 class="text-xs font-extrabold text-blue-950 uppercase tracking-wider">Criar Novo Controle Financeiro</h4>
+          </div>
+          <p class="text-[11px] text-slate-600 mb-3">Defina o nome e o Código de 4 Dígitos para compartilhar com seu familiar.</p>
+          
+          <form onsubmit="handleCreateWorkspace(event)" class="space-y-2">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">Nome do Controle</label>
+              <input type="text" id="newWorkspaceName" required placeholder="Ex: Casa Cris & Simony" class="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">Código de Compartilhamento (4 Dígitos)</label>
+              <input type="text" id="newWorkspaceCode" maxlength="4" pattern="[0-9]{4}" required placeholder="Ex: 1234" class="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-black tracking-widest text-center text-slate-800 focus:outline-none focus:border-blue-600" />
+            </div>
+            <button type="submit" class="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95">
+              Criar Controle Financeiro
+            </button>
+          </form>
+        </div>
+
+        <div class="relative flex py-1 items-center">
+          <div class="flex-grow border-t border-slate-200"></div>
+          <span class="flex-shrink mx-3 text-[10px] font-black uppercase text-slate-400 bg-white px-2 py-0.5 rounded-full border border-slate-200">OU</span>
+          <div class="flex-grow border-t border-slate-200"></div>
+        </div>
+
+        <!-- Opção 2: Entrar com Código Existente -->
+        <div class="p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50/50">
+          <div class="flex items-center gap-2.5 mb-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white text-xs font-bold">2</span>
+            <h4 class="text-xs font-extrabold text-emerald-950 uppercase tracking-wider">Entrar em um Controle Existente</h4>
+          </div>
+          <p class="text-[11px] text-slate-600 mb-3">Digite o Código de 4 Dígitos fornecido por quem já criou o controle.</p>
+          
+          <form onsubmit="handleJoinWorkspace(event)" class="space-y-2">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">Digite o Código de 4 Dígitos</label>
+              <input type="text" id="joinWorkspaceCode" maxlength="4" pattern="[0-9]{4}" required placeholder="Ex: 8660" class="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-base font-black tracking-widest text-center text-emerald-700 focus:outline-none focus:border-emerald-600" />
+            </div>
+            <button type="submit" class="w-full mt-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95">
+              Conectar ao Controle Compartilhado
+            </button>
+          </form>
+        </div>
       </div>
     </div>
-    
-    <div class="flex items-center gap-2">
-      <!-- Botão de Admin (Visível apenas se for administrador) -->
-      <div id="admin-link-container" class="hidden">
-        <a href="admin.html" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
-          <i class="fa-solid fa-shield-halved"></i> Admin
-        </a>
+  </div>
+
+  <!-- ================= CABEÇALHO DO PAINEL ================= -->
+  <header class="sticky top-0 z-40 w-full border-b border-slate-200/90 glass-nav px-3.5 py-2.5 shadow-xs transition-all">
+    <div class="mx-auto flex max-w-5xl items-center justify-between gap-2">
+      
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-sm">
+          <i class="fa-solid fa-wallet text-sm"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 leading-tight">
+            <span class="text-sm font-extrabold tracking-tight text-slate-900 truncate" id="topWorkspaceTitle">Nosso Bolso</span>
+            <span id="currentMonthBadge" class="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[9px] font-extrabold text-blue-700">Outubro 2026</span>
+          </div>
+          <div class="flex items-center gap-1 leading-tight mt-0.5">
+            <span class="h-2 w-2 rounded-full bg-emerald-500 inline-block"></span>
+            <p class="text-[10px] text-slate-500 font-semibold truncate" id="headerWelcomeMsg">Conectado</p>
+          </div>
+        </div>
       </div>
 
-      <button onclick="sairSistema()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
-      </button>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <!-- Botão Painel ADM (Redireciona para admin.html se for o Administrador) -->
+        <button id="adminBtn" onclick="window.location.href='admin.html'" title="Ir para Painel ADM" class="hidden h-8.5 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 active:scale-95 transition">
+          <i class="fa-solid fa-shield-halved text-blue-600 text-xs"></i>
+          <span class="text-xs">ADM</span>
+        </button>
+
+        <!-- Configurações / Perfil -->
+        <button onclick="openProfileModal()" title="Configurações & Código" class="flex h-8.5 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold transition shadow-2xs bg-blue-50 text-blue-700 border border-blue-200/80 hover:bg-blue-100 active:scale-95">
+          <span id="headerUserEmoji" class="text-xs">👤</span>
+          <span id="headerUserName" class="text-xs font-extrabold max-w-[85px] truncate">Usuário</span>
+          <i class="fa-solid fa-gear text-[10px] text-blue-600 ml-0.5"></i>
+        </button>
+
+        <!-- Botão Sair -->
+        <button onclick="logout()" title="Sair da conta" class="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-100 active:scale-95 transition">
+          <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Indicadores Financeiros -->
+    <div class="mx-auto mt-2.5 max-w-5xl">
+      <div class="grid grid-cols-3 gap-2">
+        <div class="rounded-2xl bg-white p-2.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+          <div class="text-[10px] font-bold text-slate-400 uppercase">Renda</div>
+          <div id="statIncome" class="mt-1 text-xs sm:text-base font-extrabold text-emerald-700 truncate">R$ 0,00</div>
+        </div>
+        <div class="rounded-2xl bg-white p-2.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+          <div class="text-[10px] font-bold text-slate-400 uppercase">Despesas</div>
+          <div id="statExpense" class="mt-1 text-xs sm:text-base font-extrabold text-rose-600 truncate">R$ 0,00</div>
+        </div>
+        <div class="rounded-2xl bg-white p-2.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+          <div class="text-[10px] font-bold text-slate-400 uppercase">Saldo</div>
+          <div id="statBalance" class="mt-1 text-xs sm:text-base font-extrabold text-slate-800 truncate">R$ 0,00</div>
+        </div>
+      </div>
     </div>
   </header>
 
-  <!-- Container Principal Responsivo -->
-  <main class="max-w-4xl mx-auto p-4 space-y-6 mt-2">
+  <!-- ================= CONTEÚDO PRINCIPAL ================= -->
+  <main class="mx-auto max-w-5xl px-3.5 pt-3.5">
 
-    <!-- Resumo de Saldos / Cartão de Destaque -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-gradient-to-br from-blue-900/40 to-slate-900 border border-blue-500/20 p-5 rounded-3xl shadow-xl">
-        <div class="flex justify-between items-center mb-3">
-          <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Saldo Atual</span>
-          <i class="fa-solid fa-chart-line text-blue-400"></i>
-        </div>
-        <div class="text-2xl font-black text-white" id="saldo-atual">R$ 0,00</div>
+    <div class="mb-3.5 flex items-center justify-between bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-2xs gap-2">
+      <div class="flex items-center gap-1.5 min-w-0">
+        <i class="fa-regular fa-calendar-days text-blue-600 text-xs shrink-0"></i>
+        <span class="text-xs font-bold text-slate-600">Mês:</span>
+        <select id="monthSelect" onchange="changeActiveMonth(this.value)" class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none">
+          <option value="Outubro 2026">Outubro 2026</option>
+        </select>
       </div>
-      
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl shadow-xl">
-        <div class="flex justify-between items-center mb-3">
-          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Entradas do Mês</span>
-          <i class="fa-solid fa-arrow-trend-up text-emerald-400"></i>
-        </div>
-        <div class="text-2xl font-black text-emerald-400" id="total-entradas">R$ 0,00</div>
+      <button onclick="openNewTxModal()" class="flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 px-3 py-1.5 text-xs font-extrabold text-white shadow-xs active:scale-95 transition">
+        <i class="fa-solid fa-plus text-[10px]"></i> Lançar
+      </button>
+    </div>
+
+    <!-- Navegação por Abas -->
+    <div class="mb-4 flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-4">
+      <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2.5 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap">
+        <i class="fa-solid fa-chart-pie mr-1"></i> Metas & Categorias
+      </button>
+      <button onclick="switchTab('graficos')" id="tabBtn-graficos" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap">
+        <i class="fa-solid fa-chart-column mr-1"></i> Gráficos
+      </button>
+      <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap">
+        <i class="fa-solid fa-receipt mr-1"></i> Extrato Detalhado
+      </button>
+      <button onclick="switchTab('invest')" id="tabBtn-invest" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap">
+        <i class="fa-solid fa-vault mr-1"></i> Investimentos
+      </button>
+    </div>
+
+    <!-- ABA 1: RESUMO (METAS & CATEGORIAS) -->
+    <div id="tab-resumo" class="space-y-3.5">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer"></div>
+
+      <div class="rounded-3xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
+        <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-3">Entradas & Saídas Individuais</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="individualSpendingCards"></div>
       </div>
+    </div>
 
-      <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl shadow-xl">
-        <div class="flex justify-between items-center mb-3">
-          <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">Saídas do Mês</span>
-          <i class="fa-solid fa-arrow-trend-down text-rose-400"></i>
-        </div>
-        <div class="text-2xl font-black text-rose-400" id="total-saidas">R$ 0,00</div>
-      </div>
-    </section>
-
-    <!-- Formulário Moderno de Novo Lançamento -->
-    <section class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
-      <div class="flex items-center space-x-3 mb-6">
-        <div class="bg-blue-500/10 text-blue-400 p-2.5 rounded-xl border border-blue-500/20">
-          <i class="fa-solid fa-plus text-base"></i>
-        </div>
-        <div>
-          <h2 class="text-lg font-bold text-white">Novo Lançamento</h2>
-          <p class="text-xs text-slate-400">Registe uma nova receita ou despesa no cofre</p>
-        </div>
-      </div>
-
-      <form id="transacao-form" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Tipo -->
-          <div>
-            <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Tipo</label>
-            <div class="relative">
-              <select id="tipo" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white appearance-none focus:outline-none focus:border-blue-500 transition">
-                <option value="despesa">Despesa (Saída)</option>
-                <option value="receita">Receita (Entrada)</option>
-              </select>
-              <i class="fa-solid fa-chevron-down absolute right-4 top-3.5 text-xs text-slate-500 pointer-events-none"></i>
-            </div>
-          </div>
-
-          <!-- Valor -->
-          <div>
-            <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Valor (R$)</label>
-            <div class="relative">
-              <span class="absolute left-4 top-3 text-sm text-slate-500 font-semibold">R$</span>
-              <input type="number" step="0.01" id="valor" placeholder="0,00" required class="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition font-semibold" />
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- Descrição -->
-          <div class="md:col-span-1">
-            <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Descrição</label>
-            <input type="text" id="descricao" placeholder="Ex: Supermercado" required class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
-          </div>
-
-          <!-- Categoria -->
-          <div>
-            <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Categoria</label>
-            <div class="relative">
-              <select id="categoria" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white appearance-none focus:outline-none focus:border-blue-500 transition">
-                <option value="Alimentação">Alimentação</option>
-                <option value="Transporte">Transporte</option>
-                <option value="Moradia">Moradia</option>
-                <option value="Lazer">Lazer</option>
-                <option value="Outros">Outros</option>
-              </select>
-              <i class="fa-solid fa-chevron-down absolute right-4 top-3.5 text-xs text-slate-500 pointer-events-none"></i>
-            </div>
-          </div>
-
-          <!-- Data -->
-          <div>
-            <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Data</label>
-            <input type="date" id="data-transacao" required class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
-          </div>
-        </div>
-
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-blue-600/30 transition active:scale-[0.99] flex items-center justify-center gap-2 mt-4">
-          <i class="fa-solid fa-shield-halved"></i> Adicionar ao Cofre
-        </button>
-      </form>
-    </section>
-
-    <!-- Secção de Extrato do Mês -->
-    <section class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center space-x-3">
-          <div class="bg-indigo-500/10 text-indigo-400 p-2.5 rounded-xl border border-indigo-500/20">
-            <i class="fa-solid fa-list text-base"></i>
-          </div>
-          <div>
-            <h2 class="text-lg font-bold text-white">Extrato do Mês</h2>
-            <p class="text-xs text-slate-400">Histórico de transações recentes do grupo</p>
-          </div>
+    <!-- ABA 2: GRÁFICOS -->
+    <div id="tab-graficos" class="hidden space-y-4">
+      <div class="rounded-3xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
+        <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-2">Meta Estipulada vs. Gasto Real</h3>
+        <div class="relative w-full h-64 sm:h-72 mt-3">
+          <canvas id="categoryCompareChart"></canvas>
         </div>
       </div>
+    </div>
 
-      <!-- Lista de Transações -->
-      <div id="lista-transacoes" class="space-y-3">
-        <div class="bg-slate-950 border border-slate-800/80 p-4 rounded-2xl flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <div class="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl">
-              <i class="fa-solid fa-arrow-down"></i>
-            </div>
-            <div>
-              <p class="text-sm font-bold text-white">Exemplo de Receita</p>
-              <span class="text-xs text-slate-400">Outros • 22/10/2026</span>
-            </div>
-          </div>
-          <span class="text-sm font-black text-emerald-400">+ R$ 0,00</span>
-        </div>
+    <!-- ABA 3: EXTRATO -->
+    <div id="tab-extrato" class="hidden space-y-3">
+      <div class="flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-200/80 gap-2">
+        <input type="text" id="searchExpense" placeholder="Buscar lançamento..." oninput="renderTransactionsList()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold w-full sm:w-64 focus:outline-none" />
+        <div class="flex gap-1 overflow-x-auto hide-scrollbar" id="filterUserButtons"></div>
       </div>
-    </section>
+      <div id="txListContainer" class="space-y-2"></div>
+    </div>
+
+    <!-- ABA 4: INVESTIMENTOS -->
+    <div id="tab-invest" class="hidden space-y-3.5">
+      <div class="rounded-3xl bg-gradient-to-br from-slate-900 to-indigo-950 p-5 text-white shadow-xl">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300">Total Investido no Mês</span>
+        <div id="monthInvestTotalHeader" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">R$ 0,00</div>
+      </div>
+      <div class="rounded-3xl bg-white p-4 border border-slate-200/80 shadow-2xs">
+        <div id="monthInvestmentsList" class="space-y-2"></div>
+      </div>
+    </div>
 
   </main>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
-      authDomain: "nosso-bolso-c8d29.firebaseapp.com",
-      projectId: "nosso-bolso-c8d29",
-      storageBucket: "nosso-bolso-c8d29.firebasestorage.app",
-      messagingSenderId: "812166717623",
-      appId: "1:812166717623:web:ba3a4c0db18484be47ad32"
-    };
+  <!-- MODAL DE LANÇAMENTO -->
+  <div id="newTxModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 p-0 sm:p-4 hidden backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-white p-5 shadow-2xl max-h-[95vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="text-sm font-extrabold text-slate-800">Nova Movimentação</h3>
+        <button onclick="closeNewTxModal()" class="text-slate-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+      <form id="txForm" onsubmit="handleSaveTransaction(event)" class="mt-4 space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1.5">Tipo</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 p-2.5 has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50">
+              <input type="radio" name="txType" value="EXPENSE" class="hidden" checked onchange="toggleTxTypeUI()" />
+              <span class="text-xs font-bold text-slate-700">Despesa (-)</span>
+            </label>
+            <label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 p-2.5 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50">
+              <input type="radio" name="txType" value="INCOME" class="hidden" onchange="toggleTxTypeUI()" />
+              <span class="text-xs font-bold text-slate-700">Entrada (+)</span>
+            </label>
+          </div>
+        </div>
 
-    // Definir data atual por defeito no input
-    document.getElementById('data-transacao').valueAsDate = new Date();
+        <div>
+          <label class="block text-xs font-bold text-slate-600" id="txDescLabel">Descrição</label>
+          <input type="text" id="txDesc" required placeholder="Ex: Supermercado" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold focus:outline-none" />
+        </div>
 
-    // Verificar se o utilizador logado é administrador para mostrar o botão Admin
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        if (user.email === 'c.pirespm@gmail.com') {
-          document.getElementById('admin-link-container').classList.remove('hidden');
-        } else {
-          try {
-            const userDoc = await db.collection('usuarios').doc(user.uid).get();
-            if (userDoc.exists && userDoc.data().status === 'admin') {
-              document.getElementById('admin-link-container').classList.remove('hidden');
-            }
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      } else {
-        window.location.href = "index.html";
-      }
-    });
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-600">Valor (R$)</label>
+            <input type="number" step="0.01" id="txAmount" required placeholder="0,00" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600">Data</label>
+            <input type="date" id="txDate" required class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold focus:outline-none" />
+          </div>
+        </div>
 
-    function sairSistema() {
-      auth.signOut().then(() => {
-        window.location.href = "index.html";
-      });
-    }
-  </script>
-</body>
-</html>
+        <div>
+          <label class="block text-xs font-bold text-slate-600" id="categoryFieldLabel">Categoria</label>
+          <select id="txCat" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold focus:outline-none">
+            <option value="Gastos Fixos">🏠 Gastos Fixos</option>
+            <option value="Gastos Gerais">🛒 Gastos Gerais</option>
+            <option value="Lazer">🎉 Lazer</option>
+            <option value="Investimentos">📈 Investimentos</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600">Quem realizou?</label>
+          <div id="txUserRadioGroup" class="mt-1.5 grid grid-cols-2 gap-2"></div>
+        </div>
+
+        <button type="submit" class="w-full rounded-2xl bg-blue-600 py-3 text-xs font-extrabold text-white shadow-lg active:scale-95 transition">
+          Confirmar Lançamento
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIGURAÇÕES / CÓDIGO -->
+  <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 hidden backdrop-blur-sm">
+    <div class="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="text-sm font-extrabold text-slate-800">Código Familiar de Acesso</h3>
+        <button onclick="closeProfileModal()" class="text-slate-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="mt-4 text-center p-4 rounded-2xl bg-blue-50 border-2 border-blue-200">
+        <span class="text-[10px] font-black uppercase text-blue-600">Seu Código de 4 Dígitos</span>
+        <div class="mt-2 text-3xl font-black tracking-widest text-slate-900" id="profileWorkspaceCodeDisplay">----</div>
+        <p class="text-[11px] text-slate-500 mt-1">Compartilhe este código com seu cônjuge para acessarem o mesmo controle.</p>
+        <button onclick="copyWorkspaceCode()" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">Copiar Código</button>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-100 space-y-2">
+        <button onclick="handleLeaveWorkspace()" class="w-full py-2.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">Trocar / Desvincular Controle</button>
+      </div>
+    </div>
+  </div>
+
+  
