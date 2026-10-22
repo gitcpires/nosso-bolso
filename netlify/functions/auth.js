@@ -3,21 +3,20 @@ const admin = require("firebase-admin");
 function getFirebaseAdmin() {
   if (!admin.apps.length) {
     const rawCredentials = process.env.FIREBASE_SERVICE_ACCOUNT;
-    if (!rawCredentials) throw new Error("Credenciais do Firebase ausentes no Netlify.");
+    if (!rawCredentials) throw new Error("Variavel FIREBASE_SERVICE_ACCOUNT nao encontrada no Netlify.");
     
-    // Proteção contra quebras de linha corrompidas no painel do Netlify
-    const serviceAccount = JSON.parse(rawCredentials.replace(/\\n/g, '\n'));
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+    try {
+      const serviceAccount = JSON.parse(rawCredentials.replace(/\\n/g, '\n'));
+      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+    } catch (err) {
+      throw new Error("JSON da chave secreta corrompido: " + err.message);
+    }
   }
   return admin;
 }
 
 exports.handler = async (event) => {
-  // Configuração básica de segurança e permissão de acesso (CORS)
-  const headers = {
-    "Content-Type": "application/json",
-    "Cache-Control": "no-store"
-  };
+  const headers = { "Content-Type": "application/json", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" };
 
   try {
     const firebaseAdmin = getFirebaseAdmin();
@@ -25,13 +24,11 @@ exports.handler = async (event) => {
     const match = authHeader.match(/^Bearer\s+(.+)$/i);
 
     if (!match) {
-      return { statusCode: 401, headers, body: JSON.stringify({ error: "Acesso bloqueado: Token ausente." }) };
+      throw new Error("Token de seguranca nao chegou no servidor.");
     }
 
-    // O servidor Firebase descriptografa o token invisível e confirma quem é a pessoa
     const decodedToken = await firebaseAdmin.auth().verifyIdToken(match[1]);
     
-    // Resposta inicial de sucesso que o nosso HTML vai ler
     return {
       statusCode: 200,
       headers,
@@ -39,15 +36,15 @@ exports.handler = async (event) => {
         ok: true,
         uid: decodedToken.uid,
         email: decodedToken.email,
-        mensagem: "Servidor conectado e identidade confirmada com sucesso!"
+        mensagem: "Servidor conectado e identidade confirmada!"
       })
     };
   } catch (error) {
-    console.error("Falha no servidor:", error.message);
+    // AGORA O ERRO REAL VAI APARECER NA SUA TELA
     return { 
       statusCode: 401, 
       headers, 
-      body: JSON.stringify({ error: "Sessão inválida ou expirada. Faça login novamente." }) 
+      body: JSON.stringify({ error: error.message }) 
     };
   }
 };
