@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-slate-900 text-white flex items-center justify-center min-h-screen p-4 font-sans">
 
@@ -17,15 +16,14 @@
       <p id="form-subtitle" class="text-sm text-slate-400">Faça login para acessar seu controle</p>
     </div>
     
-    <!-- Formulário Principal -->
     <form id="auth-form" class="space-y-5">
       <div>
         <label class="block text-xs font-bold text-slate-400 mb-1.5">E-mail</label>
-        <input type="email" id="email" required placeholder="seu@email.com" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
+        <input type="email" id="email" required class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
       </div>
       <div>
         <label class="block text-xs font-bold text-slate-400 mb-1.5">Senha</label>
-        <input type="password" id="senha" required placeholder="••••••••" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
+        <input type="password" id="senha" required class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
       </div>
       
       <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition active:scale-95">
@@ -33,10 +31,8 @@
       </button>
     </form>
 
-    <!-- Mensagens do Sistema -->
     <div id="mensagem" class="mt-5 text-sm font-semibold text-center p-3 rounded-xl hidden"></div>
 
-    <!-- Alternar entre Login e Cadastro -->
     <div class="mt-6 text-center text-sm text-slate-400">
       <span id="toggle-text">Não tem uma conta?</span> 
       <button type="button" onclick="alternarModo()" id="toggle-btn" class="text-blue-400 font-bold hover:text-blue-300 ml-1">Solicitar Acesso</button>
@@ -53,45 +49,26 @@
       appId: "1:812166717623:web:ba3a4c0db18484be47ad32"
     };
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
-
     let modoCadastro = false;
 
     function alternarModo() {
       modoCadastro = !modoCadastro;
-      const subtitle = document.getElementById('form-subtitle');
-      const btn = document.getElementById('submit-btn');
-      const toggleText = document.getElementById('toggle-text');
-      const toggleBtn = document.getElementById('toggle-btn');
-      const divMensagem = document.getElementById('mensagem');
-
-      divMensagem.classList.add('hidden');
-
-      if (modoCadastro) {
-        subtitle.innerText = "Crie sua conta para ingressar em um grupo";
-        btn.innerText = "Criar Conta";
-        toggleText.innerText = "Já possui acesso?";
-        toggleBtn.innerText = "Fazer Login";
-      } else {
-        subtitle.innerText = "Faça login para acessar seu controle";
-        btn.innerText = "Entrar no Sistema";
-        toggleText.innerText = "Não tem uma conta?";
-        toggleBtn.innerText = "Solicitar Acesso";
-      }
+      document.getElementById('form-subtitle').innerText = modoCadastro ? "Crie sua conta para ingressar em um grupo" : "Faça login para acessar seu controle";
+      document.getElementById('submit-btn').innerText = modoCadastro ? "Criar Conta" : "Entrar no Sistema";
+      document.getElementById('toggle-text').innerText = modoCadastro ? "Já possui acesso?" : "Não tem uma conta?";
+      document.getElementById('toggle-btn').innerText = modoCadastro ? "Fazer Login" : "Solicitar Acesso";
+      document.getElementById('mensagem').classList.add('hidden');
     }
 
     function mostrarMensagem(texto, tipo) {
       const div = document.getElementById('mensagem');
-      div.classList.remove('hidden', 'bg-emerald-900/30', 'text-emerald-400', 'border-emerald-800', 'bg-rose-900/30', 'text-rose-400', 'border-rose-800', 'bg-blue-900/30', 'text-blue-400', 'border-blue-800');
-      
-      if (tipo === 'sucesso') div.classList.add('bg-emerald-900/30', 'text-emerald-400', 'border', 'border-emerald-800', 'block');
-      else if (tipo === 'erro') div.classList.add('bg-rose-900/30', 'text-rose-400', 'border', 'border-rose-800', 'block');
-      else div.classList.add('bg-blue-900/30', 'text-blue-400', 'border', 'border-blue-800', 'block');
-      
+      div.className = `mt-5 text-sm font-semibold text-center p-3 rounded-xl block border ${
+        tipo === 'sucesso' ? 'bg-emerald-900/30 text-emerald-400 border-emerald-800' :
+        tipo === 'erro' ? 'bg-rose-900/30 text-rose-400 border-rose-800' :
+        'bg-blue-900/30 text-blue-400 border-blue-800'
+      }`;
       div.innerHTML = texto;
     }
 
@@ -99,55 +76,32 @@
       e.preventDefault();
       const email = document.getElementById('email').value.trim();
       const senha = document.getElementById('senha').value.trim();
-      
       mostrarMensagem("Aguarde...", "info");
 
       try {
+        let userCred;
         if (modoCadastro) {
-          // CADASTRO DE NOVO USUÁRIO
-          const userCred = await auth.createUserWithEmailAndPassword(email, senha);
-          
-          // Salva no banco com status 'pendente'
-          await db.collection('usuarios').doc(userCred.user.uid).set({
-            email: email,
-            status: 'pendente',
-            dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
-          });
-
-          // Desloga imediatamente para forçar aguardar aprovação
-          await auth.signOut();
-          mostrarMensagem("<b>Conta criada!</b><br>Aguardando a aprovação do Administrador para liberar seu acesso.", "sucesso");
-          
+          userCred = await auth.createUserWithEmailAndPassword(email, senha);
         } else {
-          // LOGIN DE USUÁRIO EXISTENTE
-          const userCred = await auth.signInWithEmailAndPassword(email, senha);
-          const userDoc = await db.collection('usuarios').doc(userCred.user.uid).get();
-          
-          if (userDoc.exists && userDoc.data().status === 'pendente') {
-            await auth.signOut();
-            mostrarMensagem("Sua conta ainda está em análise pelo Administrador. Tente novamente mais tarde.", "erro");
-            return;
-          }
+          userCred = await auth.signInWithEmailAndPassword(email, senha);
+        }
 
-          const token = await userCred.user.getIdToken();
-          
-          // Valida a entrada com o Servidor Seguro (Netlify)
-          const response = await fetch('/.netlify/functions/auth', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + token }
-          });
-          
-          const data = await response.json();
-          
-          if (response.ok && data.ok) {
-            mostrarMensagem("Acesso liberado! Redirecionando...", "sucesso");
-            setTimeout(() => {
-              window.location.href = "painel.html"; // Próxima página que criaremos
-            }, 1500);
-          } else {
-            await auth.signOut();
-            mostrarMensagem(data.error || "Falha na comunicação com o servidor seguro.", "erro");
-          }
+        const token = await userCred.user.getIdToken();
+        
+        // Pede a bênção do servidor
+        const response = await fetch('/.netlify/functions/auth', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.ok) {
+          mostrarMensagem(data.mensagem, "sucesso");
+          setTimeout(() => window.location.href = "painel.html", 1500);
+        } else {
+          await auth.signOut(); // Desliga a conta no navegador se o servidor barrar
+          mostrarMensagem(data.error || "Acesso bloqueado.", "erro");
         }
       } catch (error) {
         let msg = "Ocorreu um erro. Verifique seus dados.";
