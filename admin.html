@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aprovação de Contas - Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen p-6 font-sans">
+  <div class="max-w-md mx-auto">
+    
+    <div class="text-center mb-8">
+      <h1 class="text-2xl font-black text-amber-500">Área do Administrador</h1>
+      <p class="text-sm text-slate-400">Aprovação de novos acessos</p>
+    </div>
+
+    <!-- Tela de Login do Admin -->
+    <div id="login-section" class="bg-slate-800 p-6 rounded-3xl border border-slate-700">
+      <input type="email" id="admin-email" placeholder="E-mail do Administrador" class="w-full mb-3 rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500" />
+      <input type="password" id="admin-senha" placeholder="Senha" class="w-full mb-4 rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500" />
+      <button onclick="loginAdmin()" class="w-full bg-amber-600 hover:bg-amber-700 font-bold py-3 rounded-xl transition">Entrar como Chefe</button>
+      <div id="msg-login" class="mt-4 text-center text-sm font-semibold text-rose-400 hidden"></div>
+    </div>
+
+    <!-- Tela da Lista de Pendentes -->
+    <div id="painel-section" class="hidden space-y-4">
+      <div id="lista-pendentes" class="space-y-3"></div>
+      <button onclick="carregarPendentes()" class="w-full bg-slate-800 border border-slate-700 text-slate-300 py-2 rounded-xl text-sm mt-4">Atualizar Lista</button>
+    </div>
+
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
+      authDomain: "nosso-bolso-c8d29.firebaseapp.com",
+      projectId: "nosso-bolso-c8d29"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    let authToken = "";
+
+    async function loginAdmin() {
+      const email = document.getElementById('admin-email').value;
+      const senha = document.getElementById('admin-senha').value;
+      const msg = document.getElementById('msg-login');
+      
+      try {
+        msg.classList.remove('hidden'); msg.innerText = "Verificando...";
+        const userCred = await auth.signInWithEmailAndPassword(email, senha);
+        authToken = await userCred.user.getIdToken();
+        
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('painel-section').classList.remove('hidden');
+        carregarPendentes();
+      } catch (error) {
+        msg.innerText = "Erro ao logar. Você é o Administrador?";
+      }
+    }
+
+    async function carregarPendentes() {
+      const listaDiv = document.getElementById('lista-pendentes');
+      listaDiv.innerHTML = "<p class='text-center text-slate-400 text-sm'>Buscando contas...</p>";
+
+      try {
+        const response = await fetch('/.netlify/functions/admin', {
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        const usuarios = await response.json();
+
+        if (!response.ok) throw new Error(usuarios.error);
+        if (usuarios.length === 0) {
+          listaDiv.innerHTML = "<div class='bg-emerald-900/30 border border-emerald-800 text-emerald-400 p-4 rounded-xl text-center text-sm'>Nenhuma conta aguardando aprovação.</div>";
+          return;
+        }
+
+        listaDiv.innerHTML = usuarios.map(u => `
+          <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-center" id="card-${u.id}">
+            <div>
+              <p class="text-sm font-bold text-white">${u.email}</p>
+              <p class="text-xs text-slate-400">Status: Pendente</p>
+            </div>
+            <button onclick="aprovarConta('${u.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 px-4 rounded-lg">Aprovar</button>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        listaDiv.innerHTML = `<p class='text-center text-rose-400 text-sm'>Erro: ${error.message}</p>`;
+      }
+    }
+
+    async function aprovarConta(userId) {
+      const btn = document.querySelector(`#card-${userId} button`);
+      btn.innerText = "Aprovando..."; btn.disabled = true;
+
+      try {
+        const response = await fetch('/.netlify/functions/admin', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: userId })
+        });
+        const data = await response.json();
+        
+        if(response.ok) {
+          document.getElementById(`card-${userId}`).innerHTML = `<p class="text-emerald-400 text-sm font-bold w-full text-center py-2">Aprovado! Grupo: ${data.grupoId}</p>`;
+        }
+      } catch (error) {
+        btn.innerText = "Erro";
+      }
+    }
+  </script>
+</body>
+</html>
