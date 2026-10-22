@@ -1,4 +1,3 @@
-
 const admin = require("firebase-admin");
 
 const corsHeaders = {
@@ -19,10 +18,12 @@ function getFirebaseAdmin() {
     const rawCredentials = process.env.FIREBASE_SERVICE_ACCOUNT;
 
     if (!rawCredentials) {
-      throw new Error("Firebase Admin credentials are not configured");
+      throw new Error("Credenciais do Firebase Admin ausentes no Netlify");
     }
 
-    const serviceAccount = JSON.parse(rawCredentials);
+    // Garante que as quebras de linha da chave privada não quebrem o JSON
+    const formattedCredentials = rawCredentials.replace(/\\n/g, '\n');
+    const serviceAccount = JSON.parse(formattedCredentials);
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
@@ -34,7 +35,7 @@ function getFirebaseAdmin() {
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
-    return respond(405, { error: "Method not allowed" });
+    return respond(405, { error: "Metodo nao permitido" });
   }
 
   try {
@@ -42,14 +43,14 @@ exports.handler = async (event) => {
     const expectedAdminUid = process.env.ADMIN_UID;
 
     if (!expectedAdminUid) {
-      return respond(500, { error: "Admin configuration missing" });
+      return respond(500, { error: "UID do Admin ausente" });
     }
 
     const authorization = event.headers.authorization || "";
     const match = authorization.match(/^Bearer\s+(.+)$/i);
 
     if (!match) {
-      return respond(401, { error: "Authentication required" });
+      return respond(401, { error: "Token ausente" });
     }
 
     const decodedToken = await firebaseAdmin
@@ -57,19 +58,21 @@ exports.handler = async (event) => {
       .verifyIdToken(match[1], true);
 
     if (decodedToken.uid !== expectedAdminUid) {
-      return respond(403, { error: "Access denied" });
+      return respond(403, { error: "Acesso negado", isAdmin: false });
     }
 
+    // A RESPOSTA CORRETA QUE O NOSSO FRONTEND ESPERA:
     return respond(200, {
       ok: true,
       authorized: true,
+      isAdmin: true 
     });
+    
   } catch (error) {
-    console.error("Admin authentication failed:", error.message);
+    console.error("Falha na autenticacao do admin:", error.message);
 
     return respond(401, {
-      error: "Authentication failed",
+      error: "Falha na autenticacao",
     });
   }
 };
-
