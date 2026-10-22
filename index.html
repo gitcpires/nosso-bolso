@@ -55,8 +55,8 @@
 
     function alternarModo() {
       modoCadastro = !modoCadastro;
-      document.getElementById('form-subtitle').innerText = modoCadastro ? "Crie sua conta para ingressar em um grupo" : "Faça login para acessar seu controle";
-      document.getElementById('submit-btn').innerText = modoCadastro ? "Criar Conta" : "Entrar no Sistema";
+      document.getElementById('form-subtitle').innerText = modoCadastro ? "Crie sua conta para solicitar acesso" : "Faça login para acessar seu controle";
+      document.getElementById('submit-btn').innerText = modoCadastro ? "Solicitar Acesso" : "Entrar no Sistema";
       document.getElementById('toggle-text').innerText = modoCadastro ? "Já possui acesso?" : "Não tem uma conta?";
       document.getElementById('toggle-btn').innerText = modoCadastro ? "Fazer Login" : "Solicitar Acesso";
       document.getElementById('mensagem').classList.add('hidden');
@@ -88,7 +88,7 @@
 
         const token = await userCred.user.getIdToken();
         
-        // Pede a bênção do servidor
+        // Pede a validação ao servidor (Netlify Functions)
         const response = await fetch('/.netlify/functions/auth', {
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + token }
@@ -98,15 +98,24 @@
         
         if (response.ok && data.success) {
           mostrarMensagem(data.message || "Acesso autorizado!", "sucesso");
-          setTimeout(() => window.location.href = "painel.html", 1500);
+          
+          // Redirecionamento inteligente: Admin vai direto para gestão, Membros vão para o painel de gastos
+          setTimeout(() => {
+            if (email === 'c.pirespm@gmail.com' || data.isAdmin) {
+              window.location.href = "admin.html";
+            } else {
+              window.location.href = "painel.html";
+            }
+          }, 1500);
         } else {
-          await auth.signOut(); // Desliga a conta no navegador se o servidor barrar
+          await auth.signOut(); // Desliga a sessão se o servidor barrar
           mostrarMensagem(data.error || "Acesso bloqueado.", "erro");
         }
       } catch (error) {
         let msg = "Ocorreu um erro. Verifique seus dados.";
         if (error.code === 'auth/email-already-in-use') msg = "Este e-mail já está cadastrado.";
         if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') msg = "E-mail ou senha incorretos.";
+        if (error.code === 'auth/weak-password') msg = "A senha deve ter pelo menos 6 caracteres.";
         mostrarMensagem(msg, "erro");
       }
     });
