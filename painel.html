@@ -46,70 +46,6 @@
 </head>
 <body class="bg-slate-100/70 text-slate-900 pb-36 antialiased selection:bg-blue-600 selection:text-white">
 
-  <!-- ================= TELA DE ESCOLHA / ONBOARDING (CRIAR OU ENTRAR VIA CÓDIGO) ================= -->
-  <div id="onboardingScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md overflow-y-auto hidden">
-    <div class="w-full max-w-md rounded-3xl bg-white p-7 sm:p-8 shadow-2xl border border-white/40 my-auto transition-all">
-      
-      <div class="text-center">
-        <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-600/30">
-          <i class="fa-solid fa-wallet text-2xl"></i>
-        </div>
-        <h3 class="text-xl font-black text-slate-900">Controle Financeiro</h3>
-        <p class="text-xs text-slate-500 mt-1">Escolha como deseja configurar o seu painel:</p>
-      </div>
-
-      <div class="mt-6 space-y-4">
-        <!-- Opção 1: Criar Controle Próprio -->
-        <div class="p-4 rounded-2xl border-2 border-blue-200 bg-blue-50/50">
-          <div class="flex items-center gap-2.5 mb-2">
-            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-bold">1</span>
-            <h4 class="text-xs font-extrabold text-blue-950 uppercase tracking-wider">Criar Novo Controle Financeiro</h4>
-          </div>
-          <p class="text-[11px] text-slate-600 mb-3">Defina o nome e o Código de 4 Dígitos para compartilhar com seu familiar.</p>
-          
-          <form onsubmit="handleCreateWorkspace(event)" class="space-y-2">
-            <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase">Nome do Controle</label>
-              <input type="text" id="newWorkspaceName" required placeholder="Ex: Casa Cris & Simony" class="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase">Código de Compartilhamento (4 Dígitos)</label>
-              <input type="text" id="newWorkspaceCode" maxlength="4" pattern="[0-9]{4}" required placeholder="Ex: 1234" class="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-black tracking-widest text-center text-slate-800 focus:outline-none focus:border-blue-600" />
-            </div>
-            <button type="submit" class="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95">
-              Criar Controle Financeiro
-            </button>
-          </form>
-        </div>
-
-        <div class="relative flex py-1 items-center">
-          <div class="flex-grow border-t border-slate-200"></div>
-          <span class="flex-shrink mx-3 text-[10px] font-black uppercase text-slate-400 bg-white px-2 py-0.5 rounded-full border border-slate-200">OU</span>
-          <div class="flex-grow border-t border-slate-200"></div>
-        </div>
-
-        <!-- Opção 2: Entrar com Código Existente -->
-        <div class="p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50/50">
-          <div class="flex items-center gap-2.5 mb-2">
-            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white text-xs font-bold">2</span>
-            <h4 class="text-xs font-extrabold text-emerald-950 uppercase tracking-wider">Entrar em um Controle Existente</h4>
-          </div>
-          <p class="text-[11px] text-slate-600 mb-3">Digite o Código de 4 Dígitos fornecido por quem já criou o controle.</p>
-          
-          <form onsubmit="handleJoinWorkspace(event)" class="space-y-2">
-            <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase">Digite o Código de 4 Dígitos</label>
-              <input type="text" id="joinWorkspaceCode" maxlength="4" pattern="[0-9]{4}" required placeholder="Ex: 8660" class="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-base font-black tracking-widest text-center text-emerald-700 focus:outline-none focus:border-emerald-600" />
-            </div>
-            <button type="submit" class="w-full mt-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95">
-              Conectar ao Controle Compartilhado
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- ================= CABEÇALHO DO PAINEL ================= -->
   <header class="sticky top-0 z-40 w-full border-b border-slate-200/90 glass-nav px-3.5 py-2.5 shadow-xs transition-all">
     <div class="mx-auto flex max-w-5xl items-center justify-between gap-2">
@@ -131,17 +67,17 @@
       </div>
 
       <div class="flex items-center gap-1.5 shrink-0">
-        <!-- Botão Painel ADM -->
-        <button id="adminBtn" onclick="window.location.href='admin.html'" title="Ir para Painel ADM" class="hidden h-8.5 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 active:scale-95 transition">
+        <!-- BOTÃO DO ADM: EXCLUSIVAMENTE OCULTO POR DEFEITO (Só aparece se for o e-mail c.pirespm@gmail.com) -->
+        <button id="adminBtn" onclick="window.location.href='admin.html'" title="Painel Exclusivo ADM" class="hidden h-8.5 items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-2.5 text-xs font-bold text-blue-700 shadow-2xs hover:bg-blue-100 active:scale-95 transition">
           <i class="fa-solid fa-shield-halved text-blue-600 text-xs"></i>
           <span class="text-xs">ADM</span>
         </button>
 
         <!-- Configurações / Perfil -->
-        <button onclick="openProfileModal()" title="Configurações & Código" class="flex h-8.5 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold transition shadow-2xs bg-blue-50 text-blue-700 border border-blue-200/80 hover:bg-blue-100 active:scale-95">
+        <button onclick="openProfileModal()" title="Configurações & Código" class="flex h-8.5 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold transition shadow-2xs bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 active:scale-95">
           <span id="headerUserEmoji" class="text-xs">👤</span>
           <span id="headerUserName" class="text-xs font-extrabold max-w-[85px] truncate">Usuário</span>
-          <i class="fa-solid fa-gear text-[10px] text-blue-600 ml-0.5"></i>
+          <i class="fa-solid fa-gear text-[10px] text-slate-500 ml-0.5"></i>
         </button>
 
         <!-- Botão Sair -->
@@ -225,7 +161,7 @@
     <!-- ABA 3: EXTRATO -->
     <div id="tab-extrato" class="hidden space-y-3">
       <div class="flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-200/80 gap-2">
-        <input type="text" id="searchExpense" placeholder="Buscar lançamento..." oninput="renderTransactionsList()" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold w-full sm:w-64 focus:outline-none" />
+        <input type="text" id="searchExpense" placeholder="Buscar lançamento..." oninput="renderTransactionsList(transactions)" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold w-full sm:w-64 focus:outline-none" />
       </div>
       <div id="txListContainer" class="space-y-2"></div>
     </div>
@@ -356,12 +292,12 @@
       </div>
 
       <div class="mt-4 pt-3 border-t border-slate-100 space-y-2">
-        <button onclick="handleLeaveWorkspace()" class="w-full py-2.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">Trocar / Desvincular Controle</button>
+        <button onclick="logout()" class="w-full py-2.5 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold">Sair da Conta</button>
       </div>
     </div>
   </div>
 
-  <!-- SCRIPT COMPLETO E DADOS DE EXEMPLO -->
+  <!-- SCRIPT DE SEGURANÇA E VALIDAÇÃO DO ADM -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
@@ -383,20 +319,18 @@
     };
 
     let currentUser = {
-      id: 'user_cris',
-      name: 'Cristiano',
-      email: 'c.pirespm@gmail.com',
-      emoji: '👨‍✈️',
-      role: 'ADMIN'
+      id: 'user_temp',
+      name: 'Usuário',
+      email: '',
+      emoji: '👤'
     };
 
-    // DADOS DE EXEMPLO (SEED DATA) PARA ANALISAR O FUNCIONAMENTO IMEDIATAMENTE
     let transactions = JSON.parse(localStorage.getItem('nosso_bolso_tx_clean')) || [
-      { id: 'ex_1', desc: 'Salário Mensal', amount: 6500.00, type: 'INCOME', cat: 'Salário', userId: 'user_cris', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-01' },
-      { id: 'ex_2', desc: 'Supermercado Mensal', amount: 1200.50, type: 'EXPENSE', cat: 'Gastos Gerais', userId: 'user_cris', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-05' },
-      { id: 'ex_3', desc: 'Conta de Energia e Água', amount: 350.00, type: 'EXPENSE', cat: 'Gastos Fixos', userId: 'user_cris', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-10' },
-      { id: 'ex_4', desc: 'Jantar em Família', amount: 240.00, type: 'EXPENSE', cat: 'Lazer', userId: 'user_cris', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-15' },
-      { id: 'ex_5', desc: 'Aporte Tesouro Direto / FIIs', amount: 1000.00, type: 'EXPENSE', cat: 'Investimentos', userId: 'user_cris', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-20' }
+      { id: 'ex_1', desc: 'Salário Mensal', amount: 6500.00, type: 'INCOME', cat: 'Salário', userId: 'user_temp', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-01' },
+      { id: 'ex_2', desc: 'Supermercado Mensal', amount: 1200.50, type: 'EXPENSE', cat: 'Gastos Gerais', userId: 'user_temp', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-05' },
+      { id: 'ex_3', desc: 'Conta de Energia', amount: 350.00, type: 'EXPENSE', cat: 'Gastos Fixos', userId: 'user_temp', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-10' },
+      { id: 'ex_4', desc: 'Lazer Família', amount: 240.00, type: 'EXPENSE', cat: 'Lazer', userId: 'user_temp', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-15' },
+      { id: 'ex_5', desc: 'Investimento FIIs', amount: 1000.00, type: 'EXPENSE', cat: 'Investimentos', userId: 'user_temp', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-20' }
     ];
 
     let activeMonth = 'Outubro 2026';
@@ -407,22 +341,33 @@
         db = firebase.firestore();
         isCloudActive = true;
 
+        // VERIFICAÇÃO RIGOROSA DO UTILIZADOR AUTENTICADO
         firebase.auth().onAuthStateChanged(async (userAuth) => {
           if (userAuth) {
-            currentUser.email = userAuth.email;
-            if (userAuth.email === 'c.pirespm@gmail.com') {
-              currentUser.role = 'ADMIN';
+            const email = userAuth.email;
+            currentUser.email = email;
+            currentUser.id = userAuth.uid;
+            currentUser.name = email.split('@')[0];
+
+            // BLINTAGEM EXATA: O botão do ADM só aparece se o e-mail for exatamente o teu
+            const adminBtn = document.getElementById('adminBtn');
+            if (email === 'c.pirespm@gmail.com') {
+              adminBtn.style.display = 'flex'; // Visível apenas para o ADM
               currentUser.name = 'Cristiano (ADM)';
+              currentUser.emoji = '👑';
+            } else {
+              adminBtn.style.display = 'none'; // Estritamente oculto para qualquer outro utilizador
             }
+
             initApp();
           } else {
-            // Se não estiver logado, usa o usuário padrão para teste
-            initApp();
+            // Se não houver sessão ativa, redireciona para o login
+            window.location.href = 'index.html';
           }
         });
 
       } catch (e) {
-        console.warn("Firebase offline/aviso:", e);
+        console.warn("Firebase aviso:", e);
         initApp();
       }
     }
@@ -437,9 +382,6 @@
       document.getElementById('headerUserName').innerText = currentUser.name;
       document.getElementById('headerUserEmoji').innerText = currentUser.emoji;
       document.getElementById('headerWelcomeMsg').innerText = `Logado como ${currentUser.name}`;
-      
-      const isAdmin = currentUser.email === 'c.pirespm@gmail.com' || currentUser.role === 'ADMIN';
-      document.getElementById('adminBtn').style.display = isAdmin ? 'flex' : 'none';
     }
 
     function openProfileModal() {
@@ -454,13 +396,6 @@
     function copyWorkspaceCode() {
       const code = currentWorkspace ? currentWorkspace.code : '8660';
       navigator.clipboard.writeText(code).then(() => alert(`Código ${code} copiado com sucesso!`));
-    }
-
-    function handleLeaveWorkspace() {
-      currentWorkspace = null;
-      localStorage.removeItem('nosso_bolso_current_workspace');
-      closeProfileModal();
-      document.getElementById('onboardingScreen').classList.remove('hidden');
     }
 
     function logout() {
@@ -571,7 +506,6 @@
       document.getElementById('statExpense').innerText = `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
       document.getElementById('statBalance').innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
-      // Totais por categoria
       const fixed = currentTx.filter(t => t.cat === 'Gastos Fixos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
       const general = currentTx.filter(t => t.cat === 'Gastos Gerais' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
       const leisure = currentTx.filter(t => t.cat === 'Lazer' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
@@ -596,7 +530,6 @@
         </div>
       `;
 
-      // Resumo em lista
       const summaryList = document.getElementById('categorySummaryList');
       summaryList.innerHTML = `
         <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>🏠 Gastos Fixos</span><span class="font-bold">R$ ${fixed.toFixed(2)}</span></div>
@@ -705,7 +638,6 @@
       const activeEl = document.getElementById(`tab-${tab}`);
       if (activeEl) activeEl.classList.remove('hidden');
 
-      // Atualiza estilo dos botões da barra inferior
       ['Resumo', 'Graficos', 'Extrato', 'Invest'].forEach(name => {
         const btn = document.getElementById(`bottomNav${name}`);
         if (btn) {
@@ -717,7 +649,7 @@
       if (tab === 'graficos') renderAll();
     }
 
-    // Inicialização
+    // Inicialização da verificação de utilizador
     initFirebase();
   </script>
 </body>
