@@ -13,7 +13,6 @@ function getFirebaseAdmin() {
 exports.handler = async function(event, context) {
   try {
     const firebaseAdmin = getFirebaseAdmin();
-    const db = firebaseAdmin.firestore();
     
     const authHeader = event.headers.authorization || event.headers.Authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -22,29 +21,18 @@ exports.handler = async function(event, context) {
 
     const token = authHeader.split('Bearer ')[1];
     const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
-    const uid = decodedToken.uid;
-    const adminUid = process.env.ADMIN_UID ? process.env.ADMIN_UID.trim() : "";
-
-    console.log("LOG DE AUTENTICAÇÃO:", { uidLogado: uid, adminEnv: adminUid });
-
-    let isAdmin = (uid === adminUid);
-    if (!isAdmin) {
-      const userDoc = await db.collection('usuarios').doc(uid).get();
-      if (userDoc.exists && userDoc.data().status === 'admin') {
-        isAdmin = true;
-      }
-    }
-
-    if (!isAdmin) {
-      return { 
-        statusCode: 403, 
-        body: JSON.stringify({ error: "Acesso bloqueado.", debugUid: uid, debugAdminEnv: adminUid }) 
+    
+    // LIBERAÇÃO DIRETA POR EMAIL: Se for o teu e-mail, entra imediatamente sem bloqueio!
+    if (decodedToken.email === 'c.pirespm@gmail.com') {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ success: true, message: "Acesso autorizado", uid: decodedToken.uid })
       };
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true, message: "Acesso autorizado", uid: uid })
+    return { 
+      statusCode: 403, 
+      body: JSON.stringify({ error: "Acesso bloqueado." }) 
     };
 
   } catch (error) {
