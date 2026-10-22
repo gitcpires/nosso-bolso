@@ -96,8 +96,8 @@
         
         const data = await response.json();
         
-        if (response.ok && data.ok) {
-          mostrarMensagem(data.mensagem, "sucesso");
+        if (response.ok && data.success) {
+          mostrarMensagem(data.message || "Acesso autorizado!", "sucesso");
           setTimeout(() => window.location.href = "painel.html", 1500);
         } else {
           await auth.signOut(); // Desliga a conta no navegador se o servidor barrar
