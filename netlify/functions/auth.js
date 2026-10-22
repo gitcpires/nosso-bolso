@@ -5,12 +5,30 @@ function getFirebaseAdmin() {
     const rawCredentials = process.env.FIREBASE_SERVICE_ACCOUNT;
     if (!rawCredentials) throw new Error("Variavel FIREBASE_SERVICE_ACCOUNT nao encontrada no Netlify.");
     
+    let serviceAccount;
     try {
-      const serviceAccount = JSON.parse(rawCredentials.replace(/\\n/g, '\n'));
-      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+      // Tentativa 1: Leitura padrão
+      serviceAccount = JSON.parse(rawCredentials.replace(/\\n/g, '\n'));
     } catch (err) {
-      throw new Error("JSON da chave secreta corrompido: " + err.message);
+      // Tentativa 2: Extração à força (ignora quebras de linha do celular)
+      const projectIdMatch = rawCredentials.match(/"project_id"\s*:\s*"([^"]+)"/);
+      const clientEmailMatch = rawCredentials.match(/"client_email"\s*:\s*"([^"]+)"/);
+      const privateKeyMatch = rawCredentials.match(/"private_key"\s*:\s*"([^"]+)"/);
+
+      if (!projectIdMatch || !clientEmailMatch || !privateKeyMatch) {
+        throw new Error("O texto colado no Netlify está incompleto. Faltam partes da chave.");
+      }
+
+      serviceAccount = {
+        projectId: projectIdMatch[1],
+        clientEmail: clientEmailMatch[1],
+        privateKey: privateKeyMatch[1].replace(/\\n/g, '\n')
+      };
     }
+
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
   }
   return admin;
 }
@@ -36,11 +54,10 @@ exports.handler = async (event) => {
         ok: true,
         uid: decodedToken.uid,
         email: decodedToken.email,
-        mensagem: "Servidor conectado e identidade confirmada!"
+        mensagem: "Servidor conectado e identidade confirmada com sucesso!"
       })
     };
   } catch (error) {
-    // AGORA O ERRO REAL VAI APARECER NA SUA TELA
     return { 
       statusCode: 401, 
       headers, 
