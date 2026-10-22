@@ -3,135 +3,120 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel do Chefe - Nosso Bolso</title>
+  <title>Nosso Bolso - Painel do Administrador</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-slate-900 text-white min-h-screen p-6 font-sans">
-  <div class="max-w-md mx-auto">
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen p-4">
+
+  <header class="max-w-4xl mx-auto flex items-center justify-between pb-6 border-b border-slate-800 mb-6">
+    <div class="flex items-center space-x-3">
+      <div class="bg-blue-600 text-white p-2.5 rounded-2xl shadow-lg">
+        <i class="fa-solid fa-shield-halved text-lg"></i>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-xl text-white">Gestão de Acessos</h1>
+        <p class="text-xs text-slate-400">Aprove ou recuse solicitações de novos membros</p>
+      </div>
+    </div>
     
-    <div class="text-center mb-8">
-      <h1 class="text-2xl font-black text-amber-500">Administração</h1>
-      <p class="text-sm text-slate-400">Controle total de acessos</p>
-    </div>
+    <a href="painel.html" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2">
+      <i class="fa-solid fa-arrow-left"></i> Voltar ao Painel
+    </a>
+  </header>
 
-    <div id="login-section" class="bg-slate-800 p-6 rounded-3xl border border-slate-700">
-      <input type="email" id="admin-email" placeholder="Seu e-mail VIP" class="w-full mb-3 rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm focus:outline-none focus:border-amber-500" />
-      <input type="password" id="admin-senha" placeholder="Senha" class="w-full mb-4 rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm focus:outline-none focus:border-amber-500" />
-      <button onclick="loginAdmin()" class="w-full bg-amber-600 hover:bg-amber-700 font-bold py-3 rounded-xl">Entrar no Painel</button>
-      <div id="msg-login" class="mt-4 text-center text-sm font-semibold text-rose-400 hidden"></div>
-    </div>
+  <main class="max-w-4xl mx-auto space-y-4">
+    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Solicitações Pendentes</h2>
 
-    <div id="painel-section" class="hidden space-y-8">
-      
-      <div>
-        <h2 class="text-lg font-bold text-amber-400 mb-3 flex items-center justify-between">
-          Aguardando Aprovação
-          <button onclick="carregarUsuarios()" class="text-xs bg-slate-800 px-3 py-1 rounded-lg border border-slate-700">Atualizar</button>
-        </h2>
-        <div id="lista-pendentes" class="space-y-3"></div>
+    <div id="lista-solicitacoes" class="space-y-3">
+      <!-- Os pedidos aparecerão aqui dinamicamente -->
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-center text-slate-400 text-sm">
+        A carregar solicitações...
       </div>
-
-      <hr class="border-slate-700">
-
-      <div>
-        <h2 class="text-lg font-bold text-emerald-400 mb-3">Usuários Ativos</h2>
-        <div id="lista-aprovados" class="space-y-3"></div>
-      </div>
-
     </div>
-
-  </div>
+  </main>
 
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
       authDomain: "nosso-bolso-c8d29.firebaseapp.com",
-      projectId: "nosso-bolso-c8d29"
+      projectId: "nosso-bolso-c8d29",
+      storageBucket: "nosso-bolso-c8d29.firebasestorage.app",
+      messagingSenderId: "812166717623",
+      appId: "1:812166717623:web:ba3a4c0db18484be47ad32"
     };
+
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    let authToken = "";
+    const db = firebase.firestore();
 
-    async function loginAdmin() {
-      const msg = document.getElementById('msg-login');
+    async function carregarSolicitacoes() {
+      const container = document.getElementById('lista-solicitacoes');
       try {
-        msg.classList.remove('hidden'); msg.innerText = "Autenticando...";
-        const userCred = await auth.signInWithEmailAndPassword(document.getElementById('admin-email').value, document.getElementById('admin-senha').value);
-        authToken = await userCred.user.getIdToken();
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('painel-section').classList.remove('hidden');
-        carregarUsuarios();
-      } catch (error) {
-        msg.innerText = "Acesso negado.";
-      }
-    }
-
-    async function carregarUsuarios() {
-      const divPendentes = document.getElementById('lista-pendentes');
-      const divAprovados = document.getElementById('lista-aprovados');
-      
-      divPendentes.innerHTML = "<p class='text-xs text-slate-500'>Carregando...</p>";
-      divAprovados.innerHTML = "<p class='text-xs text-slate-500'>Carregando...</p>";
-
-      try {
-        const res = await fetch('/.netlify/functions/admin', { headers: { 'Authorization': 'Bearer ' + authToken } });
-        const usuarios = await res.json();
+        const snapshot = await db.collection('solicitacoes').where('status', '==', 'pendente').get();
         
-        const pendentes = usuarios.filter(u => u.status === 'pendente');
-        const aprovados = usuarios.filter(u => u.status === 'aprovado');
-
-        if (pendentes.length === 0) divPendentes.innerHTML = "<p class='text-xs text-slate-500 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50'>Ninguém na fila.</p>";
-        else {
-          divPendentes.innerHTML = pendentes.map(u => `
-            <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl" id="user-${u.id}">
-              <p class="text-sm font-bold truncate">${u.email}</p>
-              <div class="flex gap-2 mt-3">
-                <button onclick="acaoUsuario('${u.id}', 'POST')" class="flex-1 bg-emerald-600/20 text-emerald-400 border border-emerald-800 text-xs font-bold py-2 rounded-lg">Aprovar</button>
-                <button onclick="acaoUsuario('${u.id}', 'DELETE')" class="flex-1 bg-rose-600/20 text-rose-400 border border-rose-800 text-xs font-bold py-2 rounded-lg">Recusar</button>
-              </div>
-            </div>
-          `).join('');
+        if (snapshot.empty) {
+          container.innerHTML = `<div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl text-center text-slate-400 text-sm">Nenhuma solicitação pendente no momento.</div>`;
+          return;
         }
 
-        if (aprovados.length === 0) divAprovados.innerHTML = "<p class='text-xs text-slate-500 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50'>Nenhum usuário ativo.</p>";
-        else {
-          divAprovados.innerHTML = aprovados.map(u => {
-            const grupoTexto = u.grupoId ? `Grupo: ${u.grupoId}` : "Sem grupo (Aguardando escolha)";
-            return `
-            <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-center" id="user-${u.id}">
-              <div class="truncate pr-4">
-                <p class="text-sm font-bold truncate">${u.email}</p>
-                <p class="text-xs text-amber-500 mt-0.5">${grupoTexto}</p>
+        container.innerHTML = '';
+        snapshot.forEach(doc => {
+          const dados = doc.data();
+          const uid = doc.id;
+
+          container.innerHTML += `
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
+              <div>
+                <p class="text-sm font-bold text-white">${dados.email}</p>
+                <span class="text-xs text-slate-400">Solicitado em: ${new Date(dados.criadoEm).toLocaleDateString()}</span>
               </div>
-              <button onclick="acaoUsuario('${u.id}', 'DELETE')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2 px-3 rounded-lg shrink-0">Excluir</button>
+              <div class="flex gap-2">
+                <button onclick="aprovarUsuario('${uid}', '${dados.email}')" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                  Aprovar
+                </button>
+                <button onclick="recusarUsuario('${uid}')" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+                  Recusar
+                </button>
+              </div>
             </div>
-          `}).join('');
-        }
-      } catch (error) {
-        divPendentes.innerHTML = `<p class='text-rose-400 text-xs'>Erro: ${error.message}</p>`;
-      }
-    }
-
-    async function acaoUsuario(userId, metodo) {
-      if (metodo === 'DELETE' && !confirm("Tem certeza que deseja apagar esta conta permanentemente?")) return;
-      
-      const card = document.getElementById(`user-${userId}`);
-      card.style.opacity = "0.5";
-
-      try {
-        await fetch('/.netlify/functions/admin', {
-          method: metodo,
-          headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: userId })
+          `;
         });
-        carregarUsuarios(); 
-      } catch (error) {
-        alert("Falha ao processar.");
-        card.style.opacity = "1";
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = `<div class="bg-rose-900/20 border border-rose-800 p-4 rounded-2xl text-center text-rose-400 text-sm">Erro ao carregar solicitações.</div>`;
       }
     }
+
+    async function aprovarUsuario(uid, email) {
+      try {
+        // Move para a coleção de usuários aprovados
+        await db.collection('usuarios').doc(uid).set({
+          email: email,
+          status: 'membro'
+        });
+        // Remove da coleção de solicitações
+        await db.collection('solicitacoes').doc(uid).delete();
+        alert('Utilizador aprovado com sucesso!');
+        carregarSolicitacoes();
+      } catch (err) {
+        alert('Erro ao aprovar utilizador.');
+      }
+    }
+
+    async function recusarUsuario(uid) {
+      try {
+        await db.collection('solicitacoes').doc(uid).delete();
+        alert('Solicitação recusada.');
+        carregarSolicitacoes();
+      } catch (err) {
+        alert('Erro ao recusar.');
+      }
+    }
+
+    carregarSolicitacoes();
   </script>
 </body>
 </html>
