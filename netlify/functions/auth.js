@@ -13,6 +13,7 @@ function getFirebaseAdmin() {
 exports.handler = async function(event, context) {
   try {
     const firebaseAdmin = getFirebaseAdmin();
+    const db = firebaseAdmin.firestore();
     
     const authHeader = event.headers.authorization || event.headers.Authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -21,18 +22,25 @@ exports.handler = async function(event, context) {
 
     const token = authHeader.split('Bearer ')[1];
     const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
+    const uid = decodedToken.uid;
+
+    // Verificação robusta: se for o teu e-mail ou se o documento na coleção usuarios tiver status admin
+    let isAuthorized = (decodedToken.email === 'c.pirespm@gmail.com');
     
-    // LIBERAÇÃO DIRETA POR EMAIL: Se for o teu e-mail, entra imediatamente sem bloqueio!
-    if (decodedToken.email === 'c.pirespm@gmail.com') {
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ success: true, message: "Acesso autorizado", uid: decodedToken.uid })
-      };
+    if (!isAuthorized) {
+      const userDoc = await db.collection('usuarios').doc(uid).get();
+      if (userDoc.exists && userDoc.data().status === 'admin') {
+        isAuthorized = true;
+      }
     }
 
-    return { 
-      statusCode: 403, 
-      body: JSON.stringify({ error: "Acesso bloqueado." }) 
+    if (!isAuthorized) {
+      return { statusCode: 403, body: JSON.stringify({ error: "Acesso bloqueado." }) };
+    }
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true, message: "Acesso autorizado", uid: uid })
     };
 
   } catch (error) {
