@@ -25,7 +25,7 @@ exports.handler = async function(event, context) {
     const uid = decodedToken.uid;
     const email = decodedToken.email;
 
-    // 1. Se fores tu (Administrador), entra direto
+    // 1. Acesso Direto para o Administrador Principal
     if (email === 'c.pirespm@gmail.com') {
       return {
         statusCode: 200,
@@ -33,16 +33,17 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // 2. Verifica se já está aprovado na coleção de usuários
+    // 2. Verifica se o utilizador já foi aprovado na coleção 'usuarios'
     const userDoc = await db.collection('usuarios').doc(uid).get();
     if (userDoc.exists && userDoc.data().status) {
+      const status = userDoc.data().status;
       return {
         statusCode: 200,
-        body: JSON.stringify({ success: true, message: "Acesso autorizado", isAdmin: userDoc.data().status === 'admin' })
+        body: JSON.stringify({ success: true, message: "Acesso autorizado", isAdmin: (status === 'admin') })
       };
     }
 
-    // 3. Se não tem cadastro aprovado, cria/atualiza um pedido pendente automaticamente
+    // 3. Se não está aprovado nem é admin, regista o pedido pendente na coleção 'solicitacoes'
     await db.collection('solicitacoes').doc(uid).set({
       email: email,
       criadoEm: new Date().toISOString(),
@@ -51,11 +52,11 @@ exports.handler = async function(event, context) {
 
     return { 
       statusCode: 403, 
-      body: JSON.stringify({ error: "Conta criada! Acesso pendente de aprovação pelo administrador." }) 
+      body: JSON.stringify({ error: "Conta criada com sucesso! O seu acesso está pendente de aprovação pelo administrador." }) 
     };
 
   } catch (error) {
-    console.error("Erro:", error);
+    console.error("Erro na função auth:", error);
     return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
   }
 };
