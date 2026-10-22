@@ -23,24 +23,35 @@ exports.handler = async function(event, context) {
     const token = authHeader.split('Bearer ')[1];
     const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
     const uid = decodedToken.uid;
+    const email = decodedToken.email;
 
-    // Verificação robusta: se for o teu e-mail ou se o documento na coleção usuarios tiver status admin
-    let isAuthorized = (decodedToken.email === 'c.pirespm@gmail.com');
-    
-    if (!isAuthorized) {
-      const userDoc = await db.collection('usuarios').doc(uid).get();
-      if (userDoc.exists && userDoc.data().status === 'admin') {
-        isAuthorized = true;
-      }
+    // 1. Se fores tu (Administrador), entra direto
+    if (email === 'c.pirespm@gmail.com') {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ success: true, message: "Acesso autorizado como Administrador", isAdmin: true })
+      };
     }
 
-    if (!isAuthorized) {
-      return { statusCode: 403, body: JSON.stringify({ error: "Acesso bloqueado." }) };
+    // 2. Verifica se já está aprovado na coleção de usuários
+    const userDoc = await db.collection('usuarios').doc(uid).get();
+    if (userDoc.exists && userDoc.data().status) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ success: true, message: "Acesso autorizado", isAdmin: userDoc.data().status === 'admin' })
+      };
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true, message: "Acesso autorizado", uid: uid })
+    // 3. Se não tem cadastro aprovado, cria/atualiza um pedido pendente automaticamente
+    await db.collection('solicitacoes').doc(uid).set({
+      email: email,
+      criadoEm: new Date().toISOString(),
+      status: 'pendente'
+    }, { merge: true });
+
+    return { 
+      statusCode: 403, 
+      body: JSON.stringify({ error: "Conta criada! Acesso pendente de aprovação pelo administrador." }) 
     };
 
   } catch (error) {
