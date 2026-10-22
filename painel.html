@@ -1,10 +1,4 @@
 <!DOCTYPE html>
-<div id="admin-link-container" class="hidden">
-  <a href="admin.html" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2">
-    <i class="fa-solid fa-shield-halved"></i> Admin
-  </a>
-</div>
-
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -12,6 +6,9 @@
   <title>Nosso Bolso - Painel Financeiro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen pb-12">
 
@@ -29,9 +26,18 @@
       </div>
     </div>
     
-    <button onclick="sairSistema()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2">
-      <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
-    </button>
+    <div class="flex items-center gap-2">
+      <!-- Botão de Admin (Visível apenas se for administrador) -->
+      <div id="admin-link-container" class="hidden">
+        <a href="admin.html" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+          <i class="fa-solid fa-shield-halved"></i> Admin
+        </a>
+      </div>
+
+      <button onclick="sairSistema()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+      </button>
+    </div>
   </header>
 
   <!-- Container Principal Responsivo -->
@@ -149,20 +155,19 @@
         </div>
       </div>
 
-      <!-- Lista de Transações (Dinâmica) -->
+      <!-- Lista de Transações -->
       <div id="lista-transacoes" class="space-y-3">
-        <!-- Exemplo de item bonito -->
         <div class="bg-slate-950 border border-slate-800/80 p-4 rounded-2xl flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div class="bg-rose-500/10 text-rose-400 p-3 rounded-xl">
-              <i class="fa-solid fa-cart-shopping"></i>
+            <div class="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl">
+              <i class="fa-solid fa-arrow-down"></i>
             </div>
             <div>
-              <p class="text-sm font-bold text-white">Supermercado</p>
-              <span class="text-xs text-slate-400">Alimentação • 22/10/2026</span>
+              <p class="text-sm font-bold text-white">Exemplo de Receita</p>
+              <span class="text-xs text-slate-400">Outros • 22/10/2026</span>
             </div>
           </div>
-          <span class="text-sm font-black text-rose-400">- R$ 150,00</span>
+          <span class="text-sm font-black text-emerald-400">+ R$ 0,00</span>
         </div>
       </div>
     </section>
@@ -170,12 +175,46 @@
   </main>
 
   <script>
-    // Definir data atual por defeito no input de data
+    const firebaseConfig = {
+      apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
+      authDomain: "nosso-bolso-c8d29.firebaseapp.com",
+      projectId: "nosso-bolso-c8d29",
+      storageBucket: "nosso-bolso-c8d29.firebasestorage.app",
+      messagingSenderId: "812166717623",
+      appId: "1:812166717623:web:ba3a4c0db18484be47ad32"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Definir data atual por defeito no input
     document.getElementById('data-transacao').valueAsDate = new Date();
 
+    // Verificar se o utilizador logado é administrador para mostrar o botão Admin
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        if (user.email === 'c.pirespm@gmail.com') {
+          document.getElementById('admin-link-container').classList.remove('hidden');
+        } else {
+          try {
+            const userDoc = await db.collection('usuarios').doc(user.uid).get();
+            if (userDoc.exists && userDoc.data().status === 'admin') {
+              document.getElementById('admin-link-container').classList.remove('hidden');
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      } else {
+        window.location.href = "index.html";
+      }
+    });
+
     function sairSistema() {
-      localStorage.clear();
-      window.location.href = "index.html";
+      auth.signOut().then(() => {
+        window.location.href = "index.html";
+      });
     }
   </script>
 </body>
