@@ -4,25 +4,7 @@ function getFirebaseAdmin() {
   if (!admin.apps.length) {
     const rawCredentials = process.env.FIREBASE_SERVICE_ACCOUNT;
     if (!rawCredentials) throw new Error("Variavel FIREBASE_SERVICE_ACCOUNT ausente.");
-    
-    let serviceAccount;
-    try {
-      serviceAccount = JSON.parse(rawCredentials);
-    } catch (err) {
-      try {
-        serviceAccount = JSON.parse(rawCredentials.replace(/\\n/g, '\n'));
-      } catch (e) {
-        const projectIdMatch = rawCredentials.match(/"project_id"\s*:\s*"([^"]+)"/);
-        const clientEmailMatch = rawCredentials.match(/"client_email"\s*:\s*"([^"]+)"/);
-        const privateKeyMatch = rawCredentials.match(/"private_key"\s*:\s*"([^"]+)"/);
-        if (!projectIdMatch || !clientEmailMatch || !privateKeyMatch) throw new Error("Chave corrompida.");
-        serviceAccount = { 
-          projectId: projectIdMatch[1], 
-          clientEmail: clientEmailMatch[1], 
-          privateKey: privateKeyMatch[1].replace(/\\n/g, '\n') 
-        };
-      }
-    }
+    let serviceAccount = JSON.parse(rawCredentials);
     admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
   }
   return admin;
@@ -33,18 +15,18 @@ exports.handler = async function(event, context) {
     const firebaseAdmin = getFirebaseAdmin();
     const db = firebaseAdmin.firestore();
     
-    // Verifica o cabeçalho de autorização enviado pelo front-end
     const authHeader = event.headers.authorization || event.headers.Authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return { statusCode: 401, body: JSON.stringify({ error: "Não autorizado. Token em falta." }) };
+      return { statusCode: 401, body: JSON.stringify({ error: "Token em falta." }) };
     }
 
     const token = authHeader.split('Bearer ')[1];
     const decodedToken = await firebaseAdmin.auth().verifyIdToken(token);
     const uid = decodedToken.uid;
-    const adminUid = process.env.ADMIN_UID;
+    const adminUid = process.env.ADMIN_UID ? process.env.ADMIN_UID.trim() : "";
 
-    // Se for o admin configurado ou se existir na coleção usuarios com status admin
+    console.log("LOG DE AUTENTICAÇÃO:", { uidLogado: uid, adminEnv: adminUid });
+
     let isAdmin = (uid === adminUid);
     if (!isAdmin) {
       const userDoc = await db.collection('usuarios').doc(uid).get();
@@ -54,7 +36,10 @@ exports.handler = async function(event, context) {
     }
 
     if (!isAdmin) {
-      return { statusCode: 403, body: JSON.stringify({ error: "Acesso bloqueado." }) };
+      return { 
+        statusCode: 403, 
+        body: JSON.stringify({ error: "Acesso bloqueado.", debugUid: uid, debugAdminEnv: adminUid }) 
+      };
     }
 
     return {
@@ -63,10 +48,7 @@ exports.handler = async function(event, context) {
     };
 
   } catch (error) {
-    console.error("Erro na função auth:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message })
-    };
+    console.error("Erro:", error);
+    return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
   }
 };
