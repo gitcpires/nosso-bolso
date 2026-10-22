@@ -3,304 +3,173 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nosso Bolso - Controle Financeiro</title>
+  <title>Nosso Bolso - Painel Financeiro</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-900 text-white min-h-screen font-sans">
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen pb-12">
 
-  <!-- Tela de Carregamento -->
-  <div id="loading-screen" class="flex min-h-screen items-center justify-center">
-    <div class="text-center animate-pulse">
-      <i class="fas fa-wallet text-4xl text-blue-500 mb-3"></i>
-      <p class="text-slate-400 font-semibold">Carregando seu cofre...</p>
-    </div>
-  </div>
-
-  <!-- Tela 1: Escolha do Grupo -->
-  <div id="setup-screen" class="hidden min-h-screen flex items-center justify-center p-4">
-    <div class="bg-slate-800 p-8 rounded-3xl shadow-xl w-full max-w-md border border-slate-700 text-center">
-      <h2 class="text-2xl font-black text-blue-400 mb-2">Configuração Inicial</h2>
-      <p class="text-sm text-slate-400 mb-8">Para começar, crie seu próprio controle financeiro ou entre em um já existente.</p>
-      
-      <button onclick="criarGrupo()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg mb-6 flex items-center justify-center gap-2 transition active:scale-95">
-        <i class="fas fa-plus-circle"></i> Criar meu Controle Financeiro
-      </button>
-
-      <div class="relative flex py-2 items-center mb-6">
-        <div class="flex-grow border-t border-slate-600"></div>
-        <span class="flex-shrink-0 mx-4 text-slate-500 text-xs font-bold uppercase">ou</span>
-        <div class="flex-grow border-t border-slate-600"></div>
+  <!-- Cabeçalho Moderno / Barra Superior -->
+  <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3.5 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="bg-blue-600 text-white p-2.5 rounded-2xl shadow-lg shadow-blue-600/30">
+        <i class="fa-solid fa-wallet text-lg"></i>
       </div>
-
-      <div class="bg-slate-900 p-5 rounded-2xl border border-slate-700">
-        <label class="block text-xs font-bold text-slate-400 mb-2 text-left">Código do Grupo (4 dígitos)</label>
-        <input type="text" id="codigo-grupo" maxlength="4" placeholder="Ex: 1234" class="w-full rounded-xl bg-slate-800 border border-slate-600 px-4 py-3 text-center text-xl tracking-widest text-white focus:outline-none focus:border-emerald-500 mb-3" />
-        <button onclick="entrarGrupo()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition active:scale-95">
-          Entrar no Grupo
-        </button>
-      </div>
-      <div id="setup-msg" class="mt-4 text-sm font-bold hidden"></div>
-    </div>
-  </div>
-
-  <!-- Tela 2: Painel Financeiro -->
-  <div id="dashboard-screen" class="hidden max-w-4xl mx-auto p-4 pb-24">
-    
-    <!-- Cabeçalho -->
-    <div class="flex justify-between items-center mb-6 bg-slate-800 p-4 rounded-2xl border border-slate-700">
       <div>
-        <h1 class="text-xl font-black text-white">Nosso Bolso</h1>
-        <p class="text-xs text-slate-400">Grupo: <span id="display-grupo" class="text-blue-400 font-bold tracking-wider">----</span></p>
-      </div>
-      <button onclick="sair()" class="text-rose-400 hover:text-rose-300 text-sm font-bold bg-rose-900/30 px-4 py-2 rounded-lg border border-rose-800">Sair</button>
-    </div>
-
-    <!-- Resumo dos Saldos -->
-    <div class="grid grid-cols-3 gap-3 mb-8">
-      <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 text-center">
-        <p class="text-xs text-slate-400 font-bold mb-1">Receitas</p>
-        <p class="text-lg md:text-xl font-black text-emerald-400" id="card-receitas">R$ 0,00</p>
-      </div>
-      <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 text-center">
-        <p class="text-xs text-slate-400 font-bold mb-1">Despesas</p>
-        <p class="text-lg md:text-xl font-black text-rose-400" id="card-despesas">R$ 0,00</p>
-      </div>
-      <div class="bg-blue-600 p-4 rounded-2xl shadow-lg text-center border border-blue-500">
-        <p class="text-xs text-blue-200 font-bold mb-1">Saldo Atual</p>
-        <p class="text-lg md:text-xl font-black text-white" id="card-saldo">R$ 0,00</p>
+        <h1 class="font-extrabold text-lg text-white leading-tight">Nosso Bolso</h1>
+        <span class="text-xs text-slate-400 flex items-center gap-1">
+          <i class="fa-solid fa-users text-[10px] text-blue-400"></i> Grupo: <span id="grupo-id" class="text-slate-200 font-medium">8660</span>
+        </span>
       </div>
     </div>
+    
+    <button onclick="sairSistema()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+    </button>
+  </header>
 
-    <!-- Formulário de Lançamento -->
-    <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mb-8">
-      <h3 class="font-bold text-white mb-4 border-b border-slate-700 pb-2"><i class="fas fa-plus-circle text-blue-500 mr-2"></i>Novo Lançamento</h3>
-      <form id="form-transacao" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        
+  <!-- Container Principal Responsivo -->
+  <main class="max-w-4xl mx-auto p-4 space-y-6 mt-2">
+
+    <!-- Resumo de Saldos / Cartão de Destaque -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-gradient-to-br from-blue-900/40 to-slate-900 border border-blue-500/20 p-5 rounded-3xl shadow-xl">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Saldo Atual</span>
+          <i class="fa-solid fa-chart-line text-blue-400"></i>
+        </div>
+        <div class="text-2xl font-black text-white" id="saldo-atual">R$ 0,00</div>
+      </div>
+      
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl shadow-xl">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Entradas do Mês</span>
+          <i class="fa-solid fa-arrow-trend-up text-emerald-400"></i>
+        </div>
+        <div class="text-2xl font-black text-emerald-400" id="total-entradas">R$ 0,00</div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl shadow-xl">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">Saídas do Mês</span>
+          <i class="fa-solid fa-arrow-trend-down text-rose-400"></i>
+        </div>
+        <div class="text-2xl font-black text-rose-400" id="total-saidas">R$ 0,00</div>
+      </div>
+    </section>
+
+    <!-- Formulário Moderno de Novo Lançamento -->
+    <section class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+      <div class="flex items-center space-x-3 mb-6">
+        <div class="bg-blue-500/10 text-blue-400 p-2.5 rounded-xl border border-blue-500/20">
+          <i class="fa-solid fa-plus text-base"></i>
+        </div>
         <div>
-          <label class="block text-xs font-bold text-slate-400 mb-1">Tipo</label>
-          <select id="t-tipo" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
-            <option value="despesa">Despesa (Gasto)</option>
-            <option value="receita">Receita (Entrada)</option>
-          </select>
+          <h2 class="text-lg font-bold text-white">Novo Lançamento</h2>
+          <p class="text-xs text-slate-400">Registe uma nova receita ou despesa no cofre</p>
+        </div>
+      </div>
+
+      <form id="transacao-form" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Tipo -->
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Tipo</label>
+            <div class="relative">
+              <select id="tipo" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white appearance-none focus:outline-none focus:border-blue-500 transition">
+                <option value="despesa">Despesa (Saída)</option>
+                <option value="receita">Receita (Entrada)</option>
+              </select>
+              <i class="fa-solid fa-chevron-down absolute right-4 top-3.5 text-xs text-slate-500 pointer-events-none"></i>
+            </div>
+          </div>
+
+          <!-- Valor -->
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Valor (R$)</label>
+            <div class="relative">
+              <span class="absolute left-4 top-3 text-sm text-slate-500 font-semibold">R$</span>
+              <input type="number" step="0.01" id="valor" placeholder="0,00" required class="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition font-semibold" />
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-xs font-bold text-slate-400 mb-1">Valor (R$)</label>
-          <input type="number" id="t-valor" step="0.01" required placeholder="0.00" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Descrição -->
+          <div class="md:col-span-1">
+            <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Descrição</label>
+            <input type="text" id="descricao" placeholder="Ex: Supermercado" required class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
+          </div>
+
+          <!-- Categoria -->
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Categoria</label>
+            <div class="relative">
+              <select id="categoria" class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white appearance-none focus:outline-none focus:border-blue-500 transition">
+                <option value="Alimentação">Alimentação</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Moradia">Moradia</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Outros">Outros</option>
+              </select>
+              <i class="fa-solid fa-chevron-down absolute right-4 top-3.5 text-xs text-slate-500 pointer-events-none"></i>
+            </div>
+          </div>
+
+          <!-- Data -->
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Data</label>
+            <input type="date" id="data-transacao" required class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
+          </div>
         </div>
 
-        <div class="md:col-span-2">
-          <label class="block text-xs font-bold text-slate-400 mb-1">Descrição</label>
-          <input type="text" id="t-desc" required placeholder="Ex: Supermercado, Salário, Internet..." class="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-400 mb-1">Categoria</label>
-          <select id="t-cat" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
-            <option value="fixo">Gastos Fixos</option>
-            <option value="geral">Geral / Dia a Dia</option>
-            <option value="cartao">Cartão de Crédito</option>
-            <option value="lazer">Lazer & Familia</option>
-            <option value="salario">Salário / Renda</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-400 mb-1">Data</label>
-          <input type="date" id="t-data" required class="w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
-        </div>
-
-        <div class="md:col-span-2 mt-2">
-          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition active:scale-95">Adicionar ao Cofre</button>
-        </div>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-blue-600/30 transition active:scale-[0.99] flex items-center justify-center gap-2 mt-4">
+          <i class="fa-solid fa-shield-halved"></i> Adicionar ao Cofre
+        </button>
       </form>
-    </div>
+    </section>
 
-    <!-- Lista de Movimentações -->
-    <div>
-      <h3 class="font-bold text-white mb-4"><i class="fas fa-list text-blue-500 mr-2"></i>Extrato do Mês</h3>
-      <div id="lista-extrato" class="space-y-3">
-        <!-- Itens injetados via JS -->
+    <!-- Secção de Extrato do Mês -->
+    <section class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-3">
+          <div class="bg-indigo-500/10 text-indigo-400 p-2.5 rounded-xl border border-indigo-500/20">
+            <i class="fa-solid fa-list text-base"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-white">Extrato do Mês</h2>
+            <p class="text-xs text-slate-400">Histórico de transações recentes do grupo</p>
+          </div>
+        </div>
       </div>
-    </div>
 
-  </div>
+      <!-- Lista de Transações (Dinâmica) -->
+      <div id="lista-transacoes" class="space-y-3">
+        <!-- Exemplo de item bonito -->
+        <div class="bg-slate-950 border border-slate-800/80 p-4 rounded-2xl flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="bg-rose-500/10 text-rose-400 p-3 rounded-xl">
+              <i class="fa-solid fa-cart-shopping"></i>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-white">Supermercado</p>
+              <span class="text-xs text-slate-400">Alimentação • 22/10/2026</span>
+            </div>
+          </div>
+          <span class="text-sm font-black text-rose-400">- R$ 150,00</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
-      authDomain: "nosso-bolso-c8d29.firebaseapp.com",
-      projectId: "nosso-bolso-c8d29"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    // Definir data atual por defeito no input de data
+    document.getElementById('data-transacao').valueAsDate = new Date();
 
-    let currentUser = null;
-    let userGrupoId = null;
-
-    // Configura a data de hoje por padrão no formulário
-    document.getElementById('t-data').valueAsDate = new Date();
-
-    // Monitora quem está logado
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        currentUser = user;
-        const doc = await db.collection('usuarios').doc(user.uid).get();
-        if (doc.exists) {
-          const dados = doc.data();
-          if (dados.status !== 'aprovado' && dados.status !== 'admin') {
-            window.location.href = "index.html"; // Bloqueado
-          } else if (!dados.grupoId) {
-            mostrarTela('setup-screen');
-          } else {
-            userGrupoId = dados.grupoId;
-            document.getElementById('display-grupo').innerText = userGrupoId;
-            mostrarTela('dashboard-screen');
-            carregarFinancas();
-          }
-        } else { window.location.href = "index.html"; }
-      } else { window.location.href = "index.html"; } // Não logado
-    });
-
-    function mostrarTela(telaId) {
-      ['loading-screen', 'setup-screen', 'dashboard-screen'].forEach(id => {
-        document.getElementById(id).classList.add('hidden');
-      });
-      document.getElementById(telaId).classList.remove('hidden');
-      document.getElementById(telaId).classList.add('flex');
-    }
-
-    // --- FUNÇÕES DE GRUPO ---
-    async function criarGrupo() {
-      const codigo = Math.floor(1000 + Math.random() * 9000).toString();
-      try {
-        await db.collection('usuarios').doc(currentUser.uid).update({ grupoId: codigo });
-        window.location.reload();
-      } catch (e) { alert("Erro ao criar grupo."); }
-    }
-
-    async function entrarGrupo() {
-      const msg = document.getElementById('setup-msg');
-      const codigo = document.getElementById('codigo-grupo').value.trim();
-      if(codigo.length !== 4) return alert("Digite os 4 dígitos.");
-      
-      try {
-        // Confirma se o grupo existe
-        const verifica = await db.collection('usuarios').where('grupoId', '==', codigo).limit(1).get();
-        if (verifica.empty) {
-          msg.className = "mt-4 text-sm font-bold text-rose-400 block";
-          msg.innerText = "Grupo não encontrado.";
-          return;
-        }
-        await db.collection('usuarios').doc(currentUser.uid).update({ grupoId: codigo });
-        window.location.reload();
-      } catch (e) {
-        msg.className = "mt-4 text-sm font-bold text-rose-400 block";
-        msg.innerText = "Erro ao buscar grupo.";
-      }
-    }
-
-    // --- FUNÇÕES FINANCEIRAS ---
-    document.getElementById('form-transacao').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = e.target.querySelector('button');
-      btn.innerText = "Salvando..."; btn.disabled = true;
-
-      const novaTransacao = {
-        grupoId: userGrupoId,
-        criadoPor: currentUser.uid,
-        tipo: document.getElementById('t-tipo').value,
-        valor: parseFloat(document.getElementById('t-valor').value),
-        descricao: document.getElementById('t-desc').value,
-        categoria: document.getElementById('t-cat').value,
-        data: document.getElementById('t-data').value,
-        registro: firebase.firestore.FieldValue.serverTimestamp()
-      };
-
-      try {
-        await db.collection('transacoes').add(novaTransacao);
-        e.target.reset();
-        document.getElementById('t-data').valueAsDate = new Date();
-      } catch (error) {
-        alert("Erro ao salvar: " + error.message);
-      } finally {
-        btn.innerText = "Adicionar ao Cofre"; btn.disabled = false;
-      }
-    });
-
-    function carregarFinancas() {
-      // Escuta mudanças no banco de dados em tempo real
-      db.collection('transacoes')
-        .where('grupoId', '==', userGrupoId)
-        .orderBy('data', 'desc')
-        .onSnapshot(snapshot => {
-          
-          let totalR = 0, totalD = 0;
-          const lista = document.getElementById('lista-extrato');
-          lista.innerHTML = "";
-
-          if (snapshot.empty) {
-            lista.innerHTML = "<p class='text-slate-500 text-sm text-center py-4 bg-slate-800 rounded-xl border border-slate-700'>Nenhuma movimentação ainda.</p>";
-          }
-
-          snapshot.forEach(doc => {
-            const t = doc.data();
-            const formatado = t.valor.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-            
-            if(t.tipo === 'receita') totalR += t.valor;
-            else totalD += t.valor;
-
-            const corValor = t.tipo === 'receita' ? 'text-emerald-400' : 'text-rose-400';
-            const sinal = t.tipo === 'receita' ? '+' : '-';
-            const icon = t.tipo === 'receita' ? 'fa-arrow-up' : 'fa-arrow-down';
-
-            // Ícones por categoria
-            let catIcon = 'fa-tag';
-            if(t.categoria === 'fixo') catIcon = 'fa-house';
-            if(t.categoria === 'cartao') catIcon = 'fa-credit-card';
-            if(t.categoria === 'lazer') catIcon = 'fa-utensils';
-            if(t.categoria === 'salario') catIcon = 'fa-money-bill-wave';
-
-            lista.innerHTML += `
-              <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center relative overflow-hidden">
-                <div class="absolute left-0 top-0 bottom-0 w-1 ${t.tipo === 'receita' ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
-                <div class="pl-3 flex items-center gap-3">
-                  <div class="bg-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-slate-400 border border-slate-700">
-                    <i class="fas ${catIcon}"></i>
-                  </div>
-                  <div>
-                    <p class="font-bold text-white text-sm">${t.descricao}</p>
-                    <p class="text-xs text-slate-400">${t.data.split('-').reverse().join('/')}</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="font-black ${corValor} text-sm">${sinal} ${formatado}</p>
-                  <button onclick="apagarTransacao('${doc.id}')" class="text-[10px] text-slate-500 hover:text-rose-400 mt-1 uppercase font-bold">Apagar</button>
-                </div>
-              </div>
-            `;
-          });
-
-          // Atualiza os cartões lá no topo
-          document.getElementById('card-receitas').innerText = totalR.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-          document.getElementById('card-despesas').innerText = totalD.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-          document.getElementById('card-saldo').innerText = (totalR - totalD).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-        });
-    }
-
-    async function apagarTransacao(id) {
-      if(confirm("Deseja apagar este lançamento?")) {
-        await db.collection('transacoes').doc(id).delete();
-      }
-    }
-
-    function sair() {
-      auth.signOut().then(() => window.location.href = "index.html");
+    function sairSistema() {
+      localStorage.clear();
+      window.location.href = "index.html";
     }
   </script>
 </body>
