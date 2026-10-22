@@ -30,26 +30,30 @@ exports.handler = async (event) => {
 
     const db = firebaseAdmin.firestore();
 
-    // LER: Listar contas pendentes
     if (event.httpMethod === "GET") {
-      const snapshot = await db.collection('usuarios').where('status', '==', 'pendente').get();
+      const snapshot = await db.collection('usuarios').get();
       const usuarios = [];
-      snapshot.forEach(doc => usuarios.push({ id: doc.id, ...doc.data() }));
+      snapshot.forEach(doc => {
+        if (doc.id !== process.env.ADMIN_UID) usuarios.push({ id: doc.id, ...doc.data() });
+      });
       return { statusCode: 200, headers, body: JSON.stringify(usuarios) };
     }
 
-    // APROVAR: Mudar status e gerar código de 4 dígitos
-    if (event.httpMethod === "POST") {
-      const body = JSON.parse(event.body);
-      const grupoCodigo = Math.floor(1000 + Math.random() * 9000).toString(); 
+    const body = event.body ? JSON.parse(event.body) : {};
 
+    if (event.httpMethod === "POST") {
+      // Apenas aprova o acesso. O usuário define o grupo depois na interface dele.
       await db.collection('usuarios').doc(body.userId).update({
         status: 'aprovado',
-        grupoId: grupoCodigo,
         dataAprovacao: admin.firestore.FieldValue.serverTimestamp()
       });
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+    }
 
-      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, grupoId: grupoCodigo }) };
+    if (event.httpMethod === "DELETE") {
+      await db.collection('usuarios').doc(body.userId).delete();
+      await firebaseAdmin.auth().deleteUser(body.userId);
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
     }
 
     return { statusCode: 405, headers, body: JSON.stringify({ error: "Método não permitido" }) };
