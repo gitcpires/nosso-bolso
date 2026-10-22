@@ -1,261 +1,40 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Nosso Bolso - Gestão Financeira Familiar</title>
-  
-  <!-- Tailwind CSS -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste de Segurança - Nosso Bolso</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#f0f7ff',
-              500: '#2563eb',
-              600: '#1d4ed8',
-              700: '#1e40af'
-            }
-          }
-        }
-      }
-    }
-  </script>
-
-  <!-- Font Awesome & Google Fonts -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Chart.js para os Gráficos em Barras Interativos -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Firebase App & Auth SDKs (Seguro) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
-  <style>
-    * {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      box-sizing: border-box;
-    }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    
-    .glass-nav {
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-    }
-    
-    .fintech-bg {
-      background-color: #090d16;
-      background-image: 
-        radial-gradient(at 0% 0%, hsla(222, 85%, 26%, 0.7) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, hsla(339, 78%, 32%, 0.6) 0px, transparent 50%),
-        radial-gradient(at 50% 100%, hsla(217, 85%, 45%, 0.25) 0px, transparent 50%);
-    }
-
-    .glass-card-pro {
-      background: rgba(255, 255, 255, 0.97);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-    }
-
-    .fab-center {
-      position: absolute;
-      left: 50%;
-      top: -22px;
-      transform: translateX(-50%);
-    }
-  </style>
 </head>
-<body class="bg-slate-100/70 text-slate-900 pb-32 antialiased selection:bg-blue-600 selection:text-white">
+<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen p-4 font-sans">
 
-  <!-- ================= TELA DE LOGIN & CADASTRO 100% CONFIDENCIAL ================= -->
-  <div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 fintech-bg overflow-y-auto">
-    <div class="w-full max-w-sm rounded-3xl glass-card-pro p-7 sm:p-8 shadow-2xl border border-white/40 my-auto transition-all">
-      
-      <!-- Topo Brand Elegante -->
-      <div class="text-center">
-        <div class="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-slate-900 via-blue-900 to-indigo-900 text-white shadow-xl shadow-blue-950/30 border border-white/20">
-          <i class="fa-solid fa-vault text-2xl text-blue-400"></i>
-        </div>
-        <h2 class="text-2xl font-black tracking-tight text-slate-900">Nosso Bolso</h2>
-        <p class="text-xs font-semibold text-slate-400 mt-0.5 tracking-wide uppercase">Gestão Financeira Compartilhada</p>
-      </div>
-
-      <!-- VISÃO 1: TELA DE LOGIN ELEGANTE -->
-      <div id="loginViewSection">
-        <form id="loginForm" onsubmit="handleDirectLogin(event)" class="mt-7 space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-              <span>E-mail</span>
-              <span class="text-[10px] text-slate-400 font-semibold">Conta cadastrada</span>
-            </label>
-            <div class="relative flex items-center">
-              <i class="fa-regular fa-envelope absolute left-4 text-slate-400 text-xs"></i>
-              <input type="email" id="loginEmail" required placeholder="seu@email.com" autocomplete="username" class="w-full rounded-2xl border border-slate-200 bg-slate-50/70 pl-10 pr-4 py-3 text-xs font-bold text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition" />
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-              <span>Senha</span>
-              <span class="text-[10px] text-slate-400 font-semibold">Criptografada</span>
-            </label>
-            <div class="relative flex items-center">
-              <i class="fa-solid fa-lock absolute left-4 text-slate-400 text-xs"></i>
-              <input type="password" id="loginPassword" required placeholder="••••••••" autocomplete="current-password" class="w-full rounded-2xl border border-slate-200 bg-slate-50/70 pl-10 pr-4 py-3 text-xs font-bold text-slate-800 placeholder-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition" />
-            </div>
-          </div>
-
-          <!-- Mensagens de Alerta -->
-          <div id="loginStatusMsg" class="hidden rounded-2xl p-3 text-xs font-semibold text-center leading-relaxed"></div>
-
-          <button type="submit" id="loginSubmitBtn" class="mt-2 w-full rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-slate-900 py-3.5 text-xs font-black tracking-wide text-white shadow-xl shadow-blue-600/25 transition hover:opacity-95 active:scale-[0.98]">
-            Entrar no Sistema
-          </button>
-        </form>
-
-        <div class="mt-7 pt-4 border-t border-slate-100 text-center">
-          <p class="text-xs text-slate-500 font-medium">
-            Primeiro acesso?
-            <button type="button" onclick="showRegisterView()" class="font-extrabold text-blue-600 hover:text-blue-700 hover:underline ml-1">
-              Cadastre-se aqui
-            </button>
-          </p>
-        </div>
-      </div>
-
-      <!-- VISÃO 2: CADASTRO MODERNO -->
-      <div id="registerViewSection" class="hidden">
-        <div class="mt-5 mb-2 flex items-center justify-between">
-          <span class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Criar Novo Acesso</span>
-          <button type="button" onclick="showLoginView()" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
-            <i class="fa-solid fa-arrow-left text-[10px]"></i> Voltar ao Login
-          </button>
-        </div>
-
-        <form id="registerForm" onsubmit="handleDirectRegister(event)" class="space-y-3 mt-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-600">Nome Completo</label>
-            <input type="text" id="regName" required placeholder="Ex: Cristiano ou Simony" class="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:border-blue-600 focus:bg-white focus:outline-none transition" />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-600">E-mail para Login</label>
-            <input type="email" id="regEmail" required placeholder="seu@email.com" autocomplete="username" class="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:border-blue-600 focus:bg-white focus:outline-none transition" />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-600">Crie sua Senha</label>
-            <input type="password" id="regPassword" required minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="new-password" class="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:border-blue-600 focus:bg-white focus:outline-none transition" />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-600">Perfil / Identificação</label>
-            <select id="regProfile" class="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:border-blue-600 focus:bg-white focus:outline-none transition">
-              <option value="CRIS">☑️ Ele (Azul)</option>
-              <option value="SIMONY">✅ Ela (Rosa)</option>
-              <option value="OUTRO">👤 Outro Membro Familiar</option>
-            </select>
-          </div>
-
-          <div class="rounded-xl bg-blue-50/80 p-2.5 border border-blue-200/80 text-[11px] text-blue-900 leading-tight">
-            <i class="fa-solid fa-shield-halved text-blue-600 mr-1"></i>
-            Por segurança, após o cadastro sua conta fica <b>Pendente</b> até o Administrador autorizar seu acesso no Painel ADM.
-          </div>
-
-          <button type="submit" id="regSubmitBtn" class="mt-2 w-full rounded-2xl bg-slate-900 py-3 text-xs font-black text-white shadow-md hover:bg-slate-800 active:scale-[0.98] transition">
-            Finalizar Cadastro
-          </button>
-        </form>
-      </div>
-
-      <div class="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-        <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-check text-emerald-500 text-xs"></i> Ambiente Seguro</span>
-        <span class="font-semibold">Nuvem Google</span>
-      </div>
+  <div class="bg-slate-800 p-6 rounded-3xl shadow-xl w-full max-w-sm border border-slate-700">
+    <div class="text-center mb-6">
+      <h2 class="text-2xl font-black text-white">Teste do Servidor</h2>
+      <p class="text-xs text-slate-400 mt-1">Validação de Comunicação Segura</p>
     </div>
-  </div>
-
-  <!-- ================= TELA DE PRIMEIRO ACESSO (ONBOARDING) ================= -->
-  <div id="onboardingScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 fintech-bg overflow-y-auto hidden">
-    <div class="w-full max-w-md rounded-3xl glass-card-pro p-7 sm:p-8 shadow-2xl border border-white/40 my-auto transition-all">
-      <div class="text-center">
-        <h3 class="text-xl font-black text-slate-900">Seja Bem-vindo(a)!</h3>
-        <p class="text-xs text-slate-500 mt-1" id="onboardingUserNameGreeting">Aguardando configuração de conta...</p>
+    
+    <form id="loginForm" onsubmit="testarLogin(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-400 mb-1.5">E-mail</label>
+        <input type="email" id="email" required placeholder="seu@email.com" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
       </div>
-      <div class="mt-5 text-center">
-        <button onclick="logout()" class="text-xs font-bold text-slate-400 hover:text-slate-600 underline">
-          Sair da Conta
-        </button>
+      <div>
+        <label class="block text-xs font-bold text-slate-400 mb-1.5">Senha</label>
+        <input type="password" id="senha" required placeholder="••••••••" class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
       </div>
-    </div>
-  </div>
-
-  <!-- BANNER DE BOAS-VINDAS TEMPORÁRIO -->
-  <div id="welcomeSuccessBanner" class="fixed top-4 left-4 right-4 z-50 mx-auto max-w-md hidden">
-    <div class="rounded-2xl bg-emerald-600 p-4 text-white shadow-2xl flex items-center justify-between border border-emerald-400">
-      <div class="flex items-center gap-3">
-        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white text-xl">🎉</span>
-        <div>
-          <h4 class="text-xs font-extrabold leading-tight">Controle Financeiro Conectado!</h4>
-          <p class="text-[11px] text-emerald-100">Bem-vindo(a) ao seu cofre familiar sincronizado.</p>
-        </div>
-      </div>
-      <button onclick="dismissWelcomeBanner()" class="text-emerald-200 hover:text-white p-1 text-sm font-bold">
-        <i class="fa-solid fa-xmark"></i>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition active:scale-95">
+        Testar Conexão com Netlify
       </button>
-    </div>
+    </form>
+
+    <div id="resultado" class="mt-5 text-xs font-semibold text-center p-3 rounded-xl hidden"></div>
   </div>
 
-  <!-- ================= CABEÇALHO ================= -->
-  <header class="sticky top-0 z-40 w-full border-b border-slate-200/90 glass-nav px-3.5 py-2.5 shadow-xs transition-all">
-    <div class="mx-auto flex max-w-5xl items-center justify-between gap-2">
-      <div class="flex items-center gap-2 min-w-0">
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-rose-500 text-white shadow-sm">
-          <i class="fa-solid fa-wallet text-sm"></i>
-        </div>
-        <div class="min-w-0">
-          <div class="flex items-center gap-1.5 leading-tight">
-            <span class="text-sm font-extrabold tracking-tight text-slate-900 truncate" id="topWorkspaceTitle">Nosso Bolso</span>
-            <span id="currentMonthBadge" class="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[9px] font-extrabold text-blue-700">Outubro 2026</span>
-          </div>
-          <div class="flex items-center gap-1 leading-tight mt-0.5">
-            <span id="cloudStatusIcon" class="h-2 w-2 rounded-full bg-emerald-500 inline-block" title="Conectado à Nuvem do Google Firebase"></span>
-            <p class="text-[10px] text-slate-500 font-semibold truncate" id="headerWelcomeMsg">Conectado</p>
-          </div>
-        </div>
-      </div>
-      <div class="flex items-center gap-1.5 shrink-0">
-        <button id="adminNewMonthBtn" onclick="openNewMonthModal()" class="hidden h-8.5 items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white px-2.5 text-xs font-bold shadow-xs transition">
-          <span class="hidden sm:inline text-xs">Novo Mês</span>
-        </button>
-        <button id="adminBtn" onclick="openAdminModal()" class="relative hidden h-8.5 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50">
-          <span class="hidden sm:inline text-xs">ADM</span>
-        </button>
-        <button onclick="openProfileModal()" id="activeUserBadge" class="flex h-8.5 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold transition shadow-2xs bg-blue-50 text-blue-700 border border-blue-200/80">
-          <span id="headerUserEmoji" class="text-xs">👤</span>
-          <span id="headerUserName" class="text-xs font-extrabold max-w-[85px] sm:max-w-none truncate">Usuário</span>
-        </button>
-        <button onclick="logout()" class="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-100">
-          <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- ================= LÓGICA JAVASCRIPT & SEGURANÇA ================= -->
   <script>
-    ['nosso_bolso_users', 'nosso_bolso_users_v3', 'nosso_bolso_users_v4'].forEach(k => {
-      try { localStorage.removeItem(k); } catch(e){}
-    });
-
+    // Suas credenciais originais do projeto
     const firebaseConfig = {
       apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
       authDomain: "nosso-bolso-c8d29.firebaseapp.com",
@@ -265,145 +44,46 @@
       appId: "1:812166717623:web:ba3a4c0db18484be47ad32"
     };
 
-    let auth = null;
-    let isCloudActive = false;
-    let categoryCompareChartInstance = null;
-    let historyMonthsChartInstance = null;
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
 
-    const DEFAULT_GOAL_PERCENTS = {
-      'Gastos Fixos': 50,
-      'Gastos Gerais': 25,
-      'Lazer': 15,
-      'Investimentos': 10
-    };
+    async function testarLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value.trim();
+      const resultDiv = document.getElementById('resultado');
 
-    let categoryGoals = JSON.parse(localStorage.getItem('nosso_bolso_category_goals')) || DEFAULT_GOAL_PERCENTS;
-    let currentWorkspace = JSON.parse(localStorage.getItem('nosso_bolso_current_workspace')) || null;
+      resultDiv.className = "mt-5 text-xs font-semibold text-center p-3 rounded-xl bg-blue-900/30 text-blue-400 border border-blue-800 block";
+      resultDiv.innerText = "1. Validando credenciais no Firebase...";
 
-    function initFirebaseCloud() {
       try {
-        if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
+        const userCredential = await auth.signInWithEmailAndPassword(email, senha);
+        const token = await userCredential.user.getIdToken();
+
+        resultDiv.innerText = "2. Firebase OK! Enviando token para o Netlify...";
+
+        const response = await fetch('/.netlify/functions/auth', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.ok) {
+          resultDiv.className = "mt-5 text-xs font-semibold text-center p-3 rounded-xl bg-emerald-900/30 text-emerald-400 border border-emerald-800 block";
+          resultDiv.innerHTML = `<b>SUCESSO!</b><br>${data.mensagem}<br><span class="text-[10px] text-emerald-600">Sua conta: ${data.email}</span>`;
+        } else {
+          resultDiv.className = "mt-5 text-xs font-semibold text-center p-3 rounded-xl bg-rose-900/30 text-rose-400 border border-rose-800 block";
+          resultDiv.innerText = "ERRO DO SERVIDOR: " + (data.error || "Desconhecido");
         }
-        auth = firebase.auth();
-        isCloudActive = true;
-        
-        const cloudIcon = document.getElementById('cloudStatusIcon');
-        if (cloudIcon) {
-          cloudIcon.className = "h-2 w-2 rounded-full bg-emerald-500 inline-block";
-          cloudIcon.title = "Nuvem Firebase Conectada Segura";
-        }
-      } catch (e) {
-        console.warn("Erro ao iniciar Firebase:", e);
+
+      } catch (error) {
+        resultDiv.className = "mt-5 text-xs font-semibold text-center p-3 rounded-xl bg-rose-900/30 text-rose-400 border border-rose-800 block";
+        resultDiv.innerText = "ERRO DE LOGIN: " + error.message;
       }
     }
-
-    let users = JSON.parse(localStorage.getItem('nosso_bolso_users_clean')) || [];
-    let currentUser = null;
-    let currentFilterUser = 'ALL';
-
-    function handleDirectLogin(e) {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
-      const msgBox = document.getElementById('loginStatusMsg');
-
-      msgBox.className = "rounded-2xl p-3 text-xs font-semibold text-center leading-relaxed bg-blue-50 text-blue-700 border border-blue-200 block";
-      msgBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> A verificar autorização no servidor...`;
-
-      auth.signInWithEmailAndPassword(email, password)
-        .then(async (userCredential) => {
-          const user = userCredential.user;
-          const token = await user.getIdToken();
-
-          try {
-            // Envia o token para a validação secreta no Netlify
-            const response = await fetch('/.netlify/functions/admin-auth', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`
-              }
-            });
-
-            const data = await response.json();
-
-            if (data.isAdmin) {
-              window.location.href = 'admin.html';
-            } else {
-              currentUser = { 
-                id: user.uid, 
-                email: user.email, 
-                name: user.email.split('@')[0], 
-                role: 'USER', 
-                status: 'active', 
-                emoji: '👤', 
-                color: 'blue' 
-              };
-              msgBox.classList.add('hidden');
-              document.getElementById('authScreen').classList.add('hidden');
-              document.getElementById('loginForm').reset();
-              // initApp(); chamada simplificada
-            }
-          } catch (error) {
-            console.error("Erro na verificação do servidor:", error);
-            msgBox.className = "rounded-2xl p-3 text-xs font-semibold text-center leading-relaxed bg-amber-50 text-amber-700 border border-amber-200 block";
-            msgBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Falha na comunicação com o servidor seguro.`;
-          }
-        })
-        .catch((error) => {
-          msgBox.className = "rounded-2xl p-3 text-xs font-semibold text-center leading-relaxed bg-rose-50 text-rose-700 border border-rose-200 block";
-          msgBox.innerHTML = `<i class="fa-solid fa-lock mr-1"></i> Acesso negado. Verifique o seu e-mail e palavra-passe.`;
-        });
-    }
-
-    function handleDirectRegister(e) {
-      e.preventDefault();
-      const email = document.getElementById('regEmail').value.trim().toLowerCase();
-      const password = document.getElementById('regPassword').value;
-      const msgBox = document.getElementById('loginStatusMsg');
-
-      auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          document.getElementById('registerForm').reset();
-          showLoginView();
-          msgBox.className = "rounded-2xl p-3 text-xs font-semibold text-center leading-relaxed bg-emerald-50 text-emerald-800 border border-emerald-200 block";
-          msgBox.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Conta criada com sucesso! Faça login.`;
-        })
-        .catch((error) => {
-          alert("Erro ao cadastrar: Verifique se o e-mail está correto e a senha tem no mínimo 6 dígitos.");
-        });
-    }
-
-    function logout() {
-      if (auth) {
-        auth.signOut().then(() => clearSession());
-      } else {
-        clearSession();
-      }
-    }
-
-    function clearSession() {
-      currentUser = null;
-      currentWorkspace = null;
-      localStorage.removeItem('nosso_bolso_current_workspace');
-      document.getElementById('authScreen').classList.remove('hidden');
-      document.getElementById('onboardingScreen').classList.add('hidden');
-    }
-
-    function showRegisterView() {
-      document.getElementById('loginViewSection').classList.add('hidden');
-      document.getElementById('registerViewSection').classList.remove('hidden');
-      document.getElementById('loginStatusMsg').classList.add('hidden');
-    }
-
-    function showLoginView() {
-      document.getElementById('registerViewSection').classList.add('hidden');
-      document.getElementById('loginViewSection').classList.remove('hidden');
-      document.getElementById('loginStatusMsg').classList.add('hidden');
-    }
-
-    // Initialize Auth
-    initFirebaseCloud();
   </script>
 </body>
 </html>
