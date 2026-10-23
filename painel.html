@@ -25,6 +25,14 @@
 </head>
 <body class="bg-slate-100/70 text-slate-900 pb-36 antialiased selection:bg-blue-600 selection:text-white">
 
+  <!-- TELA DE CARREGAMENTO INICIAL (BLinda o painel para não mostrar nada antes da verificação) -->
+  <div id="loadingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-100 p-4">
+    <div class="text-center space-y-3">
+      <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+      <p class="text-xs font-bold text-slate-500">A carregar o seu espaço...</p>
+    </div>
+  </div>
+
   <!-- TELA DE BLOQUEIO / AGUARDANDO APROVAÇÃO -->
   <div id="pendingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-md bg-white p-8 rounded-[2.5rem] shadow-2xl text-center space-y-4">
@@ -324,33 +332,45 @@
       currentUser.email = email;
       currentUser.name = email.split('@')[0];
 
-      // BLINDAGEM ABSOLUTA: O ADM nunca entra no painel financeiro comum
       if (email === 'c.pirespm@gmail.com') {
         window.location.replace("admin.html");
         return;
       }
 
-      const userDoc = await db.collection('users').doc(uid).get();
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        if (userData.status !== 'approved') {
+      try {
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (userDoc.exists) {
+          const userData = userDoc.data();
+          
+          if (userData.status !== 'approved') {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('pendingScreen').classList.remove('hidden');
+            return;
+          }
+
+          // Se não tiver workspace, mostra o modal de escolha e oculta o carregamento
+          if (!userData.workspaceId) {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('setupWorkspaceModal').classList.remove('hidden');
+            return;
+          }
+
+          currentWorkspace.id = userData.workspaceId;
+          currentWorkspace.code = userData.workspaceCode || '----';
+        } else {
+          document.getElementById('loadingScreen').classList.add('hidden');
           document.getElementById('pendingScreen').classList.remove('hidden');
           return;
         }
 
-        if (!userData.workspaceId) {
-          document.getElementById('setupWorkspaceModal').classList.remove('hidden');
-          return;
-        }
+        // Se chegou aqui, está aprovado e tem workspace: libera o painel
+        document.getElementById('loadingScreen').classList.add('hidden');
+        initUserSession();
 
-        currentWorkspace.id = userData.workspaceId;
-        currentWorkspace.code = userData.workspaceCode || '----';
-      } else {
-        document.getElementById('pendingScreen').classList.remove('hidden');
-        return;
+      } catch (err) {
+        console.error(err);
+        document.getElementById('loadingScreen').innerHTML = `<p class="text-xs text-rose-600 font-bold">Erro ao carregar dados. Tente atualizar a página.</p>`;
       }
-
-      initUserSession();
     });
 
     async function deixarGrupo() {
