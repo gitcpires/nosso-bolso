@@ -159,7 +159,7 @@
       </button>
     </div>
 
-    <!-- NAVEGAÇÃO POR ABAS SUPERIOR (Com IDs corretos para o indicador visual/barra azul) -->
+    <!-- NAVEGAÇÃO POR ABAS SUPERIOR -->
     <div class="flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-5 pt-0.5">
       <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"><i class="fa-solid fa-chart-pie mr-1"></i> Resumo & Metas</button>
       <button onclick="switchTab('graficos')" id="tabBtn-graficos" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-chart-column mr-1"></i> Gráficos</button>
@@ -169,17 +169,19 @@
 
     <!-- ABA 1: RESUMO E METAS -->
     <div id="tab-resumo" class="space-y-2.5">
-      <!-- Cartões de Categorias Compactos -->
+      <!-- Cartões de Categorias Compactos em Grelha 2x2 -->
       <div class="grid grid-cols-2 gap-2" id="cardsCategoryContainer"></div>
       
-      <!-- Bloco inferior de Metas Percentuais -->
+      <!-- Bloco inferior: Resumo de Contribuição por Membro do Grupo -->
       <div class="rounded-2xl bg-white p-3 border border-slate-200 shadow-2xs space-y-2">
         <div class="flex items-center justify-between">
           <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1">
-            <i class="fa-solid fa-bullseye text-blue-600"></i> Metas do Grupo (100%)
+            <i class="fa-solid fa-users text-blue-600"></i> Participação por Membro (Este Mês)
           </h3>
         </div>
-        <div id="metasProgressList" class="space-y-1.5 text-xs"></div>
+        <div id="membrosContribList" class="space-y-1.5 text-xs">
+          <div class="text-slate-400 text-center py-2 text-[11px]">A calcular participação...</div>
+        </div>
       </div>
     </div>
 
@@ -609,7 +611,7 @@
 
       renderAll();
       carregarDadosDoBanco();
-      carregarMembrosDoGrupo();
+      carregarMembrosDo Grupo();
       ouvinteLousaGrupo();
     }
 
@@ -788,7 +790,7 @@
     }
 
     function toggleTxTypeUI() {
-      const type = document.querySelector('input[name="txType"].checked')?.value || document.querySelector('input[name="txType"]:checked').value;
+      const type = document.querySelector('input[name="txType"]:checked').value;
       const catSelect = document.getElementById('txCat');
       if (type === 'INCOME') {
         catSelect.innerHTML = `<option value="Salário">💼 Salário</option><option value="Renda Extra">✨ Renda Extra</option>`;
@@ -826,7 +828,7 @@
       const metaInvestVal = baseEntradas * (metas.invest / 100);
 
       const gerarBarraProgressoEStatus = (gasto, meta) => {
-        if (meta <= 0) return { html: `<div class="w-full bg-slate-100 h-1 rounded-full mt-1"></div>`, texto: `<span class="text-[9px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
+        if (meta <= 0) return { html: `<div class="w-full bg-slate-100 h-1.5 rounded-full mt-1"></div>`, texto: `<span class="text-[9px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
         
         const pctGasto = (gasto / meta) * 100;
         const larguraVerde = Math.min(pctGasto, 100);
@@ -858,7 +860,7 @@
       const resLazer = gerarBarraProgressoEStatus(leisure, metaLazerVal);
       const resInvest = gerarBarraProgressoEStatus(invest, metaInvestVal);
 
-      // Cartões compactos em grelha 2x2 para caberem todos sem scroll
+      // Cartões em grelha 2x2 compactos
       const containerCat = document.getElementById('cardsCategoryContainer');
       if (containerCat) {
         containerCat.innerHTML = `
@@ -893,44 +895,52 @@
         `;
       }
 
-      // CORREÇÃO DO BLOCO INFERIOR: O cálculo do Real agora representa exatamente o valor gasto na categoria em Reais (R$)
-      const metasContainer = document.getElementById('metasProgressList');
-      if (metasContainer) {
-        metasContainer.innerHTML = `
-          <div>
-            <div class="flex justify-between font-bold text-[11px] mb-0.5">
-              <span>🏠 Fixos</span>
-              <span class="text-slate-500">R$ ${fixed.toFixed(2)} (Meta: ${metas.fixos}%)</span>
-            </div>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-blue-600 h-full rounded-full" style="width: ${Math.min((fixed / (metaFixosVal || 1)) * 100, 100)}%"></div></div>
-          </div>
-          <div>
-            <div class="flex justify-between font-bold text-[11px] mb-0.5">
-              <span>🛒 Gerais</span>
-              <span class="text-slate-500">R$ ${general.toFixed(2)} (Meta: ${metas.gerais}%)</span>
-            </div>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full" style="width: ${Math.min((general / (metaGeraisVal || 1)) * 100, 100)}%"></div></div>
-          </div>
-          <div>
-            <div class="flex justify-between font-bold text-[11px] mb-0.5">
-              <span>🎉 Lazer</span>
-              <span class="text-slate-500">R$ ${leisure.toFixed(2)} (Meta: ${metas.lazer}%)</span>
-            </div>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full" style="width: ${Math.min((leisure / (metaLazerVal || 1)) * 100, 100)}%"></div></div>
-          </div>
-          <div>
-            <div class="flex justify-between font-bold text-[11px] mb-0.5">
-              <span>📈 Investimentos</span>
-              <span class="text-slate-500">R$ ${invest.toFixed(2)} (Meta: ${metas.invest}%)</span>
-            </div>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-600 h-full rounded-full" style="width: ${Math.min((invest / (metaInvestVal || 1)) * 100, 100)}%"></div></div>
-          </div>
-        `;
-      }
+      // Renderiza o resumo por membro na parte inferior (Opção 3 escolhida)
+      renderMembrosContribuicao(currentTx);
 
       renderTransactionsList(currentTx);
       renderInvestments(currentTx, invest);
       renderChart(fixed, general, leisure, invest);
+    }
+
+    function renderMembrosContribuicao(currentTx) {
+      const container = document.getElementById('membrosContribList');
+      if (!container) return;
+
+      // Agrupa transações por utilizador
+      const mapMembros = {};
+      currentTx.forEach(t => {
+        const email = t.userEmail || 'Membro';
+        const nome = email.split('@')[0];
+        if (!mapMembros[nome]) {
+          mapMembros[nome] = { despesas: 0, entradas: 0 };
+        }
+        if (t.type === 'EXPENSE') {
+          mapMembros[nome].despesas += t.amount;
+        } else if (t.type === 'INCOME') {
+          mapMembros[nome].entradas += t.amount;
+        }
+      });
+
+      const nomes = Object.keys(mapMembros);
+      if (nomes.length === 0) {
+        container.innerHTML = `<div class="text-slate-400 text-center py-2 text-[11px]">Nenhuma movimentação registada este mês.</div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      nomes.forEach(nome => {
+        const dados = mapMembros[nome];
+        container.innerHTML += `
+          <div class="flex items-center justify-between p-2 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="font-extrabold text-slate-700"><i class="fa-solid fa-user-circle text-blue-500 mr-1.5"></i>${nome}</span>
+            <div class="text-right">
+              <span class="text-[10px] text-rose-600 font-bold block">Despesas: R$ ${dados.despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+              ${dados.entradas > 0 ? `<span class="text-[10px] text-emerald-600 font-bold block">Entradas: R$ ${dados.entradas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>` : ''}
+            </div>
+          </div>
+        `;
+      });
     }
 
     function renderTransactionsList(currentTx) {
@@ -1033,7 +1043,6 @@
       const activeEl = document.getElementById(`tab-${tab}`);
       if (activeEl) activeEl.classList.remove('hidden');
 
-      // Atualiza o indicador visual (barra azul e negrito) nos botões da barra superior
       ['resumo', 'graficos', 'extrato', 'invest'].forEach(name => {
         const btn = document.getElementById(`tabBtn-${name}`);
         if (btn) {
@@ -1045,7 +1054,6 @@
         }
       });
 
-      // Atualiza a barra inferior mobile
       ['Resumo', 'Graficos', 'Extrato', 'Invest', 'Mural'].forEach(name => {
         const btn = document.getElementById(`bottomNav${name}`);
         if (btn) {
