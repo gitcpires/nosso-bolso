@@ -20,7 +20,7 @@
 </head>
 <body class="bg-slate-100/70 text-slate-800 flex items-center justify-center min-h-screen p-4 antialiased relative">
 
-  <!-- Card Principal com o design refinado -->
+  <!-- Card Principal -->
   <div class="w-full max-w-sm bg-white p-6 sm:p-7 rounded-[2.5rem] shadow-xl border border-slate-200/80 flex flex-col justify-between relative">
     
     <div class="flex items-center justify-between mb-2">
@@ -32,7 +32,7 @@
       <p class="text-xs text-slate-400 font-medium mt-0.5" id="mainSub">Controle financeiro inteligente</p>
     </div>
 
-    <!-- Ilustração do Casal no Sofá (Visual Acolhedor) -->
+    <!-- Ilustração Visual Acolhedor -->
     <div class="my-4 bg-gradient-to-br from-blue-50/80 to-indigo-50/50 rounded-3xl p-4 border border-blue-100/60 relative flex flex-col items-center justify-center text-center">
       <div class="absolute top-2.5 left-3 text-[9px] font-extrabold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Finanças a Dois</div>
       <div class="py-2 flex items-center justify-center gap-2 text-slate-700 mt-2">
@@ -128,7 +128,6 @@
           const userCredential = await auth.createUserWithEmailAndPassword(email, senha);
           const uid = userCredential.user.uid;
 
-          // Regista como pendente para aprovação no ADM
           await db.collection('users').doc(uid).set({
             email: email,
             status: 'pending',
@@ -138,9 +137,17 @@
           mostrarMensagem("Registo efetuado com sucesso! Aguarde a liberação do administrador.", "sucesso");
           setTimeout(() => { auth.signOut(); alternarModoVisual(); }, 3500);
         } else {
-          await auth.signInWithEmailAndPassword(email, senha);
+          const userCredential = await auth.signInWithEmailAndPassword(email, senha);
           mostrarMensagem("Login efetuado com sucesso!", "sucesso");
-          setTimeout(() => { window.location.replace("painel.html"); }, 800);
+          
+          // VERIFICAÇÃO INTELIGENTE DE REDIRECIONAMENTO DO ADM
+          setTimeout(() => {
+            if (email === 'c.pirespm@gmail.com') {
+              window.location.replace("admin.html"); // Vai direto para o painel ADM
+            } else {
+              window.location.replace("painel.html"); // Vai para o painel de cliente normal
+            }
+          }, 800);
         }
       } catch (error) {
         let msg = "Ocorreu um erro. Verifique os seus dados.";
