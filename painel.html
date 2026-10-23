@@ -169,10 +169,10 @@
 
     <!-- ABA 1: RESUMO E METAS -->
     <div id="tab-resumo" class="space-y-3.5">
-      <!-- Cartões de Categorias com Barras Verdes/Vermelhas e Metas baseadas nas Entradas -->
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer"></div>
+      <!-- Cartões de Categorias Compactos -->
+      <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer"></div>
       
-      <!-- Bloco inferior de Acompanhamento de Metas em Reais (R$) -->
+      <!-- Bloco inferior mantido com barras e indicação limpa (Meta: X%) -->
       <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -827,7 +827,6 @@
       const metaLazerVal = baseEntradas * (metas.lazer / 100);
       const metaInvestVal = baseEntradas * (metas.invest / 100);
 
-      // Função auxiliar para gerar barra verde/vermelha e texto de quanto falta ou passou
       const gerarBarraProgressoEStatus = (gasto, meta) => {
         if (meta <= 0) return { html: `<div class="w-full bg-slate-100 h-1.5 rounded-full mt-2"></div>`, texto: `<span class="text-[10px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
         
@@ -864,28 +863,28 @@
       const containerCat = document.getElementById('cardsCategoryContainer');
       if (containerCat) {
         containerCat.innerHTML = `
-          <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-1">
+          <div class="rounded-3xl bg-white p-3.5 border border-slate-200 shadow-2xs space-y-1">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Gastos Fixos</span>
             <div class="text-base font-black text-slate-900">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.fixos}%): R$ ${metaFixosVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="pt-0.5">${resFixos.texto}</div>
             ${resFixos.html}
           </div>
-          <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-1">
+          <div class="rounded-3xl bg-white p-3.5 border border-slate-200 shadow-2xs space-y-1">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Gastos Gerais</span>
             <div class="text-base font-black text-slate-900">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.gerais}%): R$ ${metaGeraisVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="pt-0.5">${resGerais.texto}</div>
             ${resGerais.html}
           </div>
-          <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-1">
+          <div class="rounded-3xl bg-white p-3.5 border border-slate-200 shadow-2xs space-y-1">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Lazer</span>
             <div class="text-base font-black text-slate-900">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.lazer}%): R$ ${metaLazerVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="pt-0.5">${resLazer.texto}</div>
             ${resLazer.html}
           </div>
-          <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-1">
+          <div class="rounded-3xl bg-white p-3.5 border border-slate-200 shadow-2xs space-y-1">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Investimentos</span>
             <div class="text-base font-black text-emerald-600">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.invest}%): R$ ${metaInvestVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
@@ -895,7 +894,7 @@
         `;
       }
 
-      // Renderiza as barras percentuais abaixo no painel de metas mantido
+      // Renderiza o bloco inferior restaurado com a barra de porcentagem proporcional das categorias e legenda simplificada (Meta: X%)
       const totalDespesas = fixed + general + leisure + invest;
       const calcPct = (val) => totalDespesas > 0 ? Math.round((val / totalDespesas) * 100) : 0;
       const pFixos = calcPct(fixed);
@@ -907,19 +906,19 @@
       if (metasContainer) {
         metasContainer.innerHTML = `
           <div>
-            <div class="flex justify-between font-bold mb-1"><span>🏠 Fixos</span><span>Real: ${pFixos}% (Meta: ${metas.fixos}%)</span></div>
+            <div class="flex justify-between font-bold mb-1"><span>🏠 Fixos</span><span class="text-slate-500">Meta: ${metas.fixos}%</span></div>
             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-blue-600 h-full rounded-full" style="width: ${Math.min(pFixos, 100)}%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between font-bold mb-1"><span>🛒 Gerais</span><span>Real: ${pGerais}% (Meta: ${metas.gerais}%)</span></div>
+            <div class="flex justify-between font-bold mb-1"><span>🛒 Gerais</span><span class="text-slate-500">Meta: ${metas.gerais}%</span></div>
             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full" style="width: ${Math.min(pGerais, 100)}%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between font-bold mb-1"><span>🎉 Lazer</span><span>Real: ${pLazer}% (Meta: ${metas.lazer}%)</span></div>
+            <div class="flex justify-between font-bold mb-1"><span>🎉 Lazer</span><span class="text-slate-500">Meta: ${metas.lazer}%</span></div>
             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full" style="width: ${Math.min(pLazer, 100)}%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between font-bold mb-1"><span>📈 Investimentos</span><span>Real: ${pInvest}% (Meta: ${metas.invest}%)</span></div>
+            <div class="flex justify-between font-bold mb-1"><span>📈 Investimentos</span><span class="text-slate-500">Meta: ${metas.invest}%</span></div>
             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-emerald-600 h-full rounded-full" style="width: ${Math.min(pInvest, 100)}%"></div></div>
           </div>
         `;
