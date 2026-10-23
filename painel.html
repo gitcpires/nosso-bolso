@@ -41,7 +41,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE ESCOLHA DE GRUPO (PRIMEIRO ACESSO PÓS-APROVAÇÃO) -->
+  <!-- MODAL DE ESCOLHA DE GRUPO (PRIMEIRO ACESSO OU APÓS SAIR DO GRUPO) -->
   <div id="setupWorkspaceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-md bg-white p-6 sm:p-7 rounded-[2.5rem] shadow-2xl space-y-5">
       <div class="text-center">
@@ -273,18 +273,26 @@
     </div>
   </div>
 
-  <!-- MODAL DE PERFIL / CÓDIGO DO GRUPO -->
+  <!-- MODAL DE PERFIL / CÓDIGO DO GRUPO (Com a Opção Deixar Grupo) -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 hidden backdrop-blur-sm">
-    <div class="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+    <div class="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <h3 class="text-sm font-extrabold text-slate-800">O seu Código de Grupo</h3>
+        <h3 class="text-sm font-extrabold text-slate-800">Definições do Grupo</h3>
         <button onclick="closeProfileModal()" class="text-slate-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="mt-4 text-center p-4 rounded-2xl bg-blue-50 border-2 border-blue-200">
-        <span class="text-[10px] font-black uppercase text-blue-600">Compartilhe com sua família/sócios</span>
+
+      <div class="text-center p-4 rounded-2xl bg-blue-50 border-2 border-blue-200">
+        <span class="text-[10px] font-black uppercase text-blue-600">O seu Código de Grupo atual</span>
         <div class="mt-2 text-3xl font-black tracking-widest text-slate-900" id="profileWorkspaceCodeDisplay">----</div>
-        <p class="text-[11px] text-slate-500 mt-1">Outros membros podem usar este código para entrar no mesmo painel.</p>
+        <p class="text-[11px] text-slate-500 mt-1">Compartilhe com sua família ou sócios.</p>
         <button onclick="copyWorkspaceCode()" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">Copiar Código</button>
+      </div>
+
+      <!-- Opção de Deixar o Grupo -->
+      <div class="pt-2 border-t border-slate-100">
+        <button onclick="deixarGrupo()" class="w-full py-3 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-extrabold transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-right-from-bracket"></i> Deixar este Grupo / Sair
+        </button>
       </div>
     </div>
   </div>
@@ -340,7 +348,7 @@
           return;
         }
 
-        // Se o utilizador aprovado ainda não tiver um workspace associado, abre o modal de escolha
+        // Se NÃO tiver workspaceId definido, obriga a abrir o modal de escolha
         if (!userData.workspaceId) {
           document.getElementById('setupWorkspaceModal').classList.remove('hidden');
           return;
@@ -356,7 +364,24 @@
       initUserSession();
     });
 
-    // Ação 1: Criar um novo workspace exclusivo para o utilizador aprovado
+    async function deixarGrupo() {
+      const confirmacao = confirm("Tem certeza absoluta que deseja deixar este grupo?\n\nVocê perderá o acesso imediato a estas finanças e precisará de criar um novo grupo ou inserir um novo código de convite.");
+      
+      if (!confirmacao) return;
+
+      try {
+        await db.collection('users').doc(currentUser.id).update({
+          workspaceId: firebase.firestore.FieldValue.delete(),
+          workspaceCode: firebase.firestore.FieldValue.delete()
+        });
+
+        alert("Você saiu do grupo com sucesso.");
+        window.location.reload();
+      } catch (err) {
+        alert("Erro ao tentar deixar o grupo. Tente novamente.");
+      }
+    }
+
     async function criarNovoWorkspace() {
       try {
         const novoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
@@ -377,7 +402,6 @@
       }
     }
 
-    // Ação 2: Entrar num grupo existente digitando o código de 4 dígitos
     async function entrarGrupoExistente() {
       const codigoInput = document.getElementById('inputWorkspaceCode').value.trim();
       if (!codigoInput || codigoInput.length < 4) {
@@ -397,7 +421,6 @@
         const wsData = wsQuery.docs[0].data();
         const targetWorkspaceId = wsData.workspaceId;
 
-        // Atualiza o utilizador atual para pertencer ao mesmo workspace do familiar
         await db.collection('users').doc(currentUser.id).update({
           workspaceId: targetWorkspaceId,
           workspaceCode: codigoInput
