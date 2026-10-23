@@ -169,13 +169,13 @@
 
     <!-- ABA 1: RESUMO E METAS -->
     <div id="tab-resumo" class="space-y-3.5">
+      <!-- Cartões de Categorias com Barras Verdes/Vermelhas e Metas baseadas nas Entradas -->
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer"></div>
       
-      <!-- Bloco de Metas Percentuais do Grupo -->
       <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-            <i class="fa-solid fa-bullseye text-blue-600"></i> Metas vs Realizado (Alvo: 100%)
+            <i class="fa-solid fa-bullseye text-blue-600"></i> Metas Percentuais do Grupo (Alvo: 100%)
           </h3>
           <button onclick="openMetasModal()" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-xl hover:bg-blue-100 transition">
             <i class="fa-solid fa-pen-to-square mr-1"></i> Editar Metas
@@ -207,7 +207,7 @@
         <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300">Total Investido no Mês</span>
         <div id="monthInvestTotalHeader" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">R$ 0,00</div>
       </div>
-      <div class="rounded-3xl bg-white p-4 border border-slate-200/80 shadow-2xs">
+      <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
         <div id="monthInvestmentsList" class="space-y-2"></div>
       </div>
     </div>
@@ -285,7 +285,7 @@
         <h3 class="text-sm font-extrabold text-slate-800">Definir Metas do Grupo</h3>
         <button onclick="closeMetasModal()" class="text-slate-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <p class="text-[11px] text-slate-500">Defina a percentagem ideal de cada categoria. A soma total deve ser obrigatoriamente <strong>100%</strong>.</p>
+      <p class="text-[11px] text-slate-500">Defina a percentagem ideal de cada categoria com base nas entradas. A soma total deve ser obrigatoriamente <strong>100%</strong>.</p>
       
       <form id="metasForm" onsubmit="salvarMetasGrupo(event)" class="space-y-3">
         <div>
@@ -449,7 +449,6 @@
           currentWorkspace.id = userData.workspaceId;
           currentWorkspace.code = userData.workspaceCode || '----';
 
-          // Carrega as metas guardadas no documento do user ou define padrão
           if (userData.metas) {
             currentWorkspace.metas = userData.metas;
           }
@@ -813,34 +812,67 @@
       const general = currentTx.filter(t => t.cat === 'Gastos Gerais' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
       const leisure = currentTx.filter(t => t.cat === 'Lazer' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
       const invest = currentTx.filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
-      const totalDespesas = fixed + general + leisure + invest;
+
+      const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
+
+      // CÁLCULO DAS METAS EM R$ EXCLUSIVAMENTE SOBRE O VALOR TOTAL DAS ENTRADAS (INCOME)
+      const baseEntradas = income; 
+      const metaFixosVal = baseEntradas * (metas.fixos / 100);
+      const metaGeraisVal = baseEntradas * (metas.gerais / 100);
+      const metaLazerVal = baseEntradas * (metas.lazer / 100);
+      const metaInvestVal = baseEntradas * (metas.invest / 100);
+
+      // Função auxiliar para gerar a barra fina (Verde até 100% da meta, Vermelho no excedente)
+      const gerarBarraProgresso = (gasto, meta) => {
+        if (meta <= 0) return `<div class="w-full bg-slate-100 h-1.5 rounded-full mt-2"></div>`;
+        const pctGasto = (gasto / meta) * 100;
+        const larguraVerde = Math.min(pctGasto, 100);
+        let larguraVermelha = 0;
+        if (pctGasto > 100) {
+          larguraVermelha = Math.min(pctGasto - 100, 100);
+        }
+
+        return `
+          <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 relative overflow-hidden flex">
+            <div class="bg-emerald-500 h-full transition-all duration-300" style="width: ${larguraVerde}%"></div>
+            <div class="bg-rose-600 h-full transition-all duration-300" style="width: ${larguraVermelha}%"></div>
+          </div>
+        `;
+      };
 
       const containerCat = document.getElementById('cardsCategoryContainer');
       if (containerCat) {
         containerCat.innerHTML = `
-          <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
-            <span class="text-xs font-bold text-slate-500 uppercase">Gastos Fixos</span>
-            <div class="text-lg font-black text-slate-900 mt-1">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+          <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Gastos Fixos</span>
+            <div class="text-base font-black text-slate-900">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.fixos}%): R$ ${metaFixosVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            ${gerarBarraProgresso(fixed, metaFixosVal)}
           </div>
-          <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
-            <span class="text-xs font-bold text-slate-500 uppercase">Gastos Gerais</span>
-            <div class="text-lg font-black text-slate-900 mt-1">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+          <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Gastos Gerais</span>
+            <div class="text-base font-black text-slate-900">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.gerais}%): R$ ${metaGeraisVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            ${gerarBarraProgresso(general, metaGeraisVal)}
           </div>
-          <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
-            <span class="text-xs font-bold text-slate-500 uppercase">Lazer</span>
-            <div class="text-lg font-black text-slate-900 mt-1">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+          <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Lazer</span>
+            <div class="text-base font-black text-slate-900">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.lazer}%): R$ ${metaLazerVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            ${gerarBarraProgresso(leisure, metaLazerVal)}
           </div>
-          <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
-            <span class="text-xs font-bold text-slate-500 uppercase">Investimentos</span>
-            <div class="text-lg font-black text-emerald-600 mt-1">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+          <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Investimentos</span>
+            <div class="text-base font-black text-emerald-600">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.invest}%): R$ ${metaInvestVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            ${gerarBarraProgresso(invest, metaInvestVal)}
           </div>
         `;
       }
 
-      // Renderiza as barras comparativas de metas
-      const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
+      // Renderiza as barras percentuais abaixo no painel de metas
+      const totalDespesas = fixed + general + leisure + invest;
       const calcPct = (val) => totalDespesas > 0 ? Math.round((val / totalDespesas) * 100) : 0;
-
       const pFixos = calcPct(fixed);
       const pGerais = calcPct(general);
       const pLazer = calcPct(leisure);
