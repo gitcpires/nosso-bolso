@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Nosso Bolso - Painel do Administrador</title>
+  <title>Nosso Bolso - Dashboard do Administrador</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,24 +22,49 @@
 
   <!-- Cabeçalho Administrativo -->
   <header class="sticky top-0 z-40 w-full border-b border-slate-200/90 glass-nav px-4 py-3 shadow-xs">
-    <div class="mx-auto flex max-w-4xl items-center justify-between gap-2">
+    <div class="mx-auto flex max-w-5xl items-center justify-between gap-2">
       <div class="flex items-center gap-2.5 min-w-0">
         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md">
           <i class="fa-solid fa-shield-halved text-sm"></i>
         </div>
         <div class="min-w-0">
-          <h1 class="text-sm font-extrabold tracking-tight text-slate-900 truncate">Painel do Administrador</h1>
-          <p class="text-[10px] text-slate-500 font-semibold">Controlo exclusivo de acessos</p>
+          <h1 class="text-sm font-extrabold tracking-tight text-slate-900 truncate">Gestão do SaaS - Nosso Bolso</h1>
+          <p class="text-[10px] text-slate-500 font-semibold">Painel Exclusivo do Administrador</p>
         </div>
       </div>
       
-      <button onclick="sairAdmin()" class="flex h-9 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-700 hover:bg-rose-100 transition active:scale-95 shadow-2xs">
-        <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i> Sair
-      </button>
+      <div class="flex items-center gap-2">
+        <button onclick="window.location.href='painel.html'" class="flex h-9 items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 text-xs font-bold text-blue-700 hover:bg-blue-100 transition active:scale-95 shadow-2xs">
+          <i class="fa-solid fa-wallet text-xs"></i> Meu Painel
+        </button>
+        <button onclick="sairAdmin()" class="flex h-9 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-700 hover:bg-rose-100 transition active:scale-95 shadow-2xs">
+          <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i> Sair
+        </button>
+      </div>
     </div>
   </header>
 
-  <main class="mx-auto max-w-4xl px-4 pt-5 space-y-6">
+  <main class="mx-auto max-w-5xl px-4 pt-5 space-y-6">
+
+    <!-- SECÇÃO DE MÉTRICAS (KPIs do Negócio) -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-2xs">
+        <span class="text-[10px] font-bold text-slate-400 uppercase">Total de Contas</span>
+        <div id="statTotalUsers" class="text-xl font-black text-slate-900 mt-1">0</div>
+      </div>
+      <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-2xs">
+        <span class="text-[10px] font-bold text-slate-400 uppercase">Clientes Ativos</span>
+        <div id="statActiveUsers" class="text-xl font-black text-emerald-600 mt-1">0</div>
+      </div>
+      <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-2xs">
+        <span class="text-[10px] font-bold text-slate-400 uppercase">Pendentes</span>
+        <div id="statPendingUsers" class="text-xl font-black text-amber-500 mt-1">0</div>
+      </div>
+      <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-2xs">
+        <span class="text-[10px] font-bold text-slate-400 uppercase">Grupos Criados</span>
+        <div id="statWorkspaces" class="text-xl font-black text-blue-600 mt-1">0</div>
+      </div>
+    </div>
 
     <!-- Secção 1: Solicitações Pendentes -->
     <section class="space-y-3">
@@ -56,11 +81,11 @@
       </div>
     </section>
 
-    <!-- Secção 2: Utilizadores Ativos / Membros -->
+    <!-- Secção 2: Utilizadores Ativos e Organização por Grupos -->
     <section class="space-y-3 pt-2">
       <div class="flex items-center justify-between">
         <h2 class="text-xs font-black uppercase tracking-wider text-emerald-600 flex items-center gap-2">
-          <i class="fa-solid fa-users-gear"></i> Utilizadores com Acesso Ativo
+          <i class="fa-solid fa-users-gear"></i> Clientes Ativos e Organização de Grupos
         </h2>
       </div>
 
@@ -93,10 +118,10 @@
         window.location.href = "painel.html";
         return;
       }
-      carregarDados();
+      carregarDadosAdmin();
     });
 
-    async function carregarDados() {
+    async function carregarDadosAdmin() {
       const containerPendentes = document.getElementById('lista-solicitacoes');
       const containerUsuarios = document.getElementById('lista-usuarios');
 
@@ -112,13 +137,21 @@
         let htmlPendentes = '';
         let htmlUsuarios = '';
         let qtdPendentes = 0;
-        let qtdUsuarios = 0;
+        let qtdAtivos = 0;
+        let totalContas = 0;
+        const workspacesSet = new Set();
 
         snapshot.forEach(doc => {
           const dados = doc.data();
           const uid = doc.id;
 
-          if (dados.email === 'c.pirespm@gmail.com') return;
+          if (dados.email === 'c.pirespm@gmail.com') return; // Ignora o ADM principal nas métricas de clientes
+
+          totalContas++;
+
+          if (dados.workspaceCode) {
+            workspacesSet.add(dados.workspaceCode);
+          }
 
           if (dados.status === 'pending') {
             qtdPendentes++;
@@ -139,12 +172,16 @@
               </div>
             `;
           } else if (dados.status === 'approved') {
-            qtdUsuarios++;
+            qtdAtivos++;
+            const grupoInfo = dados.workspaceCode ? `Código do Grupo: #${dados.workspaceCode}` : `A configurar grupo`;
             htmlUsuarios += `
               <div class="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center justify-between shadow-2xs gap-2">
                 <div class="min-w-0">
                   <p class="text-xs font-extrabold text-slate-800 truncate">${dados.email}</p>
-                  <span class="text-[10px] text-emerald-600 font-extrabold bg-emerald-50 px-2 py-0.5 rounded-full">Ativo / Aprovado (Grupo: ${dados.workspaceCode || 'Pendente'})</span>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-[10px] text-emerald-600 font-extrabold bg-emerald-50 px-2 py-0.5 rounded-full">Ativo</span>
+                    <span class="text-[10px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-full">${grupoInfo}</span>
+                  </div>
                 </div>
                 <button onclick="excluirUsuario('${uid}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95 shrink-0">
                   <i class="fa-solid fa-trash text-xs"></i> Revogar
@@ -154,8 +191,14 @@
           }
         });
 
+        // Atualiza os contadores no topo (KPIs)
+        document.getElementById('statTotalUsers').innerText = totalContas;
+        document.getElementById('statActiveUsers').innerText = qtdAtivos;
+        document.getElementById('statPendingUsers').innerText = qtdPendentes;
+        document.getElementById('statWorkspaces').innerText = workspacesSet.size;
+
         containerPendentes.innerHTML = qtdPendentes > 0 ? htmlPendentes : `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">Nenhuma solicitação pendente no momento.</div>`;
-        containerUsuarios.innerHTML = qtdUsuarios > 0 ? htmlUsuarios : `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">Nenhum utilizador com acesso ativo.</div>`;
+        containerUsuarios.innerHTML = qtdAtivos > 0 ? htmlUsuarios : `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">Nenhum utilizador com acesso ativo.</div>`;
 
       } catch (err) {
         console.error(err);
@@ -165,24 +208,23 @@
 
     async function aprovarUsuario(uid) {
       try {
-        // Apenas aprova o status. O workspace será escolhido pelo cliente no primeiro login.
         await db.collection('users').doc(uid).update({
           status: 'approved'
         });
 
-        alert('Utilizador aprovado com sucesso! Acesso liberado para configuração de grupo.');
-        carregarDados();
+        alert('Utilizador aprovado com sucesso! O cliente já pode configurar o grupo dele.');
+        carregarDadosAdmin();
       } catch (err) {
         alert('Erro ao aprovar utilizador.');
       }
     }
 
     async function excluirUsuario(uid) {
-      if (confirm('Tem certeza que deseja remover/recusar este acesso?')) {
+      if (confirm('Tem certeza que deseja remover/revogar o acesso deste utilizador?')) {
         try {
           await db.collection('users').doc(uid).delete();
           alert('Acesso removido com sucesso!');
-          carregarDados();
+          carregarDadosAdmin();
         } catch (err) {
           alert('Erro ao excluir registo.');
         }
