@@ -159,7 +159,7 @@
       </button>
     </div>
 
-    <!-- NAVEGAÇÃO POR ABAS SUPERIOR (Apenas 4 abas correspondentes à barra inferior) -->
+    <!-- NAVEGAÇÃO POR ABAS SUPERIOR -->
     <div class="flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-6 pt-0.5">
       <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"><i class="fa-solid fa-chart-pie mr-1"></i> Resumo</button>
       <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-receipt mr-1"></i> Extrato</button>
@@ -167,27 +167,27 @@
       <button onclick="switchTab('mural')" id="tabBtn-mural" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-chalkboard mr-1"></i> Mural</button>
     </div>
 
-    <!-- ABA 1: RESUMO (Com os cartões 2x2 e os gráficos empilhados logo abaixo) -->
-    <div id="tab-resumo" class="space-y-3">
+    <!-- ABA 1: RESUMO (Cartões e Gráficos compactos lado a lado/embaixo) -->
+    <div id="tab-resumo" class="space-y-2.5">
       <!-- Cartões de Categorias Compactos em Grelha 2x2 -->
       <div class="grid grid-cols-2 gap-2" id="cardsCategoryContainer"></div>
       
-      <!-- Gráfico de Pizza Logo Abaixo -->
-      <div class="rounded-3xl bg-white p-4 border border-slate-200/80 shadow-2xs space-y-2">
-        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-          <i class="fa-solid fa-chart-pie text-blue-600"></i> Distribuição por Categoria (Pizza)
+      <!-- Gráfico de Pizza Compacto com Legenda ao Lado -->
+      <div class="rounded-2xl bg-white p-3 border border-slate-200/80 shadow-2xs space-y-1.5">
+        <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1">
+          <i class="fa-solid fa-chart-pie text-blue-600"></i> Distribuição por Categoria
         </h3>
-        <div class="relative w-full h-52 sm:h-60">
+        <div class="relative w-full h-40">
           <canvas id="categoryPieChart"></canvas>
         </div>
       </div>
 
-      <!-- Gráfico de Colunas Mais Abaixo -->
-      <div class="rounded-3xl bg-white p-4 border border-slate-200/80 shadow-2xs space-y-2">
-        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-          <i class="fa-solid fa-chart-column text-blue-600"></i> Comparativo de Gastos (Colunas)
+      <!-- Gráfico de Colunas Compacto -->
+      <div class="rounded-2xl bg-white p-3 border border-slate-200/80 shadow-2xs space-y-1.5">
+        <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1">
+          <i class="fa-solid fa-chart-column text-blue-600"></i> Comparativo de Gastos
         </h3>
-        <div class="relative w-full h-52 sm:h-60">
+        <div class="relative w-full h-36">
           <canvas id="categoryBarChart"></canvas>
         </div>
       </div>
@@ -261,7 +261,7 @@
     </div>
   </main>
 
-  <!-- BARRA INFERIOR MOBILE EXATAMENTE COM 4 BOTÕES + PORTA-CARACTERÍSTICO CENTRAL (+) -->
+  <!-- BARRA INFERIOR MOBILE COM 4 BOTÕES + PORTA-CARACTERÍSTICO CENTRAL (+) -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 backdrop-blur-md shadow-lg">
     <div class="relative max-w-md mx-auto grid grid-cols-4 items-center h-16 px-2">
       <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 transition active:scale-95">
@@ -918,14 +918,14 @@
     }
 
     function renderCharts(fixed, general, leisure, invest) {
-      // Gráfico de Pizza
+      // Gráfico de Pizza Compacto com Legenda ao Lado
       const ctxPie = document.getElementById('categoryPieChart');
       if (ctxPie) {
         if (categoryPieChartInstance) categoryPieChartInstance.destroy();
         categoryPieChartInstance = new Chart(ctxPie, {
           type: 'doughnut',
           data: {
-            labels: ['Fixos', 'Gerais', 'Lazer', 'Investimentos'],
+            labels: ['Fixos', 'Gerais', 'Lazer', 'Invest'],
             datasets: [{
               data: [fixed, general, leisure, invest],
               backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
@@ -935,12 +935,17 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+            plugins: { 
+              legend: { 
+                position: 'right', 
+                labels: { boxWidth: 10, font: { size: 9 }, padding: 8 } 
+              } 
+            }
           }
         });
       }
 
-      // Gráfico de Colunas
+      // Gráfico de Colunas Compacto
       const ctxBar = document.getElementById('categoryBarChart');
       if (ctxBar) {
         if (categoryBarChartInstance) categoryBarChartInstance.destroy();
@@ -952,7 +957,7 @@
               label: 'Gasto (R$)',
               data: [fixed, general, leisure, invest],
               backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
-              borderRadius: 6
+              borderRadius: 4
             }]
           },
           options: {
@@ -960,8 +965,8 @@
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-              y: { beginAtZero: true, ticks: { callback: val => 'R$ ' + val } },
-              x: { grid: { display: false } }
+              y: { beginAtZero: true, ticks: { font: { size: 9 }, callback: val => 'R$ ' + val } },
+              x: { grid: { display: false }, ticks: { font: { size: 9 } } }
             }
           }
         });
