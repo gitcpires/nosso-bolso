@@ -145,8 +145,8 @@
   </header>
 
   <!-- CONTEÚDO PRINCIPAL DO PAINEL -->
-  <main class="mx-auto max-w-5xl px-3.5 pt-3.5 space-y-3.5">
-    <div class="flex items-center justify-between bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-2xs">
+  <main class="mx-auto max-w-5xl px-3.5 pt-3 space-y-3">
+    <div class="flex items-center justify-between bg-white rounded-2xl p-2 border border-slate-200/80 shadow-2xs">
       <div class="flex items-center gap-1.5">
         <i class="fa-regular fa-calendar-days text-blue-600 text-xs"></i>
         <span class="text-xs font-bold text-slate-600">Mês:</span>
@@ -161,25 +161,25 @@
 
     <!-- NAVEGAÇÃO POR ABAS SUPERIOR -->
     <div class="flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-5 pt-1">
-      <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2.5 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"><i class="fa-solid fa-chart-pie mr-1"></i> Resumo & Metas</button>
-      <button onclick="switchTab('graficos')" id="tabBtn-graficos" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-chart-column mr-1"></i> Gráficos</button>
-      <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-receipt mr-1"></i> Extrato</button>
-      <button onclick="switchTab('invest')" id="tabBtn-invest" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-vault mr-1"></i> Invest</button>
+      <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"><i class="fa-solid fa-chart-pie mr-1"></i> Resumo & Metas</button>
+      <button onclick="switchTab('graficos')" id="tabBtn-graficos" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-chart-column mr-1"></i> Gráficos</button>
+      <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-receipt mr-1"></i> Extrato</button>
+      <button onclick="switchTab('invest')" id="tabBtn-invest" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-vault mr-1"></i> Invest</button>
     </div>
 
     <!-- ABA 1: RESUMO E METAS -->
-    <div id="tab-resumo" class="space-y-3.5">
-      <!-- Cartões de Categorias Compactos -->
-      <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer"></div>
+    <div id="tab-resumo" class="space-y-3">
+      <!-- Cartões de Categorias Compactos e Bem Próximos -->
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer"></div>
       
-      <!-- Bloco inferior mantido com barras e indicação limpa (Meta: X%) -->
-      <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-3">
+      <!-- Bloco inferior corrigido para mostrar Real vs Meta em percentagem exata sobre as entradas -->
+      <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-2.5">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
             <i class="fa-solid fa-bullseye text-blue-600"></i> Metas Percentuais do Grupo (Alvo: 100%)
           </h3>
         </div>
-        <div id="metasProgressList" class="space-y-2.5 text-xs"></div>
+        <div id="metasProgressList" class="space-y-2 text-xs"></div>
       </div>
     </div>
 
@@ -821,7 +821,7 @@
       const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
       // CÁLCULO DAS METAS EM R$ EXCLUSIVAMENTE SOBRE O VALOR TOTAL DAS ENTRADAS (INCOME)
-      const baseEntradas = income; 
+      const baseEntradas = income > 0 ? income : 1; // Evita divisão por zero
       const metaFixosVal = baseEntradas * (metas.fixos / 100);
       const metaGeraisVal = baseEntradas * (metas.gerais / 100);
       const metaLazerVal = baseEntradas * (metas.lazer / 100);
@@ -894,31 +894,30 @@
         `;
       }
 
-      // Renderiza o bloco inferior restaurado com a barra de porcentagem proporcional das categorias e legenda simplificada (Meta: X%)
-      const totalDespesas = fixed + general + leisure + invest;
-      const calcPct = (val) => totalDespesas > 0 ? Math.round((val / totalDespesas) * 100) : 0;
-      const pFixos = calcPct(fixed);
-      const pGerais = calcPct(general);
-      const pLazer = calcPct(leisure);
-      const pInvest = calcPct(invest);
+      // CORREÇÃO DO CÁLCULO INFERIOR: Real calculado corretamente sobre o total das ENTRADAS (rendas)
+      const calcPctSobreRenda = (val) => income > 0 ? Math.round((val / income) * 100) : 0;
+      const pFixos = calcPctSobreRenda(fixed);
+      const pGerais = calcPctSobreRenda(general);
+      const pLazer = calcPctSobreRenda(leisure);
+      const pInvest = calcPctSobreRenda(invest);
 
       const metasContainer = document.getElementById('metasProgressList');
       if (metasContainer) {
         metasContainer.innerHTML = `
           <div>
-            <div class="flex justify-between font-bold mb-1"><span>🏠 Fixos</span><span class="text-slate-500">Meta: ${metas.fixos}%</span></div>
+            <div class="flex justify-between font-bold mb-1"><span>🏠 Fixos</span><span class="text-slate-500">Real: ${pFixos}% (Meta: ${metas.fixos}%)</span></div>
             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-blue-600 h-full rounded-full" style="width: ${Math.min(pFixos, 100)}%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between font-bold mb-1"><span>🛒 Gerais</span><span class="text-slate-500">Meta: ${metas.gerais}%</span></div>
+            <div class="flex justify-between font-bold mb-1"><span>🛒 Gerais</span><span class="text-slate-500">Real: ${pGerais}% (Meta: ${metas.gerais}%)</span></div>
             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full" style="width: ${Math.min(pGerais, 100)}%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between font-bold mb-1"><span>🎉 Lazer</span><span class="text-slate-500">Meta: ${metas.lazer}%</span></div>
+            <div class="flex justify-between font-bold mb-1"><span>🎉 Lazer</span><span class="text-slate-500">Real: ${pLazer}% (Meta: ${metas.lazer}%)</span></div>
             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full" style="width: ${Math.min(pLazer, 100)}%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between font-bold mb-1"><span>📈 Investimentos</span><span class="text-slate-500">Meta: ${metas.invest}%</span></div>
+            <div class="flex justify-between font-bold mb-1"><span>📈 Investimentos</span><span class="text-slate-500">Real: ${pInvest}% (Meta: ${metas.invest}%)</span></div>
             <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-emerald-600 h-full rounded-full" style="width: ${Math.min(pInvest, 100)}%"></div></div>
           </div>
         `;
