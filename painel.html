@@ -159,24 +159,33 @@
       </button>
     </div>
 
-    <!-- NAVEGAÇÃO POR ABAS SUPERIOR (Com Gráficos mantidos) -->
+    <!-- NAVEGAÇÃO POR ABAS SUPERIOR -->
     <div class="flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-5 pt-1">
-      <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2.5 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"><i class="fa-solid fa-chart-pie mr-1"></i> Resumo</button>
+      <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2.5 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"><i class="fa-solid fa-chart-pie mr-1"></i> Resumo & Metas</button>
       <button onclick="switchTab('graficos')" id="tabBtn-graficos" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-chart-column mr-1"></i> Gráficos</button>
       <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-receipt mr-1"></i> Extrato</button>
       <button onclick="switchTab('invest')" id="tabBtn-invest" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-vault mr-1"></i> Invest</button>
     </div>
 
-    <!-- ABA 1: RESUMO -->
+    <!-- ABA 1: RESUMO E METAS -->
     <div id="tab-resumo" class="space-y-3.5">
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer"></div>
-      <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
-        <h3 class="text-xs font-extrabold text-slate-800 mb-3">Movimentações por Categoria</h3>
-        <div id="categorySummaryList" class="space-y-2 text-xs"></div>
+      
+      <!-- Bloco de Metas Percentuais do Grupo -->
+      <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-bullseye text-blue-600"></i> Metas vs Realizado (Alvo: 100%)
+          </h3>
+          <button onclick="openMetasModal()" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-xl hover:bg-blue-100 transition">
+            <i class="fa-solid fa-pen-to-square mr-1"></i> Editar Metas
+          </button>
+        </div>
+        <div id="metasProgressList" class="space-y-2 text-xs"></div>
       </div>
     </div>
 
-    <!-- ABA 2: GRÁFICOS (Mantido a pedido) -->
+    <!-- ABA 2: GRÁFICOS -->
     <div id="tab-graficos" class="hidden space-y-4">
       <div class="rounded-3xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
         <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-2">Resumo Visual de Despesas por Categoria</h3>
@@ -203,7 +212,7 @@
       </div>
     </div>
 
-    <!-- ABA 5: MURAL / LOUSA DO GRUPO (Minimalista com 25 caracteres, contador e limpar) -->
+    <!-- ABA 5: MURAL / LOUSA -->
     <div id="tab-mural" class="hidden space-y-4">
       <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-2xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -213,7 +222,6 @@
           </button>
         </div>
 
-        <!-- O Quadro / Lousa -->
         <div class="lousa-board p-5 rounded-2xl shadow-inner min-h-[120px] flex flex-col justify-center text-center relative">
           <div id="lousaConteudo" class="my-auto">
             <p class="text-xs text-slate-400 italic">Mural limpo.</p>
@@ -223,7 +231,6 @@
           </div>
         </div>
 
-        <!-- Formulário Minimalista com Contador -->
         <form id="lousaForm" onsubmit="escreverNaLousa(event)" class="space-y-2">
           <div>
             <div class="flex justify-between items-center mb-1">
@@ -270,6 +277,40 @@
       </button>
     </div>
   </nav>
+
+  <!-- MODAL DE EDIÇÃO DE METAS PERCENTUAIS -->
+  <div id="metasModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 hidden backdrop-blur-sm">
+    <div class="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="text-sm font-extrabold text-slate-800">Definir Metas do Grupo</h3>
+        <button onclick="closeMetasModal()" class="text-slate-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-[11px] text-slate-500">Defina a percentagem ideal de cada categoria. A soma total deve ser obrigatoriamente <strong>100%</strong>.</p>
+      
+      <form id="metasForm" onsubmit="salvarMetasGrupo(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600">Gastos Fixos (%)</label>
+          <input type="number" id="metaFixos" required min="0" max="100" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600">Gastos Gerais (%)</label>
+          <input type="number" id="metaGerais" required min="0" max="100" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600">Lazer (%)</label>
+          <input type="number" id="metaLazer" required min="0" max="100" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600">Investimentos (%)</label>
+          <input type="number" id="metaInvest" required min="0" max="100" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold focus:outline-none" />
+        </div>
+
+        <div id="metaErrorMsg" class="text-xs font-bold text-rose-600 text-center hidden"></div>
+
+        <button type="submit" class="w-full rounded-2xl bg-blue-600 py-3 text-xs font-extrabold text-white shadow-lg">Guardar Metas (100%)</button>
+      </form>
+    </div>
+  </div>
 
   <!-- MODAL DE LANÇAMENTO -->
   <div id="newTxModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 p-0 sm:p-4 hidden backdrop-blur-sm">
@@ -364,7 +405,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let currentWorkspace = { id: '', code: '' };
+    let currentWorkspace = { id: '', code: '', metas: { fixos: 50, gerais: 30, lazer: 10, invest: 10 } };
     let currentUser = { id: '', name: '', email: '' };
     let transactions = [];
     let activeMonth = 'Outubro 2026';
@@ -407,6 +448,11 @@
 
           currentWorkspace.id = userData.workspaceId;
           currentWorkspace.code = userData.workspaceCode || '----';
+
+          // Carrega as metas guardadas no documento do user ou define padrão
+          if (userData.metas) {
+            currentWorkspace.metas = userData.metas;
+          }
         } else {
           document.getElementById('loadingScreen').classList.add('hidden');
           document.getElementById('pendingScreen').classList.remove('hidden');
@@ -422,6 +468,50 @@
       }
     });
 
+    function openMetasModal() {
+      document.getElementById('metaFixos').value = currentWorkspace.metas.fixos;
+      document.getElementById('metaGerais').value = currentWorkspace.metas.gerais;
+      document.getElementById('metaLazer').value = currentWorkspace.metas.lazer;
+      document.getElementById('metaInvest').value = currentWorkspace.metas.invest;
+      document.getElementById('metaErrorMsg').classList.add('hidden');
+      document.getElementById('metasModal').classList.remove('hidden');
+    }
+
+    function closeMetasModal() {
+      document.getElementById('metasModal').classList.add('hidden');
+    }
+
+    async function salvarMetasGrupo(e) {
+      e.preventDefault();
+      const fixos = parseFloat(document.getElementById('metaFixos').value) || 0;
+      const gerais = parseFloat(document.getElementById('metaGerais').value) || 0;
+      const lazer = parseFloat(document.getElementById('metaLazer').value) || 0;
+      const invest = parseFloat(document.getElementById('metaInvest').value) || 0;
+
+      const soma = fixos + gerais + lazer + invest;
+      const errorDiv = document.getElementById('metaErrorMsg');
+
+      if (soma !== 100) {
+        errorDiv.innerText = `A soma das metas deve ser exatamente 100%. Atualmente está em ${soma}%.`;
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      errorDiv.classList.add('hidden');
+
+      try {
+        const novasMetas = { fixos, gerais, lazer, invest };
+        await db.collection('users').doc(currentUser.id).update({ metas: novasMetas });
+        currentWorkspace.metas = novasMetas;
+
+        closeMetasModal();
+        renderAll();
+        alert("Metas atualizadas com sucesso!");
+      } catch (err) {
+        alert("Erro ao salvar metas.");
+      }
+    }
+
     async function deixarGrupo() {
       const confirmacao = confirm("Tem certeza absoluta que deseja deixar este grupo?\n\nVocê perderá o acesso imediato a estas finanças e precisará de criar um novo grupo ou inserir um novo código de convite.");
       if (!confirmacao) return;
@@ -429,7 +519,8 @@
       try {
         await db.collection('users').doc(currentUser.id).update({
           workspaceId: firebase.firestore.FieldValue.delete(),
-          workspaceCode: firebase.firestore.FieldValue.delete()
+          workspaceCode: firebase.firestore.FieldValue.delete(),
+          metas: firebase.firestore.FieldValue.delete()
         });
 
         alert("Você saiu do grupo com sucesso.");
@@ -443,14 +534,17 @@
       try {
         const novoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
         const workspaceId = 'ws_' + currentUser.id;
+        const metasPadrao = { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
         await db.collection('users').doc(currentUser.id).update({
           workspaceId: workspaceId,
-          workspaceCode: novoCodigo
+          workspaceCode: novoCodigo,
+          metas: metasPadrao
         });
 
         currentWorkspace.id = workspaceId;
         currentWorkspace.code = novoCodigo;
+        currentWorkspace.metas = metasPadrao;
 
         document.getElementById('setupWorkspaceModal').classList.add('hidden');
         initUserSession();
@@ -477,14 +571,17 @@
 
         const wsData = wsQuery.docs[0].data();
         const targetWorkspaceId = wsData.workspaceId;
+        const metasGrupo = wsData.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
         await db.collection('users').doc(currentUser.id).update({
           workspaceId: targetWorkspaceId,
-          workspaceCode: codigoInput
+          workspaceCode: codigoInput,
+          metas: metasGrupo
         });
 
         currentWorkspace.id = targetWorkspaceId;
         currentWorkspace.code = codigoInput;
+        currentWorkspace.metas = metasGrupo;
 
         document.getElementById('setupWorkspaceModal').classList.add('hidden');
         initUserSession();
@@ -716,6 +813,7 @@
       const general = currentTx.filter(t => t.cat === 'Gastos Gerais' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
       const leisure = currentTx.filter(t => t.cat === 'Lazer' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
       const invest = currentTx.filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
+      const totalDespesas = fixed + general + leisure + invest;
 
       const containerCat = document.getElementById('cardsCategoryContainer');
       if (containerCat) {
@@ -739,13 +837,34 @@
         `;
       }
 
-      const summaryList = document.getElementById('categorySummaryList');
-      if (summaryList) {
-        summaryList.innerHTML = `
-          <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>🏠 Gastos Fixos</span><span class="font-bold">R$ ${fixed.toFixed(2)}</span></div>
-          <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>🛒 Gastos Gerais</span><span class="font-bold">R$ ${general.toFixed(2)}</span></div>
-          <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>🎉 Lazer</span><span class="font-bold">R$ ${leisure.toFixed(2)}</span></div>
-          <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>📈 Investimentos</span><span class="font-bold text-emerald-600">R$ ${invest.toFixed(2)}</span></div>
+      // Renderiza as barras comparativas de metas
+      const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
+      const calcPct = (val) => totalDespesas > 0 ? Math.round((val / totalDespesas) * 100) : 0;
+
+      const pFixos = calcPct(fixed);
+      const pGerais = calcPct(general);
+      const pLazer = calcPct(leisure);
+      const pInvest = calcPct(invest);
+
+      const metasContainer = document.getElementById('metasProgressList');
+      if (metasContainer) {
+        metasContainer.innerHTML = `
+          <div>
+            <div class="flex justify-between font-bold mb-1"><span>🏠 Fixos</span><span>Real: ${pFixos}% (Meta: ${metas.fixos}%)</span></div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-blue-600 h-full rounded-full" style="width: ${Math.min(pFixos, 100)}%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between font-bold mb-1"><span>🛒 Gerais</span><span>Real: ${pGerais}% (Meta: ${metas.gerais}%)</span></div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full" style="width: ${Math.min(pGerais, 100)}%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between font-bold mb-1"><span>🎉 Lazer</span><span>Real: ${pLazer}% (Meta: ${metas.lazer}%)</span></div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full" style="width: ${Math.min(pLazer, 100)}%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between font-bold mb-1"><span>📈 Investimentos</span><span>Real: ${pInvest}% (Meta: ${metas.invest}%)</span></div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-emerald-600 h-full rounded-full" style="width: ${Math.min(pInvest, 100)}%"></div></div>
+          </div>
         `;
       }
 
