@@ -169,20 +169,8 @@
 
     <!-- ABA 1: RESUMO E METAS -->
     <div id="tab-resumo" class="space-y-3.5">
-      <!-- Cartões de Categorias com Barras Verdes/Vermelhas e Metas baseadas nas Entradas -->
+      <!-- Cartões de Categorias com Barras Verdes/Vermelhas e Indicador de Restante/Excedente em R$ -->
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer"></div>
-      
-      <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-3">
-        <div class="flex items-center justify-between">
-          <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-            <i class="fa-solid fa-bullseye text-blue-600"></i> Metas Percentuais do Grupo (Alvo: 100%)
-          </h3>
-          <button onclick="openMetasModal()" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-xl hover:bg-blue-100 transition">
-            <i class="fa-solid fa-pen-to-square mr-1"></i> Editar Metas
-          </button>
-        </div>
-        <div id="metasProgressList" class="space-y-2 text-xs"></div>
-      </div>
     </div>
 
     <!-- ABA 2: GRÁFICOS -->
@@ -358,7 +346,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE PERFIL / CÓDIGO DO GRUPO E MEMBROS -->
+  <!-- MODAL DE PERFIL / CÓDIGO DO GRUPO, MEMBROS E BOTÃO DE EDITAR METAS -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 hidden backdrop-blur-sm">
     <div class="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl space-y-3.5 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -372,6 +360,13 @@
           <div class="text-lg font-black tracking-widest text-slate-900 truncate" id="profileWorkspaceCodeDisplay">----</div>
         </div>
         <button onclick="copyWorkspaceCountCode()" id="copyCodeBtn" class="px-3 py-1.5 bg-blue-600 text-white rounded-xl text-[10px] font-bold shrink-0">Copiar</button>
+      </div>
+
+      <!-- Botão para Editar Metas integrado nas Definições do Grupo -->
+      <div>
+        <button onclick="closeProfileModal(); openMetasModal();" class="w-full py-2.5 px-4 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-extrabold transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-bullseye"></i> Editar Metas Percentuais do Grupo
+        </button>
       </div>
 
       <div class="space-y-1.5 pt-1">
@@ -822,9 +817,10 @@
       const metaLazerVal = baseEntradas * (metas.lazer / 100);
       const metaInvestVal = baseEntradas * (metas.invest / 100);
 
-      // Função auxiliar para gerar a barra fina (Verde até 100% da meta, Vermelho no excedente)
-      const gerarBarraProgresso = (gasto, meta) => {
-        if (meta <= 0) return `<div class="w-full bg-slate-100 h-1.5 rounded-full mt-2"></div>`;
+      // Função auxiliar para calcular barra verde/vermelha e texto de quanto falta ou passou
+      const gerarBarraProgressoEStatus = (gasto, meta) => {
+        if (meta <= 0) return { html: `<div class="w-full bg-slate-100 h-1.5 rounded-full mt-2"></div>`, texto: `<span class="text-[10px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
+        
         const pctGasto = (gasto / meta) * 100;
         const larguraVerde = Math.min(pctGasto, 100);
         let larguraVermelha = 0;
@@ -832,13 +828,28 @@
           larguraVermelha = Math.min(pctGasto - 100, 100);
         }
 
-        return `
+        const diferenca = meta - gasto;
+        let textoStatus = '';
+        if (diferenca >= 0) {
+          textoStatus = `<span class="text-[10px] text-emerald-600 font-bold">Faltam R$ ${diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} para a meta</span>`;
+        } else {
+          textoStatus = `<span class="text-[10px] text-rose-600 font-bold">Passou R$ ${Math.abs(diferenca).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} da meta</span>`;
+        }
+
+        const htmlBarra = `
           <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 relative overflow-hidden flex">
             <div class="bg-emerald-500 h-full transition-all duration-300" style="width: ${larguraVerde}%"></div>
             <div class="bg-rose-600 h-full transition-all duration-300" style="width: ${larguraVermelha}%"></div>
           </div>
         `;
+
+        return { html: htmlBarra, texto: textoStatus };
       };
+
+      const resFixos = gerarBarraProgressoEStatus(fixed, metaFixosVal);
+      const resGerais = gerarBarraProgressoEStatus(general, metaGeraisVal);
+      const resLazer = gerarBarraProgressoEStatus(leisure, metaLazerVal);
+      const resInvest = gerarBarraProgressoEStatus(invest, metaInvestVal);
 
       const containerCat = document.getElementById('cardsCategoryContainer');
       if (containerCat) {
@@ -847,55 +858,29 @@
             <span class="text-[10px] font-bold text-slate-400 uppercase">Gastos Fixos</span>
             <div class="text-base font-black text-slate-900">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.fixos}%): R$ ${metaFixosVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            ${gerarBarraProgresso(fixed, metaFixosVal)}
+            <div class="pt-0.5">${resFixos.texto}</div>
+            ${resFixos.html}
           </div>
           <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-1">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Gastos Gerais</span>
             <div class="text-base font-black text-slate-900">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.gerais}%): R$ ${metaGeraisVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            ${gerarBarraProgresso(general, metaGeraisVal)}
+            <div class="pt-0.5">${resGerais.texto}</div>
+            ${resGerais.html}
           </div>
           <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-1">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Lazer</span>
             <div class="text-base font-black text-slate-900">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.lazer}%): R$ ${metaLazerVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            ${gerarBarraProgresso(leisure, metaLazerVal)}
+            <div class="pt-0.5">${resLazer.texto}</div>
+            ${resLazer.html}
           </div>
           <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-1">
             <span class="text-[10px] font-bold text-slate-400 uppercase">Investimentos</span>
             <div class="text-base font-black text-emerald-600">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.invest}%): R$ ${metaInvestVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            ${gerarBarraProgresso(invest, metaInvestVal)}
-          </div>
-        `;
-      }
-
-      // Renderiza as barras percentuais abaixo no painel de metas
-      const totalDespesas = fixed + general + leisure + invest;
-      const calcPct = (val) => totalDespesas > 0 ? Math.round((val / totalDespesas) * 100) : 0;
-      const pFixos = calcPct(fixed);
-      const pGerais = calcPct(general);
-      const pLazer = calcPct(leisure);
-      const pInvest = calcPct(invest);
-
-      const metasContainer = document.getElementById('metasProgressList');
-      if (metasContainer) {
-        metasContainer.innerHTML = `
-          <div>
-            <div class="flex justify-between font-bold mb-1"><span>🏠 Fixos</span><span>Real: ${pFixos}% (Meta: ${metas.fixos}%)</span></div>
-            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-blue-600 h-full rounded-full" style="width: ${Math.min(pFixos, 100)}%"></div></div>
-          </div>
-          <div>
-            <div class="flex justify-between font-bold mb-1"><span>🛒 Gerais</span><span>Real: ${pGerais}% (Meta: ${metas.gerais}%)</span></div>
-            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full" style="width: ${Math.min(pGerais, 100)}%"></div></div>
-          </div>
-          <div>
-            <div class="flex justify-between font-bold mb-1"><span>🎉 Lazer</span><span>Real: ${pLazer}% (Meta: ${metas.lazer}%)</span></div>
-            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full" style="width: ${Math.min(pLazer, 100)}%"></div></div>
-          </div>
-          <div>
-            <div class="flex justify-between font-bold mb-1"><span>📈 Investimentos</span><span>Real: ${pInvest}% (Meta: ${metas.invest}%)</span></div>
-            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-emerald-600 h-full rounded-full" style="width: ${Math.min(pInvest, 100)}%"></div></div>
+            <div class="pt-0.5">${resInvest.texto}</div>
+            ${resInvest.html}
           </div>
         `;
       }
