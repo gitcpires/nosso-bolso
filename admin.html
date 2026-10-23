@@ -2,60 +2,70 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Nosso Bolso - Painel do Administrador</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    .glass-nav { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(16px); }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen p-4 pb-12">
+<body class="bg-slate-100/70 text-slate-900 pb-20 antialiased selection:bg-blue-600 selection:text-white">
 
-  <!-- Cabeçalho Exclusivo do Administrador -->
-  <header class="max-w-4xl mx-auto flex items-center justify-between pb-6 border-b border-slate-800 mb-6">
-    <div class="flex items-center space-x-3">
-      <div class="bg-blue-600 text-white p-2.5 rounded-2xl shadow-lg">
-        <i class="fa-solid fa-shield-halved text-lg"></i>
+  <!-- Cabeçalho Administrativo -->
+  <header class="sticky top-0 z-40 w-full border-b border-slate-200/90 glass-nav px-4 py-3 shadow-xs">
+    <div class="mx-auto flex max-w-4xl items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md">
+          <i class="fa-solid fa-shield-halved text-sm"></i>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-sm font-extrabold tracking-tight text-slate-900 truncate">Painel do Administrador</h1>
+          <p class="text-[10px] text-slate-500 font-semibold">Controlo exclusivo de acessos</p>
+        </div>
       </div>
-      <div>
-        <h1 class="font-extrabold text-xl text-white">Painel do Administrador</h1>
-        <p class="text-xs text-slate-400">Controlo exclusivo de acessos e membros</p>
-      </div>
+      
+      <button onclick="sairAdmin()" class="flex h-9 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-700 hover:bg-rose-100 transition active:scale-95 shadow-2xs">
+        <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i> Sair
+      </button>
     </div>
-    
-    <button onclick="sairAdmin()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2">
-      <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
-    </button>
   </header>
 
-  <main class="max-w-4xl mx-auto space-y-8">
+  <main class="mx-auto max-w-4xl px-4 pt-5 space-y-6">
 
     <!-- Secção 1: Solicitações Pendentes -->
-    <section class="space-y-4">
+    <section class="space-y-3">
       <div class="flex items-center justify-between">
-        <h2 class="text-sm font-bold uppercase tracking-wider text-blue-400 flex items-center gap-2">
-          <i class="fa-solid fa-user-clock"></i> Solicitações Pendentes
+        <h2 class="text-xs font-black uppercase tracking-wider text-blue-600 flex items-center gap-2">
+          <i class="fa-solid fa-user-clock"></i> Solicitações Pendentes de Clientes
         </h2>
       </div>
 
-      <div id="lista-solicitacoes" class="space-y-3">
-        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-center text-slate-400 text-sm">
+      <div id="lista-solicitacoes" class="space-y-2.5">
+        <div class="bg-white border border-slate-200/80 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">
           A carregar solicitações...
         </div>
       </div>
     </section>
 
     <!-- Secção 2: Utilizadores Ativos / Membros -->
-    <section class="space-y-4 pt-4 border-t border-slate-800">
+    <section class="space-y-3 pt-2">
       <div class="flex items-center justify-between">
-        <h2 class="text-sm font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-          <i class="fa-solid fa-users-gear"></i> Utilizadores com Acesso
+        <h2 class="text-xs font-black uppercase tracking-wider text-emerald-600 flex items-center gap-2">
+          <i class="fa-solid fa-users-gear"></i> Utilizadores com Acesso Ativo
         </h2>
       </div>
 
-      <div id="lista-usuarios" class="space-y-3">
-        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-center text-slate-400 text-sm">
+      <div id="lista-usuarios" class="space-y-2.5">
+        <div class="bg-white border border-slate-200/80 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">
           A carregar membros...
         </div>
       </div>
@@ -84,121 +94,106 @@
         window.location.href = "painel.html";
         return;
       }
-      // Carregar os dados assim que confirmar o admin
-      carregarSolicitacoes();
-      carregarUsuarios();
+      carregarDados();
     });
 
-    // 1. Carregar Pedidos Pendentes
-    async function carregarSolicitacoes() {
-      const container = document.getElementById('lista-solicitacoes');
+    // Carrega utilizadores pendentes e aprovados da coleção unificada 'users'
+    async function carregarDados() {
+      const containerPendentes = document.getElementById('lista-solicitacoes');
+      const containerUsuarios = document.getElementById('lista-usuarios');
+
       try {
-        const snapshot = await db.collection('solicitacoes').where('status', '==', 'pendente').get();
+        const snapshot = await db.collection('users').get();
         
         if (snapshot.empty) {
-          container.innerHTML = `<div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl text-center text-slate-400 text-sm">Nenhuma solicitação pendente no momento.</div>`;
+          containerPendentes.innerHTML = `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs">Nenhuma solicitação pendente.</div>`;
+          containerUsuarios.innerHTML = `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs">Nenhum utilizador registado.</div>`;
           return;
         }
 
-        container.innerHTML = '';
+        let htmlPendentes = '';
+        let htmlUsuarios = '';
+        let qtdPendentes = 0;
+        let qtdUsuarios = 0;
+
         snapshot.forEach(doc => {
           const dados = doc.data();
           const uid = doc.id;
 
-          container.innerHTML += `
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-md">
-              <div>
-                <p class="text-sm font-bold text-white">${dados.email}</p>
-                <span class="text-xs text-slate-400">Solicitado em: ${new Date(dados.criadoEm).toLocaleDateString()}</span>
-              </div>
-              <div class="flex gap-2">
-                <button onclick="aprovarUsuario('${uid}', '${dados.email}')" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
-                  <i class="fa-solid fa-check"></i> Aprovar
-                </button>
-                <button onclick="recusarUsuario('${uid}')" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
-                  <i class="fa-solid fa-xmark"></i> Recusar
-                </button>
-              </div>
-            </div>
-          `;
-        });
-      } catch (err) {
-        console.error(err);
-        container.innerHTML = `<div class="bg-rose-950/40 border border-rose-900 p-4 rounded-2xl text-center text-rose-400 text-sm">Erro ao carregar solicitações. Verifique as permissões do Firestore.</div>`;
-      }
-    }
-
-    // 2. Carregar Lista de Utilizadores Aprovados (Com opção de excluir)
-    async function carregarUsuarios() {
-      const container = document.getElementById('lista-usuarios');
-      try {
-        const snapshot = await db.collection('usuarios').get();
-        
-        if (snapshot.empty) {
-          container.innerHTML = `<div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl text-center text-slate-400 text-sm">Nenhum utilizador registado além do administrador.</div>`;
-          return;
-        }
-
-        container.innerHTML = '';
-        snapshot.forEach(doc => {
-          const dados = doc.data();
-          const uid = doc.id;
-
-          // Não exibir o próprio admin na lista de remoção por segurança
+          // Não exibir o próprio admin nas listas comuns de controle de acesso
           if (dados.email === 'c.pirespm@gmail.com') return;
 
-          container.innerHTML += `
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between shadow-md">
-              <div>
-                <p class="text-sm font-bold text-white">${dados.email}</p>
-                <span class="text-xs text-emerald-400 font-medium">Estatuto: ${dados.status || 'membro'}</span>
+          if (dados.status === 'pending') {
+            qtdPendentes++;
+            htmlPendentes += `
+              <div class="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center justify-between shadow-2xs gap-2">
+                <div class="min-w-0">
+                  <p class="text-xs font-extrabold text-slate-800 truncate">${dados.email}</p>
+                  <span class="text-[10px] text-slate-400 font-semibold">Registo recente a aguardar pagamento/liberação</span>
+                </div>
+                <div class="flex gap-1.5 shrink-0">
+                  <button onclick="aprovarUsuario('${uid}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95">
+                    <i class="fa-solid fa-check"></i> Aprovar
+                  </button>
+                  <button onclick="excluirUsuario('${uid}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95">
+                    <i class="fa-solid fa-xmark"></i> Recusar
+                  </button>
+                </div>
               </div>
-              <button onclick="excluirUsuario('${uid}')" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
-                <i class="fa-solid fa-trash"></i> Excluir Acesso
-              </button>
-            </div>
-          `;
+            `;
+          } else if (dados.status === 'approved') {
+            qtdUsuarios++;
+            htmlUsuarios += `
+              <div class="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center justify-between shadow-2xs gap-2">
+                <div class="min-w-0">
+                  <p class="text-xs font-extrabold text-slate-800 truncate">${dados.email}</p>
+                  <span class="text-[10px] text-emerald-600 font-extrabold bg-emerald-50 px-2 py-0.5 rounded-full">Ativo / Aprovado</span>
+                </div>
+                <button onclick="excluirUsuario('${uid}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95 shrink-0">
+                  <i class="fa-solid fa-trash text-xs"></i> Revogar
+                </button>
+              </div>
+            `;
+          }
         });
+
+        containerPendentes.innerHTML = qtdPendentes > 0 ? htmlPendentes : `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">Nenhuma solicitação pendente no momento.</div>`;
+        containerUsuarios.innerHTML = qtdUsuarios > 0 ? htmlUsuarios : `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">Nenhum utilizador com acesso ativo.</div>`;
+
       } catch (err) {
         console.error(err);
-        container.innerHTML = `<div class="bg-rose-950/40 border border-rose-900 p-4 rounded-2xl text-center text-rose-400 text-sm">Erro ao carregar lista de utilizadores.</div>`;
+        containerPendentes.innerHTML = `<div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl text-center text-rose-700 text-xs">Erro ao carregar dados do banco.</div>`;
       }
     }
 
-    // 3. Ações do Administrador
-    async function aprovarUsuario(uid, email) {
+    // Ações do Administrador
+    async function aprovarUsuario(uid) {
       try {
-        await db.collection('usuarios').doc(uid).set({
-          email: email,
-          status: 'membro'
+        // Gera um código de 4 dígitos para o espaço do novo cliente
+        const novoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
+        const workspaceId = 'ws_' + uid;
+
+        await db.collection('users').doc(uid).update({
+          status: 'approved',
+          workspaceId: workspaceId,
+          workspaceCode: novoCodigo
         });
-        await db.collection('solicitacoes').doc(uid).delete();
-        alert('Utilizador aprovado com sucesso!');
-        carregarSolicitacoes();
-        carregarUsuarios();
+
+        alert('Utilizador aprovado com sucesso! Acesso liberado.');
+        carregarDados();
       } catch (err) {
         alert('Erro ao aprovar utilizador.');
       }
     }
 
-    async function recusarUsuario(uid) {
-      try {
-        await db.collection('solicitacoes').doc(uid).delete();
-        alert('Solicitação recusada.');
-        carregarSolicitacoes();
-      } catch (err) {
-        alert('Erro ao recusar.');
-      }
-    }
-
     async function excluirUsuario(uid) {
-      if (confirm('Tem certeza que deseja remover o acesso deste utilizador?')) {
+      if (confirm('Tem certeza que deseja remover/recusar este acesso?')) {
         try {
-          await db.collection('usuarios').doc(uid).delete();
-          alert('Acesso revogado com sucesso!');
-          carregarUsuarios();
+          await db.collection('users').doc(uid).delete();
+          alert('Acesso removido com sucesso!');
+          carregarDados();
         } catch (err) {
-          alert('Erro ao excluir utilizador.');
+          alert('Erro ao excluir registo.');
         }
       }
     }
