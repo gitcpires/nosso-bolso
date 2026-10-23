@@ -169,8 +169,18 @@
 
     <!-- ABA 1: RESUMO E METAS -->
     <div id="tab-resumo" class="space-y-3.5">
-      <!-- Cartões de Categorias com Barras Verdes/Vermelhas e Indicador de Restante/Excedente em R$ -->
+      <!-- Cartões de Categorias com Barras Verdes/Vermelhas e Metas baseadas nas Entradas -->
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer"></div>
+      
+      <!-- Bloco inferior de Acompanhamento de Metas em Reais (R$) -->
+      <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-bullseye text-blue-600"></i> Metas Percentuais do Grupo (Alvo: 100%)
+          </h3>
+        </div>
+        <div id="metasProgressList" class="space-y-2.5 text-xs"></div>
+      </div>
     </div>
 
     <!-- ABA 2: GRÁFICOS -->
@@ -817,7 +827,7 @@
       const metaLazerVal = baseEntradas * (metas.lazer / 100);
       const metaInvestVal = baseEntradas * (metas.invest / 100);
 
-      // Função auxiliar para calcular barra verde/vermelha e texto de quanto falta ou passou
+      // Função auxiliar para gerar barra verde/vermelha e texto de quanto falta ou passou
       const gerarBarraProgressoEStatus = (gasto, meta) => {
         if (meta <= 0) return { html: `<div class="w-full bg-slate-100 h-1.5 rounded-full mt-2"></div>`, texto: `<span class="text-[10px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
         
@@ -881,6 +891,36 @@
             <div class="text-[10px] text-slate-500 font-semibold">Meta (${metas.invest}%): R$ ${metaInvestVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="pt-0.5">${resInvest.texto}</div>
             ${resInvest.html}
+          </div>
+        `;
+      }
+
+      // Renderiza as barras percentuais abaixo no painel de metas mantido
+      const totalDespesas = fixed + general + leisure + invest;
+      const calcPct = (val) => totalDespesas > 0 ? Math.round((val / totalDespesas) * 100) : 0;
+      const pFixos = calcPct(fixed);
+      const pGerais = calcPct(general);
+      const pLazer = calcPct(leisure);
+      const pInvest = calcPct(invest);
+
+      const metasContainer = document.getElementById('metasProgressList');
+      if (metasContainer) {
+        metasContainer.innerHTML = `
+          <div>
+            <div class="flex justify-between font-bold mb-1"><span>🏠 Fixos</span><span>Real: ${pFixos}% (Meta: ${metas.fixos}%)</span></div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-blue-600 h-full rounded-full" style="width: ${Math.min(pFixos, 100)}%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between font-bold mb-1"><span>🛒 Gerais</span><span>Real: ${pGerais}% (Meta: ${metas.gerais}%)</span></div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full" style="width: ${Math.min(pGerais, 100)}%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between font-bold mb-1"><span>🎉 Lazer</span><span>Real: ${pLazer}% (Meta: ${metas.lazer}%)</span></div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full" style="width: ${Math.min(pLazer, 100)}%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between font-bold mb-1"><span>📈 Investimentos</span><span>Real: ${pInvest}% (Meta: ${metas.invest}%)</span></div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-emerald-600 h-full rounded-full" style="width: ${Math.min(pInvest, 100)}%"></div></div>
           </div>
         `;
       }
