@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="h-full">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Nosso Bolso - Painel Financeiro</title>
+  <title>Nosso Bolso - Login & Painel Financeiro</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -21,9 +21,25 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
+  <script>
+      tailwind.config = {
+          theme: {
+              extend: {
+                  fontFamily: {
+                      sans: ['Plus Jakarta Sans', 'sans-serif'],
+                  },
+                  colors: {
+                      skyTheme: '#d4effc',
+                      skyCard: '#f0f9ff',
+                      darkText: '#1e293b'
+                  }
+              }
+          }
+      }
+  </script>
+
   <style>
     * {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       -webkit-tap-highlight-color: transparent;
       box-sizing: border-box;
     }
@@ -42,176 +58,284 @@
       top: -22px;
       transform: translateX(-50%);
     }
+
+    .card-panel {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
   </style>
 </head>
-<body class="bg-slate-100/70 text-slate-900 pb-36 antialiased selection:bg-blue-600 selection:text-white">
+<body class="bg-skyTheme min-h-full flex flex-col justify-between p-3 sm:p-6 overflow-x-hidden relative selection:bg-blue-600 selection:text-white">
 
-  <!-- ================= CABEÇALHO DO PAINEL ================= -->
-  <header class="sticky top-0 z-40 w-full border-b border-slate-200/90 glass-nav px-3.5 py-2.5 shadow-xs transition-all">
-    <div class="mx-auto flex max-w-5xl items-center justify-between gap-2">
-      
-      <div class="flex items-center gap-2 min-w-0">
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-sm">
-          <i class="fa-solid fa-wallet text-sm"></i>
-        </div>
-        <div class="min-w-0">
-          <div class="flex items-center gap-1.5 leading-tight">
-            <span class="text-sm font-extrabold tracking-tight text-slate-900 truncate" id="topWorkspaceTitle">Nosso Bolso</span>
-            <span id="currentMonthBadge" class="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[9px] font-extrabold text-blue-700">Outubro 2026</span>
+  <!-- Elementos decorativos de fundo discretos (nuvens/detalhes abstratos estilo referência) -->
+  <div class="absolute top-6 left-6 opacity-40 pointer-events-none hidden sm:block">
+      <div class="w-32 h-16 bg-white rounded-full blur-xl"></div>
+  </div>
+  <div class="absolute bottom-10 right-10 opacity-30 pointer-events-none">
+      <div class="w-48 h-24 bg-white rounded-full blur-2xl"></div>
+  </div>
+
+  <!-- ================= SEÇÃO DE AUTENTICAÇÃO (TELA DE LOGIN / CADASTRO) ================= -->
+  <div id="authContainer" class="w-full max-w-4xl mx-auto my-auto z-10 py-4">
+      <header class="w-full max-w-5xl mx-auto flex justify-between items-center z-10 mb-6">
+          <div class="flex items-center space-x-2 text-slate-700 font-bold text-sm bg-white/80 px-3 py-1.5 rounded-xl shadow-xs">
+              <i class="fa-solid fa-wallet text-blue-600"></i>
+              <span>Nosso Bolso</span>
           </div>
-          <div class="flex items-center gap-1 leading-tight mt-0.5">
-            <span class="h-2 w-2 rounded-full bg-emerald-500 inline-block"></span>
-            <p class="text-[10px] text-slate-500 font-semibold truncate" id="headerWelcomeMsg">Conectado</p>
+      </header>
+
+      <main class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center justify-center">
+
+          <!-- CARD 1: LOGIN -->
+          <div id="loginCard" class="card-panel bg-white rounded-[2rem] p-6 sm:p-8 shadow-xl flex flex-col justify-between min-h-[520px] relative border border-white">
+              <div>
+                  <div class="flex justify-between items-center mb-6">
+                      <div class="w-3 h-3 rounded-full bg-sky-200"></div>
+                      <div class="w-4 h-4 rounded-full border border-slate-300"></div>
+                  </div>
+                  <h1 class="text-2xl font-extrabold text-darkText tracking-tight mb-1">Bem-vindo(a)</h1>
+                  <p class="text-xs text-slate-400 font-medium">Controle financeiro a dois com segurança</p>
+              </div>
+
+              <!-- Ilustração Casal no Sofá com Elementos de Finanças -->
+              <div class="my-auto relative flex items-center justify-center py-4">
+                  <div class="absolute w-56 h-28 bg-sky-50 rounded-2xl -z-0 border border-sky-100 flex items-end justify-center pb-2">
+                      <div class="w-48 h-3 bg-sky-200/50 rounded-full"></div>
+                  </div>
+                  <div class="absolute -top-2 left-4 bg-emerald-50 text-emerald-600 p-1.5 rounded-lg shadow-sm text-[10px] font-bold flex items-center space-x-1 animate-bounce">
+                      <i class="fa-solid fa-arrow-trend-up"></i>
+                      <span>+18% Mês</span>
+                  </div>
+                  <div class="absolute top-2 right-4 bg-amber-50 text-amber-600 p-1.5 rounded-lg shadow-sm text-[10px] font-bold flex items-center space-x-1">
+                      <i class="fa-solid fa-coins"></i>
+                      <span>Casal</span>
+                  </div>
+
+                  <div class="relative z-10 flex items-center space-x-2">
+                      <div class="flex flex-col items-center">
+                          <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white text-xs font-bold shadow-inner">👨🏽</div>
+                          <div class="w-6 h-10 bg-blue-600 rounded-t-md mt-0.5"></div>
+                      </div>
+                      <div class="bg-slate-800 text-sky-300 px-2 py-1 rounded text-[9px] font-mono shadow-md flex flex-col items-center">
+                          <i class="fa-solid fa-chart-pie text-xs mb-0.5"></i>
+                          <span>orcamento.xlsx</span>
+                      </div>
+                      <div class="flex flex-col items-center">
+                          <div class="w-8 h-8 rounded-full bg-rose-400 flex items-center justify-center text-white text-xs font-bold shadow-inner">👩🏻</div>
+                          <div class="w-6 h-10 bg-indigo-500 rounded-t-md mt-0.5"></div>
+                      </div>
+                  </div>
+              </div>
+
+              <form onsubmit="handleLoginSubmit(event)" class="space-y-3">
+                  <input type="email" id="loginEmail" required placeholder="Seu e-mail cadastrado" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-blue-500 bg-slate-50">
+                  <input type="password" id="loginPassword" required placeholder="Sua senha" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-blue-500 bg-slate-50">
+                  <button type="submit" class="w-full py-3.5 px-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs transition-all shadow-md">
+                      Entrar na Conta
+                  </button>
+                  <button type="button" onclick="switchAuthTab('signup')" class="w-full py-2.5 text-xs text-slate-500 font-bold hover:text-slate-800">
+                      Não tem conta? <span class="text-blue-600 underline">Criar Cadastro</span>
+                  </button>
+              </form>
+          </div>
+
+          <!-- CARD 2: CADASTRO (SIGN UP) -->
+          <div id="signupCard" class="card-panel bg-white rounded-[2rem] p-6 sm:p-8 shadow-xl flex flex-col justify-between min-h-[520px] relative border border-white">
+              <div>
+                  <div class="flex justify-between items-center mb-4">
+                      <div class="w-3 h-3 rounded-full bg-sky-200"></div>
+                      <div class="text-blue-500 text-lg">
+                          <i class="fa-solid fa-spa"></i>
+                      </div>
+                  </div>
+                  <h2 class="text-2xl font-extrabold text-darkText tracking-tight mb-1">Criar Conta</h2>
+                  <p class="text-xs text-slate-400 font-medium">Junte-se com seu par, é totalmente gratuito</p>
+              </div>
+
+              <form onsubmit="handleRegisterSubmit(event)" class="space-y-3.5 my-auto">
+                  <div class="space-y-1">
+                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">E-mail</label>
+                      <input type="email" id="regEmail" required placeholder="seu@email.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-blue-500 bg-slate-50">
+                  </div>
+
+                  <div class="space-y-1">
+                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Senha</label>
+                      <input type="password" id="regPassword" required placeholder="Mínimo de 6 caracteres" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-blue-500 bg-slate-50">
+                  </div>
+
+                  <div class="space-y-1">
+                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Código de Casal (Workspace)</label>
+                      <input type="text" id="regWorkspaceCode" placeholder="Ex: 8660 (Opcional)" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-blue-500 bg-slate-50">
+                  </div>
+
+                  <button type="submit" class="w-full py-3.5 px-4 rounded-full border-2 border-slate-900 hover:bg-slate-900 hover:text-white text-slate-900 font-extrabold text-xs transition-all shadow-sm">
+                      Cadastrar Gratuitamente
+                  </button>
+              </form>
+
+              <div class="text-center pt-2 border-t border-slate-100">
+                  <p class="text-xs text-slate-500">
+                      Já possui uma conta? 
+                      <button onclick="switchAuthTab('login')" class="font-bold text-blue-600 hover:underline ml-1">Fazer Login</button>
+                  </p>
+              </div>
+          </div>
+
+      </main>
+  </div>
+
+
+  <!-- ================= PAINEL FINANCEIRO (OCULTO ATÉ O LOGIN) ================= -->
+  <div id="mainDashboard" class="hidden w-full max-w-5xl mx-auto pb-32">
+      <!-- CABEÇALHO DO PAINEL -->
+      <header class="sticky top-0 z-40 w-full border-b border-slate-200/90 glass-nav px-3.5 py-2.5 shadow-xs transition-all rounded-2xl mb-4">
+        <div class="flex items-center justify-between gap-2">
+          
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-sm">
+              <i class="fa-solid fa-wallet text-sm"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 leading-tight">
+                <span class="text-sm font-extrabold tracking-tight text-slate-900 truncate" id="topWorkspaceTitle">Nosso Bolso</span>
+                <span id="currentMonthBadge" class="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[9px] font-extrabold text-blue-700">Outubro 2026</span>
+              </div>
+              <div class="flex items-center gap-1 leading-tight mt-0.5">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 inline-block"></span>
+                <p class="text-[10px] text-slate-500 font-semibold truncate" id="headerWelcomeMsg">Conectado</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button id="adminBtn" onclick="window.location.href='admin.html'" title="Painel Exclusivo ADM" class="hidden h-8.5 items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-2.5 text-xs font-bold text-blue-700 shadow-2xs hover:bg-blue-100 active:scale-95 transition">
+              <i class="fa-solid fa-shield-halved text-blue-600 text-xs"></i>
+              <span class="text-xs">ADM</span>
+            </button>
+
+            <button onclick="openProfileModal()" title="Configurações & Código" class="flex h-8.5 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold transition shadow-2xs bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 active:scale-95">
+              <span id="headerUserEmoji" class="text-xs">👤</span>
+              <span id="headerUserName" class="text-xs font-extrabold max-w-[85px] truncate">Usuário</span>
+              <i class="fa-solid fa-gear text-[10px] text-slate-500 ml-0.5"></i>
+            </button>
+
+            <button onclick="logout()" title="Sair da conta" class="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-100 active:scale-95 transition">
+              <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Indicadores Financeiros -->
+        <div class="mt-2.5">
+          <div class="grid grid-cols-3 gap-2">
+            <div class="rounded-2xl bg-white p-2.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+              <div class="text-[10px] font-bold text-slate-400 uppercase">Renda</div>
+              <div id="statIncome" class="mt-1 text-xs sm:text-base font-extrabold text-emerald-700 truncate">R$ 0,00</div>
+            </div>
+            <div class="rounded-2xl bg-white p-2.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+              <div class="text-[10px] font-bold text-slate-400 uppercase">Despesas</div>
+              <div id="statExpense" class="mt-1 text-xs sm:text-base font-extrabold text-rose-600 truncate">R$ 0,00</div>
+            </div>
+            <div class="rounded-2xl bg-white p-2.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+              <div class="text-[10px] font-bold text-slate-400 uppercase">Saldo</div>
+              <div id="statBalance" class="mt-1 text-xs sm:text-base font-extrabold text-slate-800 truncate">R$ 0,00</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTEÚDO PRINCIPAL DO PAINEL -->
+      <div class="space-y-3.5">
+        <div class="flex items-center justify-between bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-2xs gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <i class="fa-regular fa-calendar-days text-blue-600 text-xs shrink-0"></i>
+            <span class="text-xs font-bold text-slate-600">Mês:</span>
+            <select id="monthSelect" onchange="changeActiveMonth(this.value)" class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none">
+              <option value="Outubro 2026">Outubro 2026</option>
+            </select>
+          </div>
+          <button onclick="openNewTxModal()" class="flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 px-3 py-1.5 text-xs font-extrabold text-white shadow-xs active:scale-95 transition">
+            <i class="fa-solid fa-plus text-[10px]"></i> Lançar
+          </button>
+        </div>
+
+        <!-- Abas -->
+        <div class="flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-4">
+          <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2.5 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap">
+            <i class="fa-solid fa-chart-pie mr-1"></i> Metas & Categorias
+          </button>
+          <button onclick="switchTab('graficos')" id="tabBtn-graficos" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap">
+            <i class="fa-solid fa-chart-column mr-1"></i> Gráficos
+          </button>
+          <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap">
+            <i class="fa-solid fa-receipt mr-1"></i> Extrato Detalhado
+          </button>
+          <button onclick="switchTab('invest')" id="tabBtn-invest" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap">
+            <i class="fa-solid fa-vault mr-1"></i> Investimentos
+          </button>
+        </div>
+
+        <!-- ABA 1: RESUMO -->
+        <div id="tab-resumo" class="space-y-3.5">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer"></div>
+          <div class="rounded-3xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
+            <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-3">Movimentações por Categoria</h3>
+            <div id="categorySummaryList" class="space-y-2 text-xs"></div>
+          </div>
+        </div>
+
+        <!-- ABA 2: GRÁFICOS -->
+        <div id="tab-graficos" class="hidden space-y-4">
+          <div class="rounded-3xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
+            <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-2">Resumo Visual de Despesas por Categoria</h3>
+            <div class="relative w-full h-64 sm:h-72 mt-3">
+              <canvas id="categoryCompareChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 3: EXTRATO -->
+        <div id="tab-extrato" class="hidden space-y-3">
+          <div class="flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-200/80 gap-2">
+            <input type="text" id="searchExpense" placeholder="Buscar lançamento..." oninput="renderTransactionsList(transactions)" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold w-full sm:w-64 focus:outline-none" />
+          </div>
+          <div id="txListContainer" class="space-y-2"></div>
+        </div>
+
+        <!-- ABA 4: INVESTIMENTOS -->
+        <div id="tab-invest" class="hidden space-y-3.5">
+          <div class="rounded-3xl bg-gradient-to-br from-slate-900 to-indigo-950 p-5 text-white shadow-xl">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300">Total Investido no Mês</span>
+            <div id="monthInvestTotalHeader" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">R$ 0,00</div>
+          </div>
+          <div class="rounded-3xl bg-white p-4 border border-slate-200/80 shadow-2xs">
+            <div id="monthInvestmentsList" class="space-y-2"></div>
           </div>
         </div>
       </div>
+  </div>
 
-      <div class="flex items-center gap-1.5 shrink-0">
-        <!-- BOTÃO DO ADM: EXCLUSIVAMENTE OCULTO POR DEFEITO (Só aparece se for o e-mail c.pirespm@gmail.com) -->
-        <button id="adminBtn" onclick="window.location.href='admin.html'" title="Painel Exclusivo ADM" class="hidden h-8.5 items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-2.5 text-xs font-bold text-blue-700 shadow-2xs hover:bg-blue-100 active:scale-95 transition">
-          <i class="fa-solid fa-shield-halved text-blue-600 text-xs"></i>
-          <span class="text-xs">ADM</span>
-        </button>
-
-        <!-- Configurações / Perfil -->
-        <button onclick="openProfileModal()" title="Configurações & Código" class="flex h-8.5 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold transition shadow-2xs bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 active:scale-95">
-          <span id="headerUserEmoji" class="text-xs">👤</span>
-          <span id="headerUserName" class="text-xs font-extrabold max-w-[85px] truncate">Usuário</span>
-          <i class="fa-solid fa-gear text-[10px] text-slate-500 ml-0.5"></i>
-        </button>
-
-        <!-- Botão Sair -->
-        <button onclick="logout()" title="Sair da conta" class="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-100 active:scale-95 transition">
-          <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- Indicadores Financeiros -->
-    <div class="mx-auto mt-2.5 max-w-5xl">
-      <div class="grid grid-cols-3 gap-2">
-        <div class="rounded-2xl bg-white p-2.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
-          <div class="text-[10px] font-bold text-slate-400 uppercase">Renda</div>
-          <div id="statIncome" class="mt-1 text-xs sm:text-base font-extrabold text-emerald-700 truncate">R$ 0,00</div>
-        </div>
-        <div class="rounded-2xl bg-white p-2.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
-          <div class="text-[10px] font-bold text-slate-400 uppercase">Despesas</div>
-          <div id="statExpense" class="mt-1 text-xs sm:text-base font-extrabold text-rose-600 truncate">R$ 0,00</div>
-        </div>
-        <div class="rounded-2xl bg-white p-2.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
-          <div class="text-[10px] font-bold text-slate-400 uppercase">Saldo</div>
-          <div id="statBalance" class="mt-1 text-xs sm:text-base font-extrabold text-slate-800 truncate">R$ 0,00</div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- ================= CONTEÚDO PRINCIPAL ================= -->
-  <main class="mx-auto max-w-5xl px-3.5 pt-3.5">
-
-    <div class="mb-3.5 flex items-center justify-between bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-2xs gap-2">
-      <div class="flex items-center gap-1.5 min-w-0">
-        <i class="fa-regular fa-calendar-days text-blue-600 text-xs shrink-0"></i>
-        <span class="text-xs font-bold text-slate-600">Mês:</span>
-        <select id="monthSelect" onchange="changeActiveMonth(this.value)" class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none">
-          <option value="Outubro 2026">Outubro 2026</option>
-        </select>
-      </div>
-      <button onclick="openNewTxModal()" class="flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 px-3 py-1.5 text-xs font-extrabold text-white shadow-xs active:scale-95 transition">
-        <i class="fa-solid fa-plus text-[10px]"></i> Lançar
-      </button>
-    </div>
-
-    <!-- Navegação por Abas Superior -->
-    <div class="mb-4 flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-4">
-      <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2.5 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap">
-        <i class="fa-solid fa-chart-pie mr-1"></i> Metas & Categorias
-      </button>
-      <button onclick="switchTab('graficos')" id="tabBtn-graficos" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap">
-        <i class="fa-solid fa-chart-column mr-1"></i> Gráficos
-      </button>
-      <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap">
-        <i class="fa-solid fa-receipt mr-1"></i> Extrato Detalhado
-      </button>
-      <button onclick="switchTab('invest')" id="tabBtn-invest" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap">
-        <i class="fa-solid fa-vault mr-1"></i> Investimentos
-      </button>
-    </div>
-
-    <!-- ABA 1: RESUMO (METAS & CATEGORIAS) -->
-    <div id="tab-resumo" class="space-y-3.5">
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer"></div>
-
-      <div class="rounded-3xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
-        <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-3">Movimentações por Categoria</h3>
-        <div id="categorySummaryList" class="space-y-2 text-xs"></div>
-      </div>
-    </div>
-
-    <!-- ABA 2: GRÁFICOS -->
-    <div id="tab-graficos" class="hidden space-y-4">
-      <div class="rounded-3xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
-        <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-2">Resumo Visual de Despesas por Categoria</h3>
-        <div class="relative w-full h-64 sm:h-72 mt-3">
-          <canvas id="categoryCompareChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- ABA 3: EXTRATO -->
-    <div id="tab-extrato" class="hidden space-y-3">
-      <div class="flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-200/80 gap-2">
-        <input type="text" id="searchExpense" placeholder="Buscar lançamento..." oninput="renderTransactionsList(transactions)" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold w-full sm:w-64 focus:outline-none" />
-      </div>
-      <div id="txListContainer" class="space-y-2"></div>
-    </div>
-
-    <!-- ABA 4: INVESTIMENTOS -->
-    <div id="tab-invest" class="hidden space-y-3.5">
-      <div class="rounded-3xl bg-gradient-to-br from-slate-900 to-indigo-950 p-5 text-white shadow-xl">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300">Total Investido no Mês</span>
-        <div id="monthInvestTotalHeader" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">R$ 0,00</div>
-      </div>
-      <div class="rounded-3xl bg-white p-4 border border-slate-200/80 shadow-2xs">
-        <div id="monthInvestmentsList" class="space-y-2"></div>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- ================= BARRA DE NAVEGAÇÃO INFERIOR MOBILE COM BOTÃO CENTRAL (+) ================= -->
-  <nav class="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 backdrop-blur-md shadow-lg">
+  <!-- RODAPÉ DE NAVEGAÇÃO MOBILE (QUANDO LOGADO) -->
+  <nav id="bottomNavbar" class="hidden fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 backdrop-blur-md shadow-lg">
     <div class="relative max-w-md mx-auto grid grid-cols-4 items-center h-16 px-2">
-      
-      <!-- Slot 1: Resumo -->
       <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 transition active:scale-95">
         <i class="fa-solid fa-chart-pie text-base"></i>
         <span class="text-[9px] font-extrabold mt-1">Resumo</span>
       </button>
-
-      <!-- Slot 2: Gráficos -->
       <button onclick="switchTab('graficos')" id="bottomNavGraficos" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
         <i class="fa-solid fa-chart-column text-base"></i>
         <span class="text-[9px] font-bold mt-1">Gráficos</span>
       </button>
-
-      <!-- Slot 3: Extrato -->
       <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
         <i class="fa-solid fa-receipt text-base"></i>
         <span class="text-[9px] font-bold mt-1">Extrato</span>
       </button>
-
-      <!-- Slot 4: Investimentos -->
       <button onclick="switchTab('invest')" id="bottomNavInvest" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
         <i class="fa-solid fa-vault text-base"></i>
         <span class="text-[9px] font-bold mt-1">Invest</span>
       </button>
-
-      <!-- BOTÃO CENTRAL FLUTUANTE (+) PARA NOVA DESPESA / ENTRADA -->
       <button onclick="openNewTxModal()" class="fab-center flex h-13 w-13 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-rose-600 text-white shadow-lg shadow-blue-500/40 border-3 border-white active:scale-90 transition">
         <i class="fa-solid fa-plus text-lg"></i>
       </button>
-
     </div>
   </nav>
 
@@ -239,7 +363,7 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-600" id="txDescLabel">Descrição</label>
+          <label class="block text-xs font-bold text-slate-600">Descrição</label>
           <input type="text" id="txDesc" required placeholder="Ex: Supermercado" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold focus:outline-none" />
         </div>
 
@@ -255,18 +379,13 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-600" id="categoryFieldLabel">Categoria</label>
+          <label class="block text-xs font-bold text-slate-600">Categoria</label>
           <select id="txCat" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold focus:outline-none">
             <option value="Gastos Fixos">🏠 Gastos Fixos</option>
             <option value="Gastos Gerais">🛒 Gastos Gerais</option>
             <option value="Lazer">🎉 Lazer</option>
             <option value="Investimentos">📈 Investimentos</option>
           </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-600">Quem realizou?</label>
-          <div id="txUserRadioGroup" class="mt-1.5 grid grid-cols-2 gap-2"></div>
         </div>
 
         <button type="submit" class="w-full rounded-2xl bg-blue-600 py-3 text-xs font-extrabold text-white shadow-lg active:scale-95 transition">
@@ -276,28 +395,38 @@
     </div>
   </div>
 
-  <!-- MODAL CONFIGURAÇÕES / CÓDIGO -->
+  <!-- MODAL DE CONFIGURAÇÕES -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 hidden backdrop-blur-sm">
     <div class="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
         <h3 class="text-sm font-extrabold text-slate-800">Código Familiar de Acesso</h3>
         <button onclick="closeProfileModal()" class="text-slate-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
-
       <div class="mt-4 text-center p-4 rounded-2xl bg-blue-50 border-2 border-blue-200">
         <span class="text-[10px] font-black uppercase text-blue-600">Seu Código de 4 Dígitos</span>
         <div class="mt-2 text-3xl font-black tracking-widest text-slate-900" id="profileWorkspaceCodeDisplay">8660</div>
-        <p class="text-[11px] text-slate-500 mt-1">Compartilhe este código com seu cônjuge para acessarem o mesmo controle.</p>
+        <p class="text-[11px] text-slate-500 mt-1">Compartilhe com seu cônjuge.</p>
         <button onclick="copyWorkspaceCode()" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">Copiar Código</button>
       </div>
-
       <div class="mt-4 pt-3 border-t border-slate-100 space-y-2">
         <button onclick="logout()" class="w-full py-2.5 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold">Sair da Conta</button>
       </div>
     </div>
   </div>
 
-  <!-- SCRIPT DE SEGURANÇA E VALIDAÇÃO DO ADM -->
+  <!-- MODAL DE AVISO (Seguro, sem usar alert nativo) -->
+  <div id="messageModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
+          <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto text-xl">
+              <i class="fa-solid fa-bell"></i>
+          </div>
+          <h3 id="modalTitle" class="text-lg font-bold text-slate-800">Aviso</h3>
+          <p id="modalText" class="text-sm text-slate-600">Mensagem informativa.</p>
+          <button onclick="closeModal()" class="w-full py-2.5 bg-slate-900 text-white rounded-xl text-xs font-semibold">Entendi</button>
+      </div>
+  </div>
+
+  <!-- SCRIPTS E LÓGICA DE INTEGRAÇÃO -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
@@ -312,27 +441,14 @@
     let isCloudActive = false;
     let categoryCompareChartInstance = null;
 
-    let currentWorkspace = JSON.parse(localStorage.getItem('nosso_bolso_current_workspace')) || {
-      id: 'default_ws_8660',
-      name: 'Nosso Bolso Padrão',
-      code: '8660'
-    };
-
-    let currentUser = {
-      id: 'user_temp',
-      name: 'Usuário',
-      email: '',
-      emoji: '👤'
-    };
+    let currentWorkspace = { id: 'default_ws_8660', name: 'Nosso Bolso Padrão', code: '8660' };
+    let currentUser = { id: 'user_temp', name: 'Usuário', email: '', emoji: '👤' };
 
     let transactions = JSON.parse(localStorage.getItem('nosso_bolso_tx_clean')) || [
       { id: 'ex_1', desc: 'Salário Mensal', amount: 6500.00, type: 'INCOME', cat: 'Salário', userId: 'user_temp', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-01' },
-      { id: 'ex_2', desc: 'Supermercado Mensal', amount: 1200.50, type: 'EXPENSE', cat: 'Gastos Gerais', userId: 'user_temp', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-05' },
-      { id: 'ex_3', desc: 'Conta de Energia', amount: 350.00, type: 'EXPENSE', cat: 'Gastos Fixos', userId: 'user_temp', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-10' },
-      { id: 'ex_4', desc: 'Lazer Família', amount: 240.00, type: 'EXPENSE', cat: 'Lazer', userId: 'user_temp', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-15' },
-      { id: 'ex_5', desc: 'Investimento FIIs', amount: 1000.00, type: 'EXPENSE', cat: 'Investimentos', userId: 'user_temp', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-20' }
+      { id: 'ex_2', desc: 'Supermercado', amount: 1200.50, type: 'EXPENSE', cat: 'Gastos Gerais', userId: 'user_temp', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-05' },
+      { id: 'ex_3', desc: 'Energia', amount: 350.00, type: 'EXPENSE', cat: 'Gastos Fixos', userId: 'user_temp', workspaceId: 'default_ws_8660', month: 'Outubro 2026', date: '2026-10-10' }
     ];
-
     let activeMonth = 'Outubro 2026';
 
     function initFirebase() {
@@ -341,7 +457,6 @@
         db = firebase.firestore();
         isCloudActive = true;
 
-        // VERIFICAÇÃO RIGOROSA DO UTILIZADOR AUTENTICADO
         firebase.auth().onAuthStateChanged(async (userAuth) => {
           if (userAuth) {
             const email = userAuth.email;
@@ -349,33 +464,72 @@
             currentUser.id = userAuth.uid;
             currentUser.name = email.split('@')[0];
 
-            // BLINTAGEM EXATA: O botão do ADM só aparece se o e-mail for exatamente o teu
             const adminBtn = document.getElementById('adminBtn');
             if (email === 'c.pirespm@gmail.com') {
-              adminBtn.style.display = 'flex'; // Visível apenas para o ADM
+              adminBtn.style.display = 'flex';
               currentUser.name = 'Cristiano (ADM)';
               currentUser.emoji = '👑';
             } else {
-              adminBtn.style.display = 'none'; // Estritamente oculto para qualquer outro utilizador
+              adminBtn.style.display = 'none';
             }
 
-            initApp();
+            showDashboardView();
           } else {
-            // Se não houver sessão ativa, redireciona para o login
-            window.location.href = 'index.html';
+            showAuthView();
           }
         });
-
       } catch (e) {
-        console.warn("Firebase aviso:", e);
-        initApp();
+        showAuthView();
       }
     }
 
-    function initApp() {
+    function showAuthView() {
+      document.getElementById('authContainer').classList.remove('hidden');
+      document.getElementById('mainDashboard').classList.add('hidden');
+      document.getElementById('bottomNavbar').classList.add('hidden');
+    }
+
+    function showDashboardView() {
+      document.getElementById('authContainer').classList.add('hidden');
+      document.getElementById('mainDashboard').classList.remove('hidden');
+      document.getElementById('bottomNavbar').classList.remove('hidden');
       updateHeaderUser();
-      renderUserRadioButtons();
       renderAll();
+    }
+
+    function switchAuthTab(tab) {
+      const loginCard = document.getElementById('loginCard');
+      const signupCard = document.getElementById('signupCard');
+      if (tab === 'signup') {
+        loginCard.style.display = 'none';
+        signupCard.style.display = 'flex';
+      } else {
+        signupCard.style.display = 'none';
+        loginCard.style.display = 'flex';
+      }
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const pass = document.getElementById('loginPassword').value;
+      try {
+        await firebase.auth().signInWithEmailAndPassword(email, pass);
+      } catch(err) {
+        showAlert("Erro no Login", "Verifique seu e-mail e senha informados.");
+      }
+    }
+
+    async function handleRegisterSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('regEmail').value;
+      const pass = document.getElementById('regPassword').value;
+      try {
+        await firebase.auth().createUserWithEmailAndPassword(email, pass);
+        showAlert("Sucesso!", "Conta criada e conectada com sucesso!");
+      } catch(err) {
+        showAlert("Erro no Cadastro", err.message);
+      }
     }
 
     function updateHeaderUser() {
@@ -394,17 +548,14 @@
     }
 
     function copyWorkspaceCode() {
-      const code = currentWorkspace ? currentWorkspace.code : '8660';
-      navigator.clipboard.writeText(code).then(() => alert(`Código ${code} copiado com sucesso!`));
+      navigator.clipboard.writeText('8660').then(() => showAlert("Copiado", "Código copiado com sucesso!"));
     }
 
     function logout() {
       try {
-        firebase.auth().signOut().then(() => {
-          window.location.href = 'index.html';
-        });
+        firebase.auth().signOut().then(() => showAuthView());
       } catch(e) {
-        window.location.href = 'index.html';
+        showAuthView();
       }
     }
 
@@ -433,18 +584,6 @@
       }
     }
 
-    function renderUserRadioButtons() {
-      const container = document.getElementById('txUserRadioGroup');
-      if (!container) return;
-      container.innerHTML = `
-        <label class="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border-2 p-2 has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50">
-          <input type="radio" name="txUser" value="${currentUser.id}" class="hidden" checked />
-          <span class="text-sm">${currentUser.emoji}</span>
-          <span class="text-xs font-bold text-slate-700">${currentUser.name}</span>
-        </label>
-      `;
-    }
-
     async function handleSaveTransaction(e) {
       e.preventDefault();
       const type = document.querySelector('input[name="txType"]:checked').value;
@@ -455,15 +594,9 @@
 
       const txId = 'tx_' + Date.now();
       const newTx = {
-        id: txId,
-        desc,
-        amount,
-        type,
-        cat,
-        userId: currentUser.id,
-        workspaceId: currentWorkspace ? currentWorkspace.id : 'default_ws_8660',
-        month: activeMonth,
-        date
+        id: txId, desc, amount, type, cat,
+        userId: currentUser.id, workspaceId: currentWorkspace.id,
+        month: activeMonth, date
       };
 
       transactions.unshift(newTx);
@@ -479,14 +612,12 @@
     }
 
     async function deleteTransaction(id) {
-      if (confirm("Deseja realmente remover este lançamento?")) {
-        transactions = transactions.filter(t => t.id !== id);
-        localStorage.setItem('nosso_bolso_tx_clean', JSON.stringify(transactions));
-        if (db && isCloudActive) {
-          try { await db.collection('transacoes').doc(id).delete(); } catch(err){}
-        }
-        renderAll();
+      transactions = transactions.filter(t => t.id !== id);
+      localStorage.setItem('nosso_bolso_tx_clean', JSON.stringify(transactions));
+      if (db && isCloudActive) {
+        try { await db.collection('transacoes').doc(id).delete(); } catch(err){}
       }
+      renderAll();
     }
 
     function changeActiveMonth(m) {
@@ -495,9 +626,7 @@
     }
 
     function renderAll() {
-      const wsId = currentWorkspace ? currentWorkspace.id : 'default_ws_8660';
-      const currentTx = transactions.filter(t => t.month === activeMonth && (!t.workspaceId || t.workspaceId === wsId));
-
+      const currentTx = transactions.filter(t => t.month === activeMonth);
       const income = currentTx.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
       const expense = currentTx.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
       const balance = income - expense;
@@ -512,26 +641,13 @@
       const invest = currentTx.filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
 
       document.getElementById('cardsCategoryContainer').innerHTML = `
-        <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
-          <span class="text-xs font-bold text-slate-500 uppercase">Gastos Fixos</span>
-          <div class="text-lg font-black text-slate-900 mt-1">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        </div>
-        <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
-          <span class="text-xs font-bold text-slate-500 uppercase">Gastos Gerais</span>
-          <div class="text-lg font-black text-slate-900 mt-1">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        </div>
-        <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
-          <span class="text-xs font-bold text-slate-500 uppercase">Lazer</span>
-          <div class="text-lg font-black text-slate-900 mt-1">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        </div>
-        <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
-          <span class="text-xs font-bold text-slate-500 uppercase">Investimentos</span>
-          <div class="text-lg font-black text-emerald-600 mt-1">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        </div>
+        <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs"><span class="text-xs font-bold text-slate-500 uppercase">Gastos Fixos</span><div class="text-lg font-black text-slate-900 mt-1">R$ ${fixed.toFixed(2)}</div></div>
+        <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs"><span class="text-xs font-bold text-slate-500 uppercase">Gastos Gerais</span><div class="text-lg font-black text-slate-900 mt-1">R$ ${general.toFixed(2)}</div></div>
+        <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs"><span class="text-xs font-bold text-slate-500 uppercase">Lazer</span><div class="text-lg font-black text-slate-900 mt-1">R$ ${leisure.toFixed(2)}</div></div>
+        <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs"><span class="text-xs font-bold text-slate-500 uppercase">Investimentos</span><div class="text-lg font-black text-emerald-600 mt-1">R$ ${invest.toFixed(2)}</div></div>
       `;
 
-      const summaryList = document.getElementById('categorySummaryList');
-      summaryList.innerHTML = `
+      document.getElementById('categorySummaryList').innerHTML = `
         <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>🏠 Gastos Fixos</span><span class="font-bold">R$ ${fixed.toFixed(2)}</span></div>
         <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>🛒 Gastos Gerais</span><span class="font-bold">R$ ${general.toFixed(2)}</span></div>
         <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>🎉 Lazer</span><span class="font-bold">R$ ${leisure.toFixed(2)}</span></div>
@@ -547,7 +663,6 @@
       const container = document.getElementById('txListContainer');
       const search = (document.getElementById('searchExpense').value || '').toLowerCase();
       container.innerHTML = '';
-
       const filtered = currentTx.filter(t => t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search));
 
       if (filtered.length === 0) {
@@ -564,9 +679,7 @@
               <div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>${t.date}</div>
             </div>
             <div class="flex items-center gap-3">
-              <span class="text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-slate-900'}">
-                ${isIncome ? '+' : '-'} R$ ${t.amount.toFixed(2).replace('.', ',')}
-              </span>
+              <span class="text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-slate-900'}">${isIncome ? '+' : '-'} R$ ${t.amount.toFixed(2).replace('.', ',')}</span>
               <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
             </div>
           </div>
@@ -578,20 +691,15 @@
       document.getElementById('monthInvestTotalHeader').innerText = `R$ ${totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
       const investList = document.getElementById('monthInvestmentsList');
       const invests = currentTx.filter(t => t.cat === 'Investimentos');
-
       if (invests.length === 0) {
         investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl">Nenhum aporte registrado neste mês.</div>`;
         return;
       }
-
       investList.innerHTML = '';
       invests.forEach(t => {
         investList.innerHTML += `
           <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100">
-            <div>
-              <div class="text-xs font-extrabold text-slate-800">${t.desc}</div>
-              <div class="text-[10px] text-slate-400">${t.date}</div>
-            </div>
+            <div><div class="text-xs font-extrabold text-slate-800">${t.desc}</div><div class="text-[10px] text-slate-400">${t.date}</div></div>
             <span class="text-xs font-black text-emerald-600">R$ ${t.amount.toFixed(2).replace('.', ',')}</span>
           </div>
         `;
@@ -601,31 +709,14 @@
     function renderChart(fixed, general, leisure, invest) {
       const ctx = document.getElementById('categoryCompareChart');
       if (!ctx) return;
-
-      if (categoryCompareChartInstance) {
-        categoryCompareChartInstance.destroy();
-      }
-
+      if (categoryCompareChartInstance) categoryCompareChartInstance.destroy();
       categoryCompareChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: ['Fixos', 'Gerais', 'Lazer', 'Investimentos'],
-          datasets: [{
-            label: 'Gastos por Categoria (R$)',
-            data: [fixed, general, leisure, invest],
-            backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
-            borderRadius: 8
-          }]
+          datasets: [{ label: 'Gastos por Categoria (R$)', data: [fixed, general, leisure, invest], backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'], borderRadius: 8 }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { beginAtZero: true, ticks: { callback: val => 'R$ ' + val } },
-            x: { grid: { display: false } }
-          }
-        }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: val => 'R$ ' + val } }, x: { grid: { display: false } } } }
       });
     }
 
@@ -634,22 +725,19 @@
         const el = document.getElementById(`tab-${t}`);
         if (el) el.classList.add('hidden');
       });
-
-      const activeEl = document.getElementById(`tab-${tab}`);
-      if (activeEl) activeEl.classList.remove('hidden');
-
-      ['Resumo', 'Graficos', 'Extrato', 'Invest'].forEach(name => {
-        const btn = document.getElementById(`bottomNav${name}`);
-        if (btn) {
-          btn.className = name.toLowerCase() === tab ? 'flex flex-col items-center justify-center text-blue-600 transition active:scale-95' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95';
-        }
-      });
-
-      if (tab === 'extrato') renderTransactionsList(transactions);
-      if (tab === 'graficos') renderAll();
+      document.getElementById(`tab-${tab}`).classList.remove('hidden');
     }
 
-    // Inicialização da verificação de utilizador
+    function showAlert(title, text) {
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalText').innerText = text;
+      document.getElementById('messageModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('messageModal').classList.add('hidden');
+    }
+
     initFirebase();
   </script>
 </body>
