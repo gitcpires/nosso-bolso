@@ -21,6 +21,8 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .glass-nav { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(16px); }
     .fab-center { position: absolute; left: 50%; top: -22px; transform: translateX(-50%); }
+    /* Estilo de Lousa/Quadro */
+    .lousa-board { background: #1e293b; color: #f8fafc; border: 4px solid #334155; font-family: 'Courier New', Courier, monospace; }
   </style>
 </head>
 <body class="bg-slate-100/70 text-slate-900 pb-36 antialiased selection:bg-blue-600 selection:text-white">
@@ -144,8 +146,8 @@
   </header>
 
   <!-- CONTEÚDO PRINCIPAL DO PAINEL -->
-  <main class="mx-auto max-w-5xl px-3.5 pt-3.5">
-    <div class="mb-3.5 flex items-center justify-between bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-2xs">
+  <main class="mx-auto max-w-5xl px-3.5 pt-3.5 space-y-3.5">
+    <div class="flex items-center justify-between bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-2xs">
       <div class="flex items-center gap-1.5">
         <i class="fa-regular fa-calendar-days text-blue-600 text-xs"></i>
         <span class="text-xs font-bold text-slate-600">Mês:</span>
@@ -158,8 +160,8 @@
       </button>
     </div>
 
-    <!-- Navegação por Abas Superior -->
-    <div class="mb-4 flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-4">
+    <!-- NAVEGAÇÃO POR ABAS SUPERIOR (Resumo, Gráficos, Extrato, Investimentos) -->
+    <div class="flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-4 pt-1">
       <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2.5 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"><i class="fa-solid fa-chart-pie mr-1"></i> Metas & Categorias</button>
       <button onclick="switchTab('graficos')" id="tabBtn-graficos" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-chart-column mr-1"></i> Gráficos</button>
       <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2.5 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-receipt mr-1"></i> Extrato</button>
@@ -168,7 +170,7 @@
 
     <!-- ABA 1: RESUMO -->
     <div id="tab-resumo" class="space-y-3.5">
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryContainer"></div>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" id="cardsCategoryCategory"></div>
       <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
         <h3 class="text-xs font-extrabold text-slate-800 mb-3">Movimentações por Categoria</h3>
         <div id="categorySummaryList" class="space-y-2 text-xs"></div>
@@ -201,11 +203,55 @@
         <div id="monthInvestmentsList" class="space-y-2"></div>
       </div>
     </div>
+
+    <!-- ABA 5: MURAL / LOUSA DO GRUPO (NOVA ABA ACESSÍVEL PELO BOTÃO DA BARRA INFERIOR) -->
+    <div id="tab-mural" class="hidden space-y-4">
+      <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-2xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 class="text-sm font-black text-slate-800 flex items-center gap-2 uppercase tracking-wider">
+            <i class="fa-solid fa-chalkboard text-blue-600"></i> Lousa / Mural do Grupo
+          </h3>
+          <span class="text-[10px] text-slate-400 font-bold">Apenas 1 recado ativo por vez</span>
+        </div>
+
+        <!-- O Quadro / Lousa -->
+        <div class="lousa-board p-5 rounded-2xl shadow-inner min-h-[140px] flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute top-2 right-3 text-[9px] text-slate-400 uppercase tracking-widest font-bold">Quadro Coletivo</div>
+          
+          <div id="lousaConteudo" class="my-auto text-center py-2">
+            <p class="text-xs text-slate-400 italic">A lousa está limpa no momento.</p>
+          </div>
+
+          <div id="lousaAutorContainer" class="text-right text-[10px] text-emerald-400 font-bold pt-2 border-t border-slate-700/60 hidden">
+            Escrito por: <span id="lousaAutorNome">---</span>
+          </div>
+        </div>
+
+        <!-- Formulário para Escrever na Lousa (Max 25 caracteres) -->
+        <form id="lousaForm" onsubmit="escreverNaLousa(event)" class="space-y-2 pt-1">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Escrever na Lousa (Máximo 25 caracteres):</label>
+            <div class="flex gap-2">
+              <input type="text" id="inputLousaTexto" required maxlength="25" placeholder="Ex: Comprar pão hoje!" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
+              <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-extrabold hover:bg-blue-700 transition shrink-0">
+                Escrever
+              </button>
+            </div>
+          </div>
+          <div class="flex justify-between items-center text-[10px] text-slate-400 px-1">
+            <span>Qualquer membro do grupo pode apagar e reescrever.</span>
+            <button type="button" onclick="apagarLousa()" id="btnApagarLousa" class="text-rose-600 font-bold hover:underline hidden">
+              <i class="fa-solid fa-eraser mr-1"></i> Apagar Lousa
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </main>
 
-  <!-- BARRA INFERIOR MOBILE -->
+  <!-- BARRA INFERIOR MOBILE (COM BOTÃO DE MURAL/LOUSA INCLUÍDO) -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 backdrop-blur-md shadow-lg">
-    <div class="relative max-w-md mx-auto grid grid-cols-4 items-center h-16 px-2">
+    <div class="relative max-w-md mx-auto grid grid-cols-5 items-center h-16 px-1">
       <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 transition active:scale-95">
         <i class="fa-solid fa-chart-pie text-base"></i>
         <span class="text-[9px] font-extrabold mt-1">Resumo</span>
@@ -221,6 +267,10 @@
       <button onclick="switchTab('invest')" id="bottomNavInvest" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
         <i class="fa-solid fa-vault text-base"></i>
         <span class="text-[9px] font-bold mt-1">Invest</span>
+      </button>
+      <button onclick="switchTab('mural')" id="bottomNavMural" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
+        <i class="fa-solid fa-chalkboard text-base"></i>
+        <span class="text-[9px] font-bold mt-1">Lousa</span>
       </button>
       <button onclick="openNewTxModal()" class="fab-center flex h-13 w-13 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-rose-600 text-white shadow-lg shadow-blue-500/40 border-3 border-white active:scale-90 transition">
         <i class="fa-solid fa-plus text-lg"></i>
@@ -274,7 +324,7 @@
     </div>
   </div>
 
-  <!-- MODAL DE PERFIL / CÓDIGO DO GRUPO (Com código menor e membros logo abaixo) -->
+  <!-- MODAL DE PERFIL / CÓDIGO DO GRUPO E MEMBROS -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 hidden backdrop-blur-sm">
     <div class="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl space-y-3.5 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -329,6 +379,7 @@
     let transactions = [];
     let activeMonth = 'Outubro 2026';
     let categoryCompareChartInstance = null;
+    let lousaDocId = null; // Guarda o ID do documento da lousa deste workspace
 
     auth.onAuthStateChanged(async (userAuth) => {
       if (!userAuth) {
@@ -470,6 +521,7 @@
       renderAll();
       carregarDadosDoBanco();
       carregarMembrosDoGrupo();
+      ouvinteLousaGrupo();
     }
 
     async function carregarMembrosDoGrupo() {
@@ -499,6 +551,102 @@
         });
       } catch (err) {
         containerMembros.innerHTML = `<div class="text-rose-500 text-center py-1">Erro ao carregar membros.</div>`;
+      }
+    }
+
+    // LÓGICA DA LOUSA COMPARTILHADA (Apenas 1 recado de até 25 caracteres por Workspace com verificação de grupo)
+    function ouvinteLousaGrupo() {
+      if (!currentWorkspace.id) return;
+      db.collection('lousa')
+        .where('workspaceId', '==', currentWorkspace.id)
+        .onSnapshot((snapshot) => {
+          const lousaConteudo = document.getElementById('lousaConteudo');
+          const lousaAutorContainer = document.getElementById('lousaAutorContainer');
+          const lousaAutorNome = document.getElementById('lousaAutorNome');
+          const btnApagarLousa = document.getElementById('btnApagarLousa');
+
+          if (snapshot.empty) {
+            lousaDocId = null;
+            lousaConteudo.innerHTML = `<p class="text-xs text-slate-400 italic">A lousa está limpa no momento.</p>`;
+            lousaAutorContainer.classList.add('hidden');
+            btnApagarLousa.classList.add('hidden');
+            return;
+          }
+
+          const docLousa = snapshot.docs[0];
+          lousaDocId = docLousa.id;
+          const dados = docLousa.data();
+          const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
+
+          lousaConteudo.innerHTML = `<p class="text-base sm:text-lg font-bold tracking-wide text-amber-300 break-words">"${dados.texto}"</p>`;
+          lousaAutorNome.innerText = autor;
+          lousaAutorContainer.classList.remove('hidden');
+          btnApagarLousa.classList.remove('hidden');
+        });
+    }
+
+    async function escreverNaLousa(e) {
+      e.preventDefault();
+      const input = document.getElementById('inputLousaTexto');
+      const texto = input.value.trim();
+
+      if (!texto || texto.length > 25) {
+        alert("O recado deve ter no máximo 25 caracteres.");
+        return;
+      }
+
+      if (!currentWorkspace.id) {
+        alert("Erro de segurança: Utilizador sem grupo válido.");
+        return;
+      }
+
+      try {
+        // Validação adicional de segurança: verifica se o utilizador pertence a este workspace
+        const userCheck = await db.collection('users').doc(currentUser.id).get();
+        if (!userCheck.exists || userCheck.data().workspaceId !== currentWorkspace.id) {
+          alert("Acesso negado: você não pertence a este grupo.");
+          return;
+        }
+
+        // Se já existe uma lousa para este grupo, atualiza; senão, cria uma nova
+        if (lousaDocId) {
+          await db.collection('lousa').doc(lousaDocId).update({
+            texto: texto,
+            userEmail: currentUser.email,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        } else {
+          await db.collection('lousa').add({
+            workspaceId: currentWorkspace.id,
+            userEmail: currentUser.email,
+            texto: texto,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+
+        input.value = '';
+      } catch (err) {
+        alert("Erro ao escrever na lousa.");
+      }
+    }
+
+    async function apagarLousa() {
+      if (!lousaDocId) return;
+      const confirmacao = confirm("Deseja apagar o texto atual da lousa para que outro membro possa escrever?");
+      if (!confirmacao) return;
+
+      try {
+        // Validação de segurança para exclusão
+        const userCheck = await db.collection('users').doc(currentUser.id).get();
+        if (!userCheck.exists || userCheck.data().workspaceId !== currentWorkspace.id) {
+          alert("Acesso negado.");
+          return;
+        }
+
+        await db.collection('lousa').doc(lousaDocId).delete();
+        lousaDocId = null;
+      } catch (err) {
+        alert("Erro ao apagar a lousa.");
       }
     }
 
@@ -578,7 +726,7 @@
       const leisure = currentTx.filter(t => t.cat === 'Lazer' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
       const invest = currentTx.filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
 
-      document.getElementById('cardsCategoryContainer').innerHTML = `
+      document.getElementById('cardsCategoryCategory').innerHTML = `
         <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
           <span class="text-xs font-bold text-slate-500 uppercase">Gastos Fixos</span>
           <div class="text-lg font-black text-slate-900 mt-1">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
@@ -703,7 +851,7 @@
     }
 
     function switchTab(tab) {
-      ['resumo', 'graficos', 'extrato', 'invest'].forEach(t => {
+      ['resumo', 'graficos', 'extrato', 'invest', 'mural'].forEach(t => {
         const el = document.getElementById(`tab-${t}`);
         if (el) el.classList.add('hidden');
       });
@@ -711,7 +859,7 @@
       const activeEl = document.getElementById(`tab-${tab}`);
       if (activeEl) activeEl.classList.remove('hidden');
 
-      ['Resumo', 'Graficos', 'Extrato', 'Invest'].forEach(name => {
+      ['Resumo', 'Graficos', 'Extrato', 'Invest', 'Mural'].forEach(name => {
         const btn = document.getElementById(`bottomNav${name}`);
         if (btn) {
           btn.className = name.toLowerCase() === tab ? 'flex flex-col items-center justify-center text-blue-600 transition active:scale-95' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95';
