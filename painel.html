@@ -274,24 +274,36 @@
     </div>
   </div>
 
-  <!-- MODAL DE PERFIL / CÓDIGO DO GRUPO -->
+  <!-- MODAL DE PERFIL / CÓDIGO DO GRUPO (Com código menor e membros logo abaixo) -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 hidden backdrop-blur-sm">
-    <div class="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+    <div class="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl space-y-3.5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
         <h3 class="text-sm font-extrabold text-slate-800">Definições do Grupo</h3>
         <button onclick="closeProfileModal()" class="text-slate-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div class="text-center p-4 rounded-2xl bg-blue-50 border-2 border-blue-200">
-        <span class="text-[10px] font-black uppercase text-blue-600">O seu Código de Grupo atual</span>
-        <div class="mt-2 text-3xl font-black tracking-widest text-slate-900" id="profileWorkspaceCodeDisplay">----</div>
-        <p class="text-[11px] text-slate-500 mt-1">Compartilhe com sua família ou sócios.</p>
-        <button onclick="copyWorkspaceCode()" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">Copiar Código</button>
+      <!-- Bloco do Código (Tamanho Reduzido) -->
+      <div class="text-center p-3 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-between">
+        <div class="text-left min-w-0">
+          <span class="text-[9px] font-black uppercase text-blue-600 block">Código do Grupo</span>
+          <div class="text-lg font-black tracking-widest text-slate-900 truncate" id="profileWorkspaceCodeDisplay">----</div>
+        </div>
+        <button onclick="copyWorkspaceCountCode()" id="copyCodeBtn" class="px-3 py-1.5 bg-blue-600 text-white rounded-xl text-[10px] font-bold shrink-0">Copiar</button>
+      </div>
+
+      <!-- Membros do Grupo Logo Abaixo -->
+      <div class="space-y-1.5 pt-1">
+        <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
+          <i class="fa-solid fa-users text-blue-600"></i> Membros deste Grupo:
+        </span>
+        <div id="workspaceMembersList" class="space-y-1.5 max-h-32 overflow-y-auto p-2 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
+          <div class="text-slate-400 text-center py-2">A carregar membros...</div>
+        </div>
       </div>
 
       <!-- Opção de Deixar o Grupo -->
       <div class="pt-2 border-t border-slate-100">
-        <button onclick="deixarGrupo()" class="w-full py-3 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-extrabold transition flex items-center justify-center gap-2">
+        <button onclick="deixarGrupo()" class="w-full py-2.5 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-extrabold transition flex items-center justify-center gap-2">
           <i class="fa-solid fa-right-from-bracket"></i> Deixar este Grupo / Sair
         </button>
       </div>
@@ -457,6 +469,37 @@
 
       renderAll();
       carregarDadosDoBanco();
+      carregarMembrosDoGrupo();
+    }
+
+    async function carregarMembrosDoGrupo() {
+      const containerMembros = document.getElementById('workspaceMembersList');
+      if (!containerMembros || !currentWorkspace.id) return;
+
+      try {
+        const membrosSnapshot = await db.collection('users').where('workspaceId', '==', currentWorkspace.id).get();
+        containerMembros.innerHTML = '';
+
+        if (membrosSnapshot.empty) {
+          containerMembros.innerHTML = `<div class="text-slate-400 text-center py-1">Nenhum membro encontrado.</div>`;
+          return;
+        }
+
+        membrosSnapshot.forEach(doc => {
+          const dadosMembro = doc.data();
+          const emailMembro = dadosMembro.email || 'Utilizador';
+          const ehVoce = dadosMembro.email === currentUser.email ? ' (Você)' : '';
+
+          containerMembros.innerHTML += `
+            <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100 shadow-2xs">
+              <span class="font-bold text-slate-700 truncate"><i class="fa-solid fa-user-circle text-blue-500 mr-1.5"></i>${emailMembro}${ehVoce}</span>
+              <span class="text-[9px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
+            </div>
+          `;
+        });
+      } catch (err) {
+        containerMembros.innerHTML = `<div class="text-rose-500 text-center py-1">Erro ao carregar membros.</div>`;
+      }
     }
 
     function carregarDadosDoBanco() {
@@ -483,7 +526,7 @@
       const newTx = {
         desc, amount, type, cat,
         userId: currentUser.id,
-        userEmail: currentUser.email, // Guarda o e-mail de quem lançou
+        userEmail: currentUser.email,
         workspaceId: currentWorkspace.id,
         month: activeMonth,
         date
@@ -685,9 +728,9 @@
       document.getElementById('newTxModal').classList.remove('hidden'); 
     }
     function closeNewTxModal() { document.getElementById('newTxModal').classList.add('hidden'); }
-    function openProfileModal() { document.getElementById('profileModal').classList.remove('hidden'); }
+    function openProfileModal() { document.getElementById('profileModal').classList.remove('hidden'); carregarMembrosDoGrupo(); }
     function closeProfileModal() { document.getElementById('profileModal').classList.add('hidden'); }
-    function copyWorkspaceCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
+    function copyWorkspaceCountCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
     function logout() { auth.signOut().then(() => window.location.href = 'index.html'); }
   </script>
 </body>
