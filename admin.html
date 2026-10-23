@@ -34,9 +34,6 @@
       </div>
       
       <div class="flex items-center gap-2">
-        <button onclick="window.location.href='painel.html'" class="flex h-9 items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 text-xs font-bold text-blue-700 hover:bg-blue-100 transition active:scale-95 shadow-2xs">
-          <i class="fa-solid fa-wallet text-xs"></i> Meu Painel
-        </button>
         <button onclick="sairAdmin()" class="flex h-9 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-700 hover:bg-rose-100 transition active:scale-95 shadow-2xs">
           <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i> Sair
         </button>
@@ -113,11 +110,17 @@
     const db = firebase.firestore();
 
     auth.onAuthStateChanged(async (user) => {
-      if (!user || user.email !== 'c.pirespm@gmail.com') {
-        alert('Acesso restrito ao administrador.');
-        window.location.href = "painel.html";
+      if (!user) {
+        window.location.replace("index.html");
         return;
       }
+      
+      // Se não for o administrador, expulsa para o painel normal
+      if (user.email !== 'c.pirespm@gmail.com') {
+        window.location.replace("painel.html");
+        return;
+      }
+
       carregarDadosAdmin();
     });
 
@@ -145,7 +148,7 @@
           const dados = doc.data();
           const uid = doc.id;
 
-          if (dados.email === 'c.pirespm@gmail.com') return; // Ignora o ADM principal nas métricas de clientes
+          if (dados.email === 'c.pirespm@gmail.com') return;
 
           totalContas++;
 
@@ -191,7 +194,6 @@
           }
         });
 
-        // Atualiza os contadores no topo (KPIs)
         document.getElementById('statTotalUsers').innerText = totalContas;
         document.getElementById('statActiveUsers').innerText = qtdAtivos;
         document.getElementById('statPendingUsers').innerText = qtdPendentes;
@@ -233,7 +235,7 @@
 
     function sairAdmin() {
       auth.signOut().then(() => {
-        window.location.href = "index.html";
+        window.location.replace("index.html");
       });
     }
   </script>
