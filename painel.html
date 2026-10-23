@@ -159,47 +159,61 @@
       </button>
     </div>
 
-    <!-- NAVEGAÇÃO POR ABAS SUPERIOR -->
-    <div class="flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-5 pt-0.5">
-      <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"><i class="fa-solid fa-chart-pie mr-1"></i> Resumo & Metas</button>
-      <button onclick="switchTab('graficos')" id="tabBtn-graficos" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-chart-column mr-1"></i> Gráficos</button>
+    <!-- NAVEGAÇÃO POR ABAS SUPERIOR (Apenas 4 abas correspondentes à barra inferior) -->
+    <div class="flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-6 pt-0.5">
+      <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"><i class="fa-solid fa-chart-pie mr-1"></i> Resumo</button>
       <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-receipt mr-1"></i> Extrato</button>
       <button onclick="switchTab('invest')" id="tabBtn-invest" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-vault mr-1"></i> Invest</button>
+      <button onclick="switchTab('mural')" id="tabBtn-mural" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-chalkboard mr-1"></i> Mural</button>
     </div>
 
-    <!-- ABA 1: RESUMO E METAS -->
-    <div id="tab-resumo" class="space-y-2.5">
+    <!-- ABA 1: RESUMO (Com os cartões 2x2 e os gráficos empilhados logo abaixo) -->
+    <div id="tab-resumo" class="space-y-3">
       <!-- Cartões de Categorias Compactos em Grelha 2x2 -->
       <div class="grid grid-cols-2 gap-2" id="cardsCategoryContainer"></div>
       
-      <!-- Bloco inferior mantido com o cálculo correto e limpo -->
-      <div class="rounded-2xl bg-white p-3 border border-slate-200 shadow-2xs space-y-2">
-        <div class="flex items-center justify-between">
-          <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1">
-            <i class="fa-solid fa-bullseye text-blue-600"></i> Metas Percentuais do Grupo (Alvo: 100%)
-          </h3>
+      <!-- Gráfico de Pizza Logo Abaixo -->
+      <div class="rounded-3xl bg-white p-4 border border-slate-200/80 shadow-2xs space-y-2">
+        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+          <i class="fa-solid fa-chart-pie text-blue-600"></i> Distribuição por Categoria (Pizza)
+        </h3>
+        <div class="relative w-full h-52 sm:h-60">
+          <canvas id="categoryPieChart"></canvas>
         </div>
-        <div id="metasProgressList" class="space-y-2 text-xs"></div>
+      </div>
+
+      <!-- Gráfico de Colunas Mais Abaixo -->
+      <div class="rounded-3xl bg-white p-4 border border-slate-200/80 shadow-2xs space-y-2">
+        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+          <i class="fa-solid fa-chart-column text-blue-600"></i> Comparativo de Gastos (Colunas)
+        </h3>
+        <div class="relative w-full h-52 sm:h-60">
+          <canvas id="categoryBarChart"></canvas>
+        </div>
       </div>
     </div>
 
-    <!-- ABA 2: GRÁFICOS -->
-    <div id="tab-graficos" class="hidden space-y-4">
-      <div class="rounded-3xl bg-white p-4 sm:p-5 border border-slate-200/80 shadow-2xs">
-        <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-2">Resumo Visual de Despesas por Categoria</h3>
-        <div class="relative w-full h-64 sm:h-72 mt-3">
-          <canvas id="categoryCompareChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- ABA 3: EXTRATO -->
+    <!-- ABA 2: EXTRATO (Com filtros avançados por Membro e Categoria) -->
     <div id="tab-extrato" class="hidden space-y-3">
-      <input type="text" id="searchExpense" placeholder="Buscar lançamento..." oninput="renderTransactionsList(transactions)" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold w-full focus:outline-none" />
+      <div class="flex flex-col sm:flex-row gap-2">
+        <input type="text" id="searchExpense" placeholder="Buscar lançamento..." oninput="renderTransactionsList(transactions)" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold w-full focus:outline-none" />
+        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none">
+          <option value="">👤 Todos os Membros</option>
+        </select>
+        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none">
+          <option value="">📂 Todas as Categorias</option>
+          <option value="Gastos Fixos">🏠 Gastos Fixos</option>
+          <option value="Gastos Gerais">🛒 Gastos Gerais</option>
+          <option value="Lazer">🎉 Lazer</option>
+          <option value="Investimentos">📈 Investimentos</option>
+          <option value="Salário">💼 Salário</option>
+          <option value="Renda Extra">✨ Renda Extra</option>
+        </select>
+      </div>
       <div id="txListContainer" class="space-y-2"></div>
     </div>
 
-    <!-- ABA 4: INVESTIMENTOS -->
+    <!-- ABA 3: INVESTIMENTOS -->
     <div id="tab-invest" class="hidden space-y-3.5">
       <div class="rounded-3xl bg-gradient-to-br from-slate-900 to-indigo-950 p-5 text-white shadow-xl">
         <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300">Total Investido no Mês</span>
@@ -210,7 +224,7 @@
       </div>
     </div>
 
-    <!-- ABA 5: MURAL / LOUSA -->
+    <!-- ABA 4: MURAL / LOUSA -->
     <div id="tab-mural" class="hidden space-y-4">
       <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-2xs space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -247,16 +261,12 @@
     </div>
   </main>
 
-  <!-- BARRA INFERIOR MOBILE -->
+  <!-- BARRA INFERIOR MOBILE EXATAMENTE COM 4 BOTÕES + PORTA-CARACTERÍSTICO CENTRAL (+) -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 backdrop-blur-md shadow-lg">
-    <div class="relative max-w-md mx-auto grid grid-cols-5 items-center h-16 px-1">
+    <div class="relative max-w-md mx-auto grid grid-cols-4 items-center h-16 px-2">
       <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 transition active:scale-95">
         <i class="fa-solid fa-chart-pie text-base"></i>
         <span class="text-[9px] font-extrabold mt-1">Resumo</span>
-      </button>
-      <button onclick="switchTab('graficos')" id="bottomNavGraficos" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
-        <i class="fa-solid fa-chart-column text-base"></i>
-        <span class="text-[9px] font-bold mt-1">Gráficos</span>
       </button>
       <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
         <i class="fa-solid fa-receipt text-base"></i>
@@ -413,7 +423,8 @@
     let currentUser = { id: '', name: '', email: '' };
     let transactions = [];
     let activeMonth = 'Outubro 2026';
-    let categoryCompareChartInstance = null;
+    let categoryPieChartInstance = null;
+    let categoryBarChartInstance = null;
     let lousaDocId = null;
 
     auth.onAuthStateChanged(async (userAuth) => {
@@ -615,11 +626,15 @@
 
     async function carregarMembrosDoGrupo() {
       const containerMembros = document.getElementById('workspaceMembersList');
+      const selectFiltroMembro = document.getElementById('filterMember');
       if (!containerMembros || !currentWorkspace.id) return;
 
       try {
         const membrosSnapshot = await db.collection('users').where('workspaceId', '==', currentWorkspace.id).get();
         containerMembros.innerHTML = '';
+        if (selectFiltroMembro) {
+          selectFiltroMembro.innerHTML = `<option value="">👤 Todos os Membros</option>`;
+        }
 
         if (membrosSnapshot.empty) {
           containerMembros.innerHTML = `<div class="text-slate-400 text-center py-1">Nenhum membro encontrado.</div>`;
@@ -629,7 +644,8 @@
         membrosSnapshot.forEach(doc => {
           const dadosMembro = doc.data();
           const emailMembro = dadosMembro.email || 'Utilizador';
-          const ehVoce = dadosMembro.email === currentUser.email ? ' (Você)' : '';
+          const nomeMembro = emailMembro.split('@')[0];
+          const ehVoce = emailMembro === currentUser.email ? ' (Você)' : '';
 
           containerMembros.innerHTML += `
             <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100 shadow-2xs">
@@ -637,6 +653,10 @@
               <span class="text-[9px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
             </div>
           `;
+
+          if (selectFiltroMembro) {
+            selectFiltroMembro.innerHTML += `<option value="${emailMembro}">${nomeMembro}</option>`;
+          }
         });
       } catch (err) {
         containerMembros.innerHTML = `<div class="text-rose-500 text-center py-1">Erro ao carregar membros.</div>`;
@@ -892,42 +912,81 @@
         `;
       }
 
-      const metasContainer = document.getElementById('metasProgressList');
-      if (metasContainer) {
-        metasContainer.innerHTML = `
-          <div>
-            <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>🏠 Fixos</span><span class="text-slate-500">Meta: ${metas.fixos}%</span></div>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-blue-600 h-full rounded-full" style="width: ${Math.min((fixed / (metaFixosVal || 1)) * 100, 100)}%"></div></div>
-          </div>
-          <div>
-            <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>🛒 Gerais</span><span class="text-slate-500">Meta: ${metas.gerais}%</span></div>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full" style="width: ${Math.min((general / (metaGeraisVal || 1)) * 100, 100)}%"></div></div>
-          </div>
-          <div>
-            <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>🎉 Lazer</span><span class="text-slate-500">Meta: ${metas.lazer}%</span></div>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full" style="width: ${Math.min((leisure / (metaLazerVal || 1)) * 100, 100)}%"></div></div>
-          </div>
-          <div>
-            <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>📈 Investimentos</span><span class="text-slate-500">Meta: ${metas.invest}%</span></div>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-600 h-full rounded-full" style="width: ${Math.min((invest / (metaInvestVal || 1)) * 100, 100)}%"></div></div>
-          </div>
-        `;
-      }
-
       renderTransactionsList(currentTx);
       renderInvestments(currentTx, invest);
-      renderChart(fixed, general, leisure, invest);
+      renderCharts(fixed, general, leisure, invest);
+    }
+
+    function renderCharts(fixed, general, leisure, invest) {
+      // Gráfico de Pizza
+      const ctxPie = document.getElementById('categoryPieChart');
+      if (ctxPie) {
+        if (categoryPieChartInstance) categoryPieChartInstance.destroy();
+        categoryPieChartInstance = new Chart(ctxPie, {
+          type: 'doughnut',
+          data: {
+            labels: ['Fixos', 'Gerais', 'Lazer', 'Investimentos'],
+            datasets: [{
+              data: [fixed, general, leisure, invest],
+              backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+          }
+        });
+      }
+
+      // Gráfico de Colunas
+      const ctxBar = document.getElementById('categoryBarChart');
+      if (ctxBar) {
+        if (categoryBarChartInstance) categoryBarChartInstance.destroy();
+        categoryBarChartInstance = new Chart(ctxBar, {
+          type: 'bar',
+          data: {
+            labels: ['Fixos', 'Gerais', 'Lazer', 'Invest'],
+            datasets: [{
+              label: 'Gasto (R$)',
+              data: [fixed, general, leisure, invest],
+              backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, ticks: { callback: val => 'R$ ' + val } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+      }
     }
 
     function renderTransactionsList(currentTx) {
       const container = document.getElementById('txListContainer');
       if (!container) return;
-      const search = (document.getElementById('searchExpense').value || '').toLowerCase();
+
+      const search = (document.getElementById('searchExpense')?.value || '').toLowerCase();
+      const filtroMembro = document.getElementById('filterMember')?.value || '';
+      const filtroCat = document.getElementById('filterCategory')?.value || '';
+
       container.innerHTML = '';
-      const filtered = currentTx.filter(t => t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search));
+      
+      const filtered = currentTx.filter(t => {
+        const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search);
+        const matchMembro = filtroMembro === '' || t.userEmail === filtroMembro;
+        const matchCat = filtroCat === '' || t.cat === filtroCat;
+        return matchSearch && matchMembro && matchCat;
+      });
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl">Nenhuma movimentação encontrada.</div>`;
+        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl">Nenhuma movimentação encontrada com estes filtros.</div>`;
         return;
       }
 
@@ -979,39 +1038,8 @@
       });
     }
 
-    function renderChart(fixed, general, leisure, invest) {
-      const ctx = document.getElementById('categoryCompareChart');
-      if (!ctx) return;
-
-      if (categoryCompareChartInstance) {
-        categoryCompareChartInstance.destroy();
-      }
-
-      categoryCompareChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Fixos', 'Gerais', 'Lazer', 'Investimentos'],
-          datasets: [{
-            label: 'Gastos por Categoria (R$)',
-            data: [fixed, general, leisure, invest],
-            backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
-            borderRadius: 8
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { beginAtZero: true, ticks: { callback: val => 'R$ ' + val } },
-            x: { grid: { display: false } }
-          }
-        }
-      });
-    }
-
     function switchTab(tab) {
-      ['resumo', 'graficos', 'extrato', 'invest', 'mural'].forEach(t => {
+      ['resumo', 'extrato', 'invest', 'mural'].forEach(t => {
         const el = document.getElementById(`tab-${t}`);
         if (el) el.classList.add('hidden');
       });
@@ -1019,7 +1047,7 @@
       const activeEl = document.getElementById(`tab-${tab}`);
       if (activeEl) activeEl.classList.remove('hidden');
 
-      ['resumo', 'graficos', 'extrato', 'invest'].forEach(name => {
+      ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
         const btn = document.getElementById(`tabBtn-${name}`);
         if (btn) {
           if (name === tab) {
@@ -1030,15 +1058,14 @@
         }
       });
 
-      ['Resumo', 'Graficos', 'Extrato', 'Invest', 'Mural'].forEach(name => {
-        const btn = document.getElementById(`bottomNav${name}`);
+      ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
+        const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
         if (btn) {
-          btn.className = name.toLowerCase() === tab ? 'flex flex-col items-center justify-center text-blue-600 transition active:scale-95' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95';
+          btn.className = name === tab ? 'flex flex-col items-center justify-center text-blue-600 transition active:scale-95' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95';
         }
       });
 
       if (tab === 'extrato') renderTransactionsList(transactions);
-      if (tab === 'graficos') renderAll();
       if (tab === 'resumo') renderAll();
     }
 
