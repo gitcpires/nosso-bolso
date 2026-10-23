@@ -2,65 +2,71 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nosso Bolso - Acesso Comercial</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Nosso Bolso - Acesso Seguro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
   <style>
-    * { font-family: 'Plus Jakarta Sans', sans-serif; }
+    * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
   </style>
 </head>
-<body class="bg-[#E4F2FD] text-slate-800 flex items-center justify-center min-h-screen p-4 antialiased relative overflow-x-hidden">
+<body class="bg-slate-100/70 text-slate-800 flex items-center justify-center min-h-screen p-4 antialiased relative">
 
-  <div class="absolute top-10 left-10 w-64 h-64 bg-white/40 rounded-full blur-2xl pointer-events-none"></div>
-
-  <div class="w-full max-w-sm bg-white p-6 sm:p-7 rounded-[2.5rem] shadow-xl border border-blue-100 flex flex-col justify-between relative">
+  <!-- Card Principal com o design refinado -->
+  <div class="w-full max-w-sm bg-white p-6 sm:p-7 rounded-[2.5rem] shadow-xl border border-slate-200/80 flex flex-col justify-between relative">
     
-    <div class="flex items-center justify-between mb-3">
-      <div class="text-[10px] font-extrabold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Nosso Bolso SaaS</div>
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-[10px] font-extrabold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">Nosso Bolso</div>
     </div>
 
     <div>
       <h1 class="text-2xl font-black text-slate-900 tracking-tight" id="mainTitle">Bem-vindo</h1>
-      <p class="text-xs text-slate-400 font-medium mt-0.5" id="mainSub">Controle Financeiro Profissional</p>
+      <p class="text-xs text-slate-400 font-medium mt-0.5" id="mainSub">Controle financeiro inteligente</p>
     </div>
 
-    <div class="my-4 bg-[#F4F9FF] rounded-3xl p-3.5 border border-blue-50 relative flex flex-col items-center justify-center">
-      <div class="py-1 flex items-center justify-center gap-2 text-slate-700">
-        <div class="flex items-center gap-1 bg-white px-3 py-2 rounded-2xl shadow-2xs border border-blue-100">
-          <i class="fa-solid fa-lock text-blue-600 text-xs"></i>
-          <span class="text-[11px] font-bold text-slate-700 ml-1" id="modeIndicatorLabel">Acesso Seguro</span>
+    <!-- Ilustração do Casal no Sofá (Visual Acolhedor) -->
+    <div class="my-4 bg-gradient-to-br from-blue-50/80 to-indigo-50/50 rounded-3xl p-4 border border-blue-100/60 relative flex flex-col items-center justify-center text-center">
+      <div class="absolute top-2.5 left-3 text-[9px] font-extrabold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Finanças a Dois</div>
+      <div class="py-2 flex items-center justify-center gap-2 text-slate-700 mt-2">
+        <div class="flex items-center gap-1.5 bg-white px-3.5 py-2.5 rounded-2xl shadow-xs border border-blue-100">
+          <i class="fa-solid fa-couch text-blue-600 text-sm"></i>
+          <span class="text-xs font-extrabold text-slate-800">Casal no Sofá</span>
         </div>
       </div>
+      <p class="text-[10px] text-slate-500 font-medium mt-1">Gestão prática para você e sua família</p>
     </div>
 
+    <!-- Formulário de Autenticação -->
     <form id="auth-form" class="space-y-3">
       <div>
-        <label class="block text-[11px] font-extrabold text-slate-500 mb-1">E-mail</label>
+        <label class="block text-[11px] font-extrabold text-slate-600 mb-1">E-mail</label>
         <input type="email" id="email" required placeholder="seu@email.com" class="w-full rounded-2xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition" />
       </div>
       <div>
-        <label class="block text-[11px] font-extrabold text-slate-500 mb-1">Palavra-passe</label>
+        <label class="block text-[11px] font-extrabold text-slate-600 mb-1">Palavra-passe</label>
         <input type="password" id="senha" required placeholder="••••••••" class="w-full rounded-2xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition" />
       </div>
 
       <div id="mensagem" class="text-xs font-semibold text-center p-2.5 rounded-2xl hidden"></div>
 
       <div class="space-y-2 pt-1">
-        <button type="submit" id="mainSubmitBtn" class="w-full py-3 px-4 rounded-2xl border-2 border-slate-900 bg-slate-900 text-white font-extrabold text-xs shadow-md hover:bg-slate-800 transition active:scale-95 text-center">
-          Entrar
+        <button type="submit" id="mainSubmitBtn" class="w-full py-3 px-4 rounded-2xl bg-slate-900 text-white font-extrabold text-xs shadow-md hover:bg-slate-800 transition active:scale-95 text-center">
+          Entrar na Conta
         </button>
-        <button type="button" id="secondaryToggleBtn" onclick="alternarModoVisual()" class="w-full py-3 px-4 rounded-2xl border-2 border-blue-200 bg-blue-50 text-blue-700 font-extrabold text-xs hover:bg-blue-100 transition active:scale-95 text-center">
-          Criar Nova Conta
+        <button type="button" id="secondaryToggleBtn" onclick="alternarModoVisual()" class="w-full py-3 px-4 rounded-2xl border border-blue-200 bg-blue-50 text-blue-700 font-extrabold text-xs hover:bg-blue-100 transition active:scale-95 text-center">
+          Criar Nova Conta / Solicitar Acesso
         </button>
       </div>
     </form>
+
   </div>
 
   <script>
@@ -82,18 +88,21 @@
       modoCadastro = !modoCadastro;
       const mainBtn = document.getElementById('mainSubmitBtn');
       const secondBtn = document.getElementById('secondaryToggleBtn');
-      const labelIndicator = document.getElementById('modeIndicatorLabel');
+      const mainTitle = document.getElementById('mainTitle');
+      const mainSub = document.getElementById('mainSub');
       
       if (modoCadastro) {
+        mainTitle.innerText = "Criar Conta";
+        mainSub.innerText = "Solicite acesso ao painel";
         mainBtn.innerText = "Registar (Solicitar Acesso)";
-        mainBtn.className = "w-full py-3 px-4 rounded-2xl border-2 border-blue-600 bg-blue-600 text-white font-extrabold text-xs shadow-md hover:bg-blue-700 transition active:scale-95 text-center";
+        mainBtn.className = "w-full py-3 px-4 rounded-2xl bg-blue-600 text-white font-extrabold text-xs shadow-md hover:bg-blue-700 transition active:scale-95 text-center";
         secondBtn.innerText = "Já tem uma conta? Faça Login";
-        labelIndicator.innerText = "Novo Registo";
       } else {
-        mainBtn.innerText = "Entrar";
-        mainBtn.className = "w-full py-3 px-4 rounded-2xl border-2 border-slate-900 bg-slate-900 text-white font-extrabold text-xs shadow-md hover:bg-slate-800 transition active:scale-95 text-center";
-        secondBtn.innerText = "Criar Nova Conta";
-        labelIndicator.innerText = "Acesso Seguro";
+        mainTitle.innerText = "Bem-vindo";
+        mainSub.innerText = "Controle financeiro inteligente";
+        mainBtn.innerText = "Entrar na Conta";
+        mainBtn.className = "w-full py-3 px-4 rounded-2xl bg-slate-900 text-white font-extrabold text-xs shadow-md hover:bg-slate-800 transition active:scale-95 text-center";
+        secondBtn.innerText = "Criar Nova Conta / Solicitar Acesso";
       }
       document.getElementById('mensagem').classList.add('hidden');
     }
@@ -119,15 +128,15 @@
           const userCredential = await auth.createUserWithEmailAndPassword(email, senha);
           const uid = userCredential.user.uid;
 
-          // Regista o utilizador como PENDENTE no banco de dados para aprovação do ADM
+          // Regista como pendente para aprovação no ADM
           await db.collection('users').doc(uid).set({
             email: email,
-            status: 'pending', // <--- Bloqueado até o ADM aprovar
+            status: 'pending',
             createdAt: new Date().toISOString()
           });
 
-          mostrarMensagem("Registo efetuado! Aguarde a aprovação do administrador para entrar.", "sucesso");
-          setTimeout(() => { auth.signOut(); }, 3000);
+          mostrarMensagem("Registo efetuado com sucesso! Aguarde a liberação do administrador.", "sucesso");
+          setTimeout(() => { auth.signOut(); alternarModoVisual(); }, 3500);
         } else {
           await auth.signInWithEmailAndPassword(email, senha);
           mostrarMensagem("Login efetuado com sucesso!", "sucesso");
@@ -137,6 +146,7 @@
         let msg = "Ocorreu um erro. Verifique os seus dados.";
         if (error.code === 'auth/email-already-in-use') msg = "Este e-mail já está registado.";
         if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') msg = "E-mail ou palavra-passe incorretos.";
+        if (error.code === 'auth/weak-password') msg = "A palavra-passe deve ter pelo menos 6 caracteres.";
         mostrarMensagem(msg, "erro");
       }
     });
