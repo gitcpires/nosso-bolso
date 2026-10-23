@@ -385,4 +385,158 @@
 
       const fixed = currentTx.filter(t => t.cat === 'Gastos Fixos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
       const general = currentTx.filter(t => t.cat === 'Gastos Gerais' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
-      const leisure = currentTx.filter(t => t.cat === 'Lazer' && t.type === 'EXPENSE').reduce((a, b) => a
+      const leisure = currentTx.filter(t => t.cat === 'Lazer' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
+      const invest = currentTx.filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
+
+      document.getElementById('cardsCategoryContainer').innerHTML = `
+        <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
+          <span class="text-xs font-bold text-slate-500 uppercase">Gastos Fixos</span>
+          <div class="text-lg font-black text-slate-900 mt-1">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        </div>
+        <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
+          <span class="text-xs font-bold text-slate-500 uppercase">Gastos Gerais</span>
+          <div class="text-lg font-black text-slate-900 mt-1">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        </div>
+        <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
+          <span class="text-xs font-bold text-slate-500 uppercase">Lazer</span>
+          <div class="text-lg font-black text-slate-900 mt-1">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        </div>
+        <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
+          <span class="text-xs font-bold text-slate-500 uppercase">Investimentos</span>
+          <div class="text-lg font-black text-emerald-600 mt-1">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        </div>
+      `;
+
+      const summaryList = document.getElementById('categorySummaryList');
+      if (summaryList) {
+        summaryList.innerHTML = `
+          <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>🏠 Gastos Fixos</span><span class="font-bold">R$ ${fixed.toFixed(2)}</span></div>
+          <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>🛒 Gastos Gerais</span><span class="font-bold">R$ ${general.toFixed(2)}</span></div>
+          <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>🎉 Lazer</span><span class="font-bold">R$ ${leisure.toFixed(2)}</span></div>
+          <div class="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>📈 Investimentos</span><span class="font-bold text-emerald-600">R$ ${invest.toFixed(2)}</span></div>
+        `;
+      }
+
+      renderTransactionsList(currentTx);
+      renderInvestments(currentTx, invest);
+      renderChart(fixed, general, leisure, invest);
+    }
+
+    function renderTransactionsList(currentTx) {
+      const container = document.getElementById('txListContainer');
+      const search = (document.getElementById('searchExpense').value || '').toLowerCase();
+      container.innerHTML = '';
+      const filtered = currentTx.filter(t => t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search));
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl">Nenhuma movimentação encontrada.</div>`;
+        return;
+      }
+
+      filtered.forEach(t => {
+        const isIncome = t.type === 'INCOME';
+        container.innerHTML += `
+          <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-100 shadow-2xs">
+            <div>
+              <div class="text-xs font-extrabold text-slate-800">${t.desc} <span class="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold">${t.cat}</span></div>
+              <div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar mr-1"></i>${t.date}</div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-slate-900'}">
+                ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
+              </span>
+              <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderInvestments(currentTx, totalInvested) {
+      document.getElementById('monthInvestTotalHeader').innerText = `R$ ${totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+      const investList = document.getElementById('monthInvestmentsList');
+      const invests = currentTx.filter(t => t.cat === 'Investimentos');
+
+      if (invests.length === 0) {
+        investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl">Nenhum aporte registrado neste mês.</div>`;
+        return;
+      }
+
+      investList.innerHTML = '';
+      invests.forEach(t => {
+        investList.innerHTML += `
+          <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100">
+            <div>
+              <div class="text-xs font-extrabold text-slate-800">${t.desc}</div>
+              <div class="text-[10px] text-slate-400">${t.date}</div>
+            </div>
+            <span class="text-xs font-black text-emerald-600">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
+          </div>
+        `;
+      });
+    }
+
+    function renderChart(fixed, general, leisure, invest) {
+      const ctx = document.getElementById('categoryCompareChart');
+      if (!ctx) return;
+
+      if (categoryCompareChartInstance) {
+        categoryCompareChartInstance.destroy();
+      }
+
+      categoryCompareChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Fixos', 'Gerais', 'Lazer', 'Investimentos'],
+          datasets: [{
+            label: 'Gastos por Categoria (R$)',
+            data: [fixed, general, leisure, invest],
+            backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { callback: val => 'R$ ' + val } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    function switchTab(tab) {
+      ['resumo', 'graficos', 'extrato', 'invest'].forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        if (el) el.classList.add('hidden');
+      });
+
+      const activeEl = document.getElementById(`tab-${tab}`);
+      if (activeEl) activeEl.classList.remove('hidden');
+
+      ['Resumo', 'Graficos', 'Extrato', 'Invest'].forEach(name => {
+        const btn = document.getElementById(`bottomNav${name}`);
+        if (btn) {
+          btn.className = name.toLowerCase() === tab ? 'flex flex-col items-center justify-center text-blue-600 transition active:scale-95' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95';
+        }
+      });
+
+      if (tab === 'extrato') renderTransactionsList(transactions);
+      if (tab === 'graficos') renderAll();
+    }
+
+    function openNewTxModal() { 
+      document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+      toggleTxTypeUI();
+      document.getElementById('newTxModal').classList.remove('hidden'); 
+    }
+    function closeNewTxModal() { document.getElementById('newTxModal').classList.add('hidden'); }
+    function openProfileModal() { document.getElementById('profileModal').classList.remove('hidden'); }
+    function closeProfileModal() { document.getElementById('profileModal').classList.add('hidden'); }
+    function copyWorkspaceCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
+    function logout() { auth.signOut().then(() => window.location.href = 'index.html'); }
+  </script>
+</body>
+</html>
