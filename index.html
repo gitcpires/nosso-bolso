@@ -137,15 +137,14 @@
           mostrarMensagem("Registo efetuado com sucesso! Aguarde a liberação do administrador.", "sucesso");
           setTimeout(() => { auth.signOut(); alternarModoVisual(); }, 3500);
         } else {
-          const userCredential = await auth.signInWithEmailAndPassword(email, senha);
+          await auth.signInWithEmailAndPassword(email, senha);
           mostrarMensagem("Login efetuado com sucesso!", "sucesso");
           
-          // VERIFICAÇÃO INTELIGENTE DE REDIRECIONAMENTO DO ADM
           setTimeout(() => {
             if (email === 'c.pirespm@gmail.com') {
-              window.location.replace("admin.html"); // Vai direto para o painel ADM
+              window.location.replace("admin.html");
             } else {
-              window.location.replace("painel.html"); // Vai para o painel de cliente normal
+              window.location.replace("painel.html");
             }
           }, 800);
         }
