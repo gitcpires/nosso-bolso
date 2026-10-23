@@ -159,16 +159,17 @@
       </button>
     </div>
 
-    <!-- NAVEGAÇÃO POR ABAS SUPERIOR -->
+    <!-- NAVEGAÇÃO POR ABAS SUPERIOR (Com IDs corretos para o indicador visual/barra azul) -->
     <div class="flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-5 pt-0.5">
       <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"><i class="fa-solid fa-chart-pie mr-1"></i> Resumo & Metas</button>
-      <button onclick="switchTab('graficos')" id="tabBtn-graficos" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-chart-column mr-1"></i> Gráficos</button>
-      <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-receipt mr-1"></i> Extrato</button>
-      <button onclick="switchTab('invest')" id="tabBtn-invest" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 whitespace-nowrap"><i class="fa-solid fa-vault mr-1"></i> Invest</button>
+      <button onclick="switchTab('graficos')" id="tabBtn-graficos" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-chart-column mr-1"></i> Gráficos</button>
+      <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-receipt mr-1"></i> Extrato</button>
+      <button onclick="switchTab('invest')" id="tabBtn-invest" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-vault mr-1"></i> Invest</button>
     </div>
 
-    <!-- ABA 1: RESUMO E METAS (Compacto em Grelha para caber na tela) -->
+    <!-- ABA 1: RESUMO E METAS -->
     <div id="tab-resumo" class="space-y-2.5">
+      <!-- Cartões de Categorias Compactos -->
       <div class="grid grid-cols-2 gap-2" id="cardsCategoryContainer"></div>
       
       <!-- Bloco inferior de Metas Percentuais -->
@@ -787,7 +788,7 @@
     }
 
     function toggleTxTypeUI() {
-      const type = document.querySelector('input[name="txType"]:checked').value;
+      const type = document.querySelector('input[name="txType"].checked')?.value || document.querySelector('input[name="txType"]:checked').value;
       const catSelect = document.getElementById('txCat');
       if (type === 'INCOME') {
         catSelect.innerHTML = `<option value="Salário">💼 Salário</option><option value="Renda Extra">✨ Renda Extra</option>`;
@@ -825,7 +826,7 @@
       const metaInvestVal = baseEntradas * (metas.invest / 100);
 
       const gerarBarraProgressoEStatus = (gasto, meta) => {
-        if (meta <= 0) return { html: `<div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5"></div>`, texto: `<span class="text-[9px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
+        if (meta <= 0) return { html: `<div class="w-full bg-slate-100 h-1 rounded-full mt-1"></div>`, texto: `<span class="text-[9px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
         
         const pctGasto = (gasto / meta) * 100;
         const larguraVerde = Math.min(pctGasto, 100);
@@ -843,7 +844,7 @@
         }
 
         const htmlBarra = `
-          <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 relative overflow-hidden flex">
+          <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1 relative overflow-hidden flex">
             <div class="bg-emerald-500 h-full transition-all duration-300" style="width: ${larguraVerde}%"></div>
             <div class="bg-rose-600 h-full transition-all duration-300" style="width: ${larguraVermelha}%"></div>
           </div>
@@ -857,33 +858,34 @@
       const resLazer = gerarBarraProgressoEStatus(leisure, metaLazerVal);
       const resInvest = gerarBarraProgressoEStatus(invest, metaInvestVal);
 
+      // Cartões compactos em grelha 2x2 para caberem todos sem scroll
       const containerCat = document.getElementById('cardsCategoryContainer');
       if (containerCat) {
         containerCat.innerHTML = `
           <div class="rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs space-y-0.5">
             <span class="text-[9px] font-bold text-slate-400 uppercase block">Gastos Fixos</span>
-            <div class="text-sm font-black text-slate-900">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div class="text-xs sm:text-sm font-black text-slate-900">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="text-[9px] text-slate-500 font-semibold">Meta (${metas.fixos}%): R$ ${metaFixosVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div>${resFixos.texto}</div>
             ${resFixos.html}
           </div>
           <div class="rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs space-y-0.5">
             <span class="text-[9px] font-bold text-slate-400 uppercase block">Gastos Gerais</span>
-            <div class="text-sm font-black text-slate-900">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div class="text-xs sm:text-sm font-black text-slate-900">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="text-[9px] text-slate-500 font-semibold">Meta (${metas.gerais}%): R$ ${metaGeraisVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div>${resGerais.texto}</div>
             ${resGerais.html}
           </div>
           <div class="rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs space-y-0.5">
             <span class="text-[9px] font-bold text-slate-400 uppercase block">Lazer</span>
-            <div class="text-sm font-black text-slate-900">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div class="text-xs sm:text-sm font-black text-slate-900">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="text-[9px] text-slate-500 font-semibold">Meta (${metas.lazer}%): R$ ${metaLazerVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div>${resLazer.texto}</div>
             ${resLazer.html}
           </div>
           <div class="rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs space-y-0.5">
             <span class="text-[9px] font-bold text-slate-400 uppercase block">Investimentos</span>
-            <div class="text-sm font-black text-emerald-600">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div class="text-xs sm:text-sm font-black text-emerald-600">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div class="text-[9px] text-slate-500 font-semibold">Meta (${metas.invest}%): R$ ${metaInvestVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <div>${resInvest.texto}</div>
             ${resInvest.html}
@@ -891,31 +893,37 @@
         `;
       }
 
-      // Bloco inferior com o cálculo do valor já gasto (em R$) sobre as entradas e exibindo apenas a Meta: X%
-      const calcValorGastoSobreRenda = (val) => income > 0 ? Math.round((val / income) * 100) : 0;
-      const pFixos = calcValorGastoSobreRenda(fixed);
-      const pGerais = calcValorGastoSobreRenda(general);
-      const pLazer = calcValorGastoSobreRenda(leisure);
-      const pInvest = calcValorGastoSobreRenda(invest);
-
+      // CORREÇÃO DO BLOCO INFERIOR: O cálculo do Real agora representa exatamente o valor gasto na categoria em Reais (R$)
       const metasContainer = document.getElementById('metasProgressList');
       if (metasContainer) {
         metasContainer.innerHTML = `
           <div>
-            <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>🏠 Fixos (R$ ${fixed.toFixed(2)})</span><span class="text-slate-500">Meta: ${metas.fixos}%</span></div>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-blue-600 h-full rounded-full" style="width: ${Math.min(pFixos, 100)}%"></div></div>
+            <div class="flex justify-between font-bold text-[11px] mb-0.5">
+              <span>🏠 Fixos</span>
+              <span class="text-slate-500">R$ ${fixed.toFixed(2)} (Meta: ${metas.fixos}%)</span>
+            </div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-blue-600 h-full rounded-full" style="width: ${Math.min((fixed / (metaFixosVal || 1)) * 100, 100)}%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>🛒 Gerais (R$ ${general.toFixed(2)})</span><span class="text-slate-500">Meta: ${metas.gerais}%</span></div>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full" style="width: ${Math.min(pGerais, 100)}%"></div></div>
+            <div class="flex justify-between font-bold text-[11px] mb-0.5">
+              <span>🛒 Gerais</span>
+              <span class="text-slate-500">R$ ${general.toFixed(2)} (Meta: ${metas.gerais}%)</span>
+            </div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full" style="width: ${Math.min((general / (metaGeraisVal || 1)) * 100, 100)}%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>🎉 Lazer (R$ ${leisure.toFixed(2)})</span><span class="text-slate-500">Meta: ${metas.lazer}%</span></div>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full" style="width: ${Math.min(pLazer, 100)}%"></div></div>
+            <div class="flex justify-between font-bold text-[11px] mb-0.5">
+              <span>🎉 Lazer</span>
+              <span class="text-slate-500">R$ ${leisure.toFixed(2)} (Meta: ${metas.lazer}%)</span>
+            </div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full" style="width: ${Math.min((leisure / (metaLazerVal || 1)) * 100, 100)}%"></div></div>
           </div>
           <div>
-            <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>📈 Investimentos (R$ ${invest.toFixed(2)})</span><span class="text-slate-500">Meta: ${metas.invest}%</span></div>
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-600 h-full rounded-full" style="width: ${Math.min(pInvest, 100)}%"></div></div>
+            <div class="flex justify-between font-bold text-[11px] mb-0.5">
+              <span>📈 Investimentos</span>
+              <span class="text-slate-500">R$ ${invest.toFixed(2)} (Meta: ${metas.invest}%)</span>
+            </div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-600 h-full rounded-full" style="width: ${Math.min((invest / (metaInvestVal || 1)) * 100, 100)}%"></div></div>
           </div>
         `;
       }
@@ -1025,6 +1033,19 @@
       const activeEl = document.getElementById(`tab-${tab}`);
       if (activeEl) activeEl.classList.remove('hidden');
 
+      // Atualiza o indicador visual (barra azul e negrito) nos botões da barra superior
+      ['resumo', 'graficos', 'extrato', 'invest'].forEach(name => {
+        const btn = document.getElementById(`tabBtn-${name}`);
+        if (btn) {
+          if (name === tab) {
+            btn.className = "pb-2 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap";
+          } else {
+            btn.className = "pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap";
+          }
+        }
+      });
+
+      // Atualiza a barra inferior mobile
       ['Resumo', 'Graficos', 'Extrato', 'Invest', 'Mural'].forEach(name => {
         const btn = document.getElementById(`bottomNav${name}`);
         if (btn) {
