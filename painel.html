@@ -172,16 +172,14 @@
       <!-- Cartões de Categorias Compactos em Grelha 2x2 -->
       <div class="grid grid-cols-2 gap-2" id="cardsCategoryContainer"></div>
       
-      <!-- Bloco inferior: Resumo de Contribuição por Membro do Grupo -->
+      <!-- Bloco inferior mantido com o cálculo correto e limpo -->
       <div class="rounded-2xl bg-white p-3 border border-slate-200 shadow-2xs space-y-2">
         <div class="flex items-center justify-between">
           <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1">
-            <i class="fa-solid fa-users text-blue-600"></i> Participação por Membro (Este Mês)
+            <i class="fa-solid fa-bullseye text-blue-600"></i> Metas Percentuais do Grupo (Alvo: 100%)
           </h3>
         </div>
-        <div id="membrosContribList" class="space-y-1.5 text-xs">
-          <div class="text-slate-400 text-center py-2 text-[11px]">A calcular participação...</div>
-        </div>
+        <div id="metasProgressList" class="space-y-2 text-xs"></div>
       </div>
     </div>
 
@@ -860,7 +858,6 @@
       const resLazer = gerarBarraProgressoEStatus(leisure, metaLazerVal);
       const resInvest = gerarBarraProgressoEStatus(invest, metaInvestVal);
 
-      // Cartões em grelha 2x2 compactos
       const containerCat = document.getElementById('cardsCategoryContainer');
       if (containerCat) {
         containerCat.innerHTML = `
@@ -895,50 +892,31 @@
         `;
       }
 
-      renderMembrosContribuicao(currentTx);
+      const metasContainer = document.getElementById('metasProgressList');
+      if (metasContainer) {
+        metasContainer.innerHTML = `
+          <div>
+            <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>🏠 Fixos</span><span class="text-slate-500">Meta: ${metas.fixos}%</span></div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-blue-600 h-full rounded-full" style="width: ${Math.min((fixed / (metaFixosVal || 1)) * 100, 100)}%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>🛒 Gerais</span><span class="text-slate-500">Meta: ${metas.gerais}%</span></div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-amber-500 h-full rounded-full" style="width: ${Math.min((general / (metaGeraisVal || 1)) * 100, 100)}%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>🎉 Lazer</span><span class="text-slate-500">Meta: ${metas.lazer}%</span></div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full" style="width: ${Math.min((leisure / (metaLazerVal || 1)) * 100, 100)}%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between font-bold text-[11px] mb-0.5"><span>📈 Investimentos</span><span class="text-slate-500">Meta: ${metas.invest}%</span></div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-emerald-600 h-full rounded-full" style="width: ${Math.min((invest / (metaInvestVal || 1)) * 100, 100)}%"></div></div>
+          </div>
+        `;
+      }
 
       renderTransactionsList(currentTx);
       renderInvestments(currentTx, invest);
       renderChart(fixed, general, leisure, invest);
-    }
-
-    function renderMembrosContribuicao(currentTx) {
-      const container = document.getElementById('membrosContribList');
-      if (!container) return;
-
-      const mapMembros = {};
-      currentTx.forEach(t => {
-        const email = t.userEmail || 'Membro';
-        const nome = email.split('@')[0];
-        if (!mapMembros[nome]) {
-          mapMembros[nome] = { despesas: 0, entradas: 0 };
-        }
-        if (t.type === 'EXPENSE') {
-          mapMembros[nome].despesas += t.amount;
-        } else if (t.type === 'INCOME') {
-          mapMembros[nome].entradas += t.amount;
-        }
-      });
-
-      const nomes = Object.keys(mapMembros);
-      if (nomes.length === 0) {
-        container.innerHTML = `<div class="text-slate-400 text-center py-2 text-[11px]">Nenhuma movimentação registada este mês.</div>`;
-        return;
-      }
-
-      container.innerHTML = '';
-      nomes.forEach(nome => {
-        const dados = mapMembros[nome];
-        container.innerHTML += `
-          <div class="flex items-center justify-between p-2 bg-slate-50 rounded-xl border border-slate-100">
-            <span class="font-extrabold text-slate-700"><i class="fa-solid fa-user-circle text-blue-500 mr-1.5"></i>${nome}</span>
-            <div class="text-right">
-              <span class="text-[10px] text-rose-600 font-bold block">Despesas: R$ ${dados.despesas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-              ${dados.entradas > 0 ? `<span class="text-[10px] text-emerald-600 font-bold block">Entradas: R$ ${dados.entradas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>` : ''}
-            </div>
-          </div>
-        `;
-      });
     }
 
     function renderTransactionsList(currentTx) {
