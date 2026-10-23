@@ -611,7 +611,7 @@
 
       renderAll();
       carregarDadosDoBanco();
-      carregarMembrosDo Grupo();
+      carregarMembrosDoGrupo();
       ouvinteLousaGrupo();
     }
 
@@ -895,7 +895,6 @@
         `;
       }
 
-      // Renderiza o resumo por membro na parte inferior (Opção 3 escolhida)
       renderMembrosContribuicao(currentTx);
 
       renderTransactionsList(currentTx);
@@ -907,7 +906,6 @@
       const container = document.getElementById('membrosContribList');
       if (!container) return;
 
-      // Agrupa transações por utilizador
       const mapMembros = {};
       currentTx.forEach(t => {
         const email = t.userEmail || 'Membro';
