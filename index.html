@@ -5,38 +5,113 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nosso Bolso - Acesso Seguro</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
 </head>
-<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen p-4 font-sans">
+<body class="bg-[#E4F2FD] text-slate-800 flex items-center justify-center min-h-screen p-4 antialiased relative overflow-x-hidden">
 
-  <div class="bg-slate-800 p-8 rounded-3xl shadow-xl w-full max-w-md border border-slate-700">
-    <div class="text-center mb-8">
-      <h1 class="text-3xl font-black text-blue-500 mb-2">Nosso Bolso</h1>
-      <p id="form-subtitle" class="text-sm text-slate-400">Faça login para acessar seu controle</p>
-    </div>
-    
-    <form id="auth-form" class="space-y-5">
+  <!-- Elementos decorativos de fundo suaves (estilo referência) -->
+  <div class="absolute top-10 left-10 w-72 h-72 bg-blue-200/50 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute bottom-10 right-10 w-72 h-72 bg-indigo-200/40 rounded-full blur-3xl pointer-events-none"></div>
+
+  <!-- Container Principal das Telas lado a lado (igual ao modelo) -->
+  <div class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 z-10">
+
+    <!-- CARD 1: TELA DE LOGIN / BEM-VINDO COM CASAL NO SOFÁ -->
+    <div id="loginCard" class="bg-white p-7 sm:p-8 rounded-[2.5rem] shadow-xl border border-blue-100 flex flex-col justify-between transition-all duration-300">
       <div>
-        <label class="block text-xs font-bold text-slate-400 mb-1.5">E-mail</label>
-        <input type="email" id="email" required class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-400 mb-1.5">Senha</label>
-        <input type="password" id="senha" required class="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition" />
-      </div>
-      
-      <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition active:scale-95">
-        Entrar no Sistema
-      </button>
-    </form>
+        <div class="flex items-center justify-between mb-4">
+          <div class="h-10 w-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+            <i class="fa-solid fa-wallet text-sm"></i>
+          </div>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Controle Doméstico</span>
+        </div>
+        
+        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Wellcome</h1>
+        <p class="text-xs text-slate-400 font-medium mt-0.5">Here you log in securely</p>
 
-    <div id="mensagem" class="mt-5 text-sm font-semibold text-center p-3 rounded-xl hidden"></div>
+        <!-- Ilustração Vetorial Estilizada: Casal no Sofá com Elementos de Finanças -->
+        <div class="my-6 bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-3xl p-5 border border-slate-100 relative overflow-hidden flex flex-col items-center">
+          <div class="absolute top-3 right-3 flex gap-1">
+            <span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">R$ Planilha</span>
+          </div>
+          <!-- Ícones representativos do casal organizando as finanças no sofá -->
+          <div class="flex items-center justify-center gap-3 py-3">
+            <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 text-lg">
+              <i class="fa-solid fa-couch"></i>
+            </div>
+            <div class="flex flex-col">
+              <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                <i class="fa-solid fa-chart-line text-emerald-600"><span>Finanças a Dois</span></i>
+              </div>
+              <span class="text-[10px] text-slate-400">Organizando o futuro juntos</span>
+            </div>
+          </div>
+          <div class="w-full bg-white/80 rounded-2xl p-2.5 mt-2 border border-blue-100/60 flex items-center justify-between text-[11px]">
+            <span class="font-bold text-slate-600">Meta do Mês:</span>
+            <span class="font-black text-emerald-600">Controlado ✓</span>
+          </div>
+        </div>
+      </div>
 
-    <div class="mt-6 text-center text-sm text-slate-400">
-      <span id="toggle-text">Não tem uma conta?</span> 
-      <button type="button" onclick="alternarModo()" id="toggle-btn" class="text-blue-400 font-bold hover:text-blue-300 ml-1">Solicitar Acesso</button>
+      <div class="space-y-2.5 pt-2">
+        <button onclick="mudarParaLogin()" class="w-full py-3.5 px-4 rounded-2xl border-2 border-slate-900 bg-slate-900 text-white font-extrabold text-xs shadow-md hover:bg-slate-800 transition active:scale-95 text-center">
+          Log in
+        </button>
+        <button onclick="mudarParaCadastro()" class="w-full py-3.5 px-4 rounded-2xl border-2 border-slate-200 bg-white text-slate-700 font-extrabold text-xs hover:bg-slate-50 transition active:scale-95 text-center">
+          Sign Up
+        </button>
+      </div>
     </div>
+
+    <!-- CARD 2: FORMULÁRIO DINÂMICO (LOGIN / SIGN UP) -->
+    <div class="bg-white p-7 sm:p-8 rounded-[2.5rem] shadow-xl border border-blue-100 flex flex-col justify-between transition-all duration-300">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <div id="formTitleIcon" class="h-10 w-10 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center">
+            <i class="fa-solid fa-lock text-sm"></i>
+          </div>
+          <button onclick="alternarModo()" class="text-xs font-bold text-blue-600 hover:underline">Alternar modo</button>
+        </div>
+
+        <h2 id="form-title" class="text-2xl font-black text-slate-900 tracking-tight">Sign in</h2>
+        <p id="form-subtitle" class="text-xs text-slate-400 font-medium mt-0.5">Faça login para acessar seu controle</p>
+        
+        <form id="auth-form" class="mt-6 space-y-4">
+          <div>
+            <label class="block text-[11px] font-extrabold text-slate-500 mb-1">Email</label>
+            <input type="email5" id="email" required placeholder="seu@email.com" class="w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-extrabold text-slate-500 mb-1">Password</label>
+            <input type="password" id="senha" required placeholder="••••••••" class="w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition" />
+          </div>
+          
+          <div id="confirmGroup" class="hidden">
+            <label class="block text-[11px] font-extrabold text-slate-500 mb-1">Confirm Password</label>
+            <input type="password" id="confirmaSenha" placeholder="••••••••" class="w-full rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition" />
+          </div>
+
+          <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-blue-500/25 transition active:scale-95 text-xs tracking-wide">
+            Entrar no Sistema
+          </button>
+        </form>
+
+        <div id="mensagem" class="mt-4 text-xs font-semibold text-center p-3 rounded-2xl hidden"></div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-slate-100 text-center text-xs text-slate-400">
+        <span id="toggle-text">Não tem uma conta?</span> 
+        <button type="button" onclick="alternarModo()" id="toggle-btn" class="text-blue-600 font-extrabold hover:underline ml-1">Sign Up</button>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -53,21 +128,38 @@
     const auth = firebase.auth();
     let modoCadastro = false;
 
+    function mudarParaLogin() {
+      if (modoCadastro) alternarModo();
+    }
+
+    function mudarParaCadastro() {
+      if (!modoCadastro) alternarModo();
+    }
+
     function alternarModo() {
       modoCadastro = !modoCadastro;
-      document.getElementById('form-subtitle').innerText = modoCadastro ? "Crie sua conta para solicitar acesso" : "Faça login para acessar seu controle";
-      document.getElementById('submit-btn').innerText = modoCadastro ? "Solicitar Acesso" : "Entrar no Sistema";
-      document.getElementById('toggle-text').innerText = modoCadastro ? "Já possui acesso?" : "Não tem uma conta?";
-      document.getElementById('toggle-btn').innerText = modoCadastro ? "Fazer Login" : "Solicitar Acesso";
+      document.getElementById('form-title').innerText = modoCadastro ? "Sign up" : "Sign in";
+      document.getElementById('form-subtitle').innerText = modoCadastro ? "Create an account, It's free" : "Faça login para acessar seu controle";
+      document.getElementById('submit-btn').innerText = modoCadastro ? "Criar Conta" : "Entrar no Sistema";
+      document.getElementById('toggle-text').innerText = modoCadastro ? "Already have an account?" : "Não tem uma conta?";
+      document.getElementById('toggle-btn').innerText = modoCadastro ? "Log in" : "Sign Up";
+      
+      const confirmGroup = document.getElementById('confirmGroup');
+      if (modoCadastro) {
+        confirmGroup.classList.remove('hidden');
+      } else {
+        confirmGroup.classList.add('hidden');
+      }
+      
       document.getElementById('mensagem').classList.add('hidden');
     }
 
     function mostrarMensagem(texto, tipo) {
       const div = document.getElementById('mensagem');
-      div.className = `mt-5 text-sm font-semibold text-center p-3 rounded-xl block border ${
-        tipo === 'sucesso' ? 'bg-emerald-900/30 text-emerald-400 border-emerald-800' :
-        tipo === 'erro' ? 'bg-rose-900/30 text-rose-400 border-rose-800' :
-        'bg-blue-900/30 text-blue-400 border-blue-800'
+      div.className = `mt-4 text-xs font-semibold text-center p-3 rounded-2xl block border ${
+        tipo === 'sucesso' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+        tipo === 'erro' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+        'bg-blue-50 text-blue-700 border-blue-200'
       }`;
       div.innerHTML = texto;
     }
@@ -76,6 +168,15 @@
       e.preventDefault();
       const email = document.getElementById('email').value.trim();
       const senha = document.getElementById('senha').value.trim();
+      
+      if (modoCadastro) {
+        const confirma = document.getElementById('confirmaSenha').value.trim();
+        if (senha !== confirma) {
+          mostrarMensagem("As senhas não coincidem.", "erro");
+          return;
+        }
+      }
+
       mostrarMensagem("Aguarde...", "info");
 
       try {
@@ -88,7 +189,6 @@
 
         const token = await userCred.user.getIdToken();
         
-        // Pede a validação ao servidor (Netlify Functions)
         const response = await fetch('/.netlify/functions/auth', {
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + token }
@@ -99,16 +199,15 @@
         if (response.ok && data.success) {
           mostrarMensagem(data.message || "Acesso autorizado!", "sucesso");
           
-          // Redirecionamento inteligente: Admin vai direto para gestão, Membros vão para o painel de gastos
           setTimeout(() => {
             if (email === 'c.pirespm@gmail.com' || data.isAdmin) {
               window.location.href = "admin.html";
             } else {
               window.location.href = "painel.html";
             }
-          }, 1500);
+          }, 1200);
         } else {
-          await auth.signOut(); // Desliga a sessão se o servidor barrar
+          await auth.signOut();
           mostrarMensagem(data.error || "Acesso bloqueado.", "erro");
         }
       } catch (error) {
