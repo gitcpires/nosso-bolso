@@ -87,7 +87,6 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Segurança: Validar se quem está aqui é mesmo o Administrador principal
     auth.onAuthStateChanged(async (user) => {
       if (!user || user.email !== 'c.pirespm@gmail.com') {
         alert('Acesso restrito ao administrador.');
@@ -97,7 +96,6 @@
       carregarDados();
     });
 
-    // Carrega utilizadores pendentes e aprovados da coleção unificada 'users'
     async function carregarDados() {
       const containerPendentes = document.getElementById('lista-solicitacoes');
       const containerUsuarios = document.getElementById('lista-usuarios');
@@ -120,7 +118,6 @@
           const dados = doc.data();
           const uid = doc.id;
 
-          // Não exibir o próprio admin nas listas comuns de controle de acesso
           if (dados.email === 'c.pirespm@gmail.com') return;
 
           if (dados.status === 'pending') {
@@ -129,7 +126,7 @@
               <div class="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center justify-between shadow-2xs gap-2">
                 <div class="min-w-0">
                   <p class="text-xs font-extrabold text-slate-800 truncate">${dados.email}</p>
-                  <span class="text-[10px] text-slate-400 font-semibold">Registo recente a aguardar pagamento/liberação</span>
+                  <span class="text-[10px] text-slate-400 font-semibold">Registo recente a aguardar liberação</span>
                 </div>
                 <div class="flex gap-1.5 shrink-0">
                   <button onclick="aprovarUsuario('${uid}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95">
@@ -147,7 +144,7 @@
               <div class="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center justify-between shadow-2xs gap-2">
                 <div class="min-w-0">
                   <p class="text-xs font-extrabold text-slate-800 truncate">${dados.email}</p>
-                  <span class="text-[10px] text-emerald-600 font-extrabold bg-emerald-50 px-2 py-0.5 rounded-full">Ativo / Aprovado</span>
+                  <span class="text-[10px] text-emerald-600 font-extrabold bg-emerald-50 px-2 py-0.5 rounded-full">Ativo / Aprovado (Grupo: ${dados.workspaceCode || 'Pendente'})</span>
                 </div>
                 <button onclick="excluirUsuario('${uid}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95 shrink-0">
                   <i class="fa-solid fa-trash text-xs"></i> Revogar
@@ -166,20 +163,14 @@
       }
     }
 
-    // Ações do Administrador
     async function aprovarUsuario(uid) {
       try {
-        // Gera um código de 4 dígitos para o espaço do novo cliente
-        const novoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
-        const workspaceId = 'ws_' + uid;
-
+        // Apenas aprova o status. O workspace será escolhido pelo cliente no primeiro login.
         await db.collection('users').doc(uid).update({
-          status: 'approved',
-          workspaceId: workspaceId,
-          workspaceCode: novoCodigo
+          status: 'approved'
         });
 
-        alert('Utilizador aprovado com sucesso! Acesso liberado.');
+        alert('Utilizador aprovado com sucesso! Acesso liberado para configuração de grupo.');
         carregarDados();
       } catch (err) {
         alert('Erro ao aprovar utilizador.');
