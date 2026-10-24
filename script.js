@@ -49,23 +49,7 @@ auth.onAuthStateChanged(async (userAuth) => {
 
       if (!userData.workspaceId) {
         document.getElementById('loadingScreen').classList.add('hidden');
-        const setupModal = document.getElementById('setupWorkspaceModal');
-        if (setupModal) {
-          setupModal.classList.remove('hidden');
-          // Adiciona o botão de desistir caso ainda não exista no HTML do modal
-          let desistirBtnContainer = document.getElementById('desistirBtnContainer');
-          if (!desistirBtnContainer) {
-            desistirBtnContainer = document.createElement('div');
-            desistirBtnContainer.id = 'desistirBtnContainer';
-            desistirBtnContainer.className = 'text-center pt-4 border-t border-slate-100 mt-4';
-            desistirBtnContainer.innerHTML = `
-              <button onclick="desistirEVoltarLogin()" class="text-xs text-rose-600 hover:text-rose-800 font-bold transition">
-                <i class="fa-solid fa-arrow-left mr-1"></i> Desistir e voltar ao Login
-              </button>
-            `;
-            setupModal.querySelector('.bg-white, .glass-card, div').appendChild(desistirBtnContainer);
-          }
-        }
+        document.getElementById('setupWorkspaceModal').classList.remove('hidden');
         return;
       }
 
@@ -89,18 +73,6 @@ auth.onAuthStateChanged(async (userAuth) => {
     document.getElementById('loadingScreen').innerHTML = `<p class="text-xs text-rose-600 font-bold">Erro ao carregar dados. Tente atualizar a página.</p>`;
   }
 });
-
-async function desistirEVoltarLogin() {
-  const confirmacao = confirm("Deseja cancelar e voltar à tela de login?");
-  if (!confirmacao) return;
-
-  try {
-    await auth.signOut();
-    window.location.href = 'index.html';
-  } catch (err) {
-    window.location.href = 'index.html';
-  }
-}
 
 function openMetasModal() {
   document.getElementById('metaFixos').value = currentWorkspace.metas.fixos;
