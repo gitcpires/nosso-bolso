@@ -280,7 +280,7 @@ function ouvinteLousaGrupo() {
 
       if (snapshot.empty) {
         lousaDocId = null;
-        lousaConteudo.innerHTML = `<p class="text-xs text-slate-400 italic">Mural limpo.</p>`;
+        lousaConteudo.innerHTML = `<p class="text-xs text-slate-400 italic">Mural limpo. Escreva um recado!</p>`;
         lousaAutorContainer.classList.add('hidden');
         btnLimparLousa.classList.add('hidden');
         return;
@@ -291,7 +291,13 @@ function ouvinteLousaGrupo() {
       const dados = docLousa.data();
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
-      lousaConteudo.innerHTML = `<p class="text-base sm:text-lg font-bold tracking-wide text-amber-300 break-words">"${dados.texto}"</p>`;
+      // Aplica a imagem do papel (papel.jpg) e o estilo manuscrito
+      lousaConteudo.innerHTML = `
+        <div class="p-6 sm:p-8 papel-mural rounded-3xl shadow-lg border border-slate-200/40 relative max-w-xs mx-auto rotate-1">
+          <p class="text-xl sm:text-2xl font-bold tracking-wide text-slate-800 fonte-manuscrita break-words drop-shadow-xs">"${dados.texto}"</p>
+        </div>
+      `;
+      
       lousaAutorNome.innerText = autor;
       lousaAutorContainer.classList.remove('hidden');
       btnLimparLousa.classList.remove('hidden');
