@@ -145,7 +145,6 @@
           const dados = doc.data();
           const uid = doc.id;
 
-          // Ignora estritamente a conta do administrador principal
           if (dados.email === 'c.pirespm@gmail.com') return;
 
           totalContas++;
@@ -154,7 +153,6 @@
             workspacesSet.add(dados.workspaceCode);
           }
 
-          // Se o status for 'approved', vai para ativos. Qualquer outro caso vai para pendentes!
           if (dados.status === 'approved') {
             qtdAtivos++;
             const grupoInfo = dados.workspaceCode ? `Código do Grupo: #${dados.workspaceCode}` : `A configurar grupo`;
@@ -219,12 +217,13 @@
     }
 
     async function excluirUsuario(uid) {
-      if (confirm('Tem certeza que deseja remover/revogar o acesso deste utilizador?')) {
+      if (confirm('Tem certeza que deseja remover e apagar permanentemente o acesso deste utilizador?')) {
         try {
+          // Apaga o documento do utilizador na coleção users do Firestore, limpando-o do painel e invalidando o acesso
           await db.collection('users').doc(uid).delete();
-          alert('Acesso removido com sucesso!');
+          alert('Utilizador removido com sucesso do sistema!');
         } catch (err) {
-          alert('Erro ao excluir registo.');
+          alert('Erro ao excluir registo do banco de dados: ' + err.message);
         }
       }
     }
