@@ -220,7 +220,7 @@
         } else {
           const restam = 3 - tentativasFalhadas;
           errDiv.innerText = `E-mail ou senha incorretos. Tem mais ${restam} tentativa(s).`;
-          errDiv.classList.remove('hidden');
+          errDiv.classList.add('hidden');
         }
       }
     }
@@ -233,18 +233,27 @@
       const email = document.getElementById('regEmail').value.trim();
       const pass = document.getElementById('regPassword').value.trim();
       const errDiv = document.getElementById('regErrorMsg');
+      const btnReg = document.querySelector('#registerForm button[type="submit"]');
       errDiv.classList.add('hidden');
 
+      if (btnReg) {
+        btnReg.disabled = true;
+        btnReg.innerText = "A ENVIAR...";
+      }
+
       try {
+        // 1. Cria o utilizador no Auth
         const cred = await auth.createUserWithEmailAndPassword(email, pass);
         const uid = cred.user.uid;
 
+        // 2. Grava obrigatoriamente no Firestore com confirmação estrita
         await db.collection('users').doc(uid).set({
           email: email,
           status: 'pending',
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
+        // 3. Só desloga após garantir que o documento existe no Firestore
         await auth.signOut();
 
         alert("Solicitação enviada com sucesso! Aguarde a aprovação do administrador.");
@@ -252,8 +261,13 @@
         document.getElementById('registerForm').reset();
       } catch (err) {
         console.error("Erro detalhado no registo:", err);
-        errDiv.innerText = "Erro ao registar: " + err.message;
+        errDiv.innerText = "Erro ao registar: " + (err.message || "Tente novamente.");
         errDiv.classList.remove('hidden');
+      } finally {
+        if (btnReg) {
+          btnReg.disabled = false;
+          btnReg.innerText = "ENVIAR SOLICITAÇÃO";
+        }
       }
     }
   </script>
