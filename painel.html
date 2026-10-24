@@ -88,8 +88,8 @@
     </div>
   </div>
 
-  <!-- Cabeçalho Principal Unificado com Status Online e Seletor de Mês -->
-  <header class="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3">
+  <!-- Cabeçalho Principal Unificado com Todos os Meses e Status Online -->
+  <header class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 shadow-2xs">
     <div class="mx-auto max-w-md space-y-3">
       
       <!-- Perfil com Indicador Online e Definições -->
@@ -114,11 +114,20 @@
         </div>
       </div>
 
-      <!-- Seletor de Mês Integrado -->
-      <div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-2xl border border-slate-200/80">
-        <span class="text-xs font-bold text-slate-500">Mês de Referência:</span>
-        <select id="selectMonth" onchange="changeActiveMonth(this.value)" class="bg-white border border-slate-200 text-xs font-extrabold text-slate-800 rounded-xl px-3 py-1.5 focus:outline-none shadow-2xs">
-          <option value="Outubro 2026">Outubro 2026</option>
+      <!-- Seletor de Mês com Cor Diferenciada e Todos os Meses -->
+      <div class="flex items-center justify-between bg-gradient-to-r from-slate-100/90 to-blue-50/50 px-3.5 py-2.5 rounded-2xl border border-slate-200 shadow-inner">
+        <span class="text-xs font-bold text-slate-600">Mês de Referência:</span>
+        <select id="selectMonth" onchange="changeActiveMonth(this.value)" class="bg-white border border-slate-200 text-xs font-black text-blue-900 rounded-xl px-3 py-1.5 focus:outline-none shadow-2xs">
+          <option value="Janeiro 2026">Janeiro 2026</option>
+          <option value="Fevereiro 2026">Fevereiro 2026</option>
+          <option value="Março 2026">Março 2026</option>
+          <option value="Abril 2026">Abril 2026</option>
+          <option value="Maio 2026">Maio 2026</option>
+          <option value="Junho 2026">Junho 2026</option>
+          <option value="Julho 2026">Julho 2026</option>
+          <option value="Agosto 2026">Agosto 2026</option>
+          <option value="Setembro 2026">Setembro 2026</option>
+          <option value="Outubro 2026" selected>Outubro 2026</option>
           <option value="Novembro 2026">Novembro 2026</option>
           <option value="Dezembro 2026">Dezembro 2026</option>
         </select>
@@ -132,18 +141,20 @@
 
     <!-- ABAS: RESUMO -->
     <div id="tab-resumo" class="space-y-4">
-      <div class="grid grid-cols-3 gap-2">
+      
+      <!-- Cartões de Resumo com Menos Espaço e Números Maiores -->
+      <div class="grid grid-cols-3 gap-1.5">
         <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-          <span class="text-[9px] font-bold text-slate-400 uppercase block">Entradas</span>
-          <div id="statIncome" class="text-xs sm:text-sm font-black text-emerald-600 truncate">R$ 0,00</div>
+          <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-tight block">Entradas</span>
+          <div id="statIncome" class="text-xs sm:text-base font-black text-emerald-600 tracking-tight truncate">R$ 0,00</div>
         </div>
         <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-          <span class="text-[9px] font-bold text-slate-400 uppercase block">Saídas</span>
-          <div id="statExpense" class="text-xs sm:text-sm font-black text-rose-600 truncate">R$ 0,00</div>
+          <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-tight block">Saídas</span>
+          <div id="statExpense" class="text-xs sm:text-base font-black text-rose-600 tracking-tight truncate">R$ 0,00</div>
         </div>
         <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-          <span class="text-[9px] font-bold text-slate-400 uppercase block">Saldo</span>
-          <div id="statBalance" class="text-xs sm:text-sm font-black text-slate-900 truncate">R$ 0,00</div>
+          <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-tight block">Saldo</span>
+          <div id="statBalance" class="text-xs sm:text-base font-black text-slate-900 tracking-tight truncate">R$ 0,00</div>
         </div>
       </div>
 
@@ -152,7 +163,6 @@
           <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Progresso de Metas</h3>
           <button onclick="openMetasModal()" class="text-[10px] text-blue-600 font-bold hover:underline"><i class="fa-solid fa-sliders mr-1"></i>Ajustar Metas</button>
         </div>
-        <!-- Cards de categorias com design mais compacto e valores maiores -->
         <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2"></div>
       </div>
 
@@ -344,7 +354,7 @@
       </div>
       <p class="text-[11px] text-slate-500">Defina a percentagem ideal para cada categoria. A soma total deve ser exatamente 100%.</p>
       
-      <div class="space-y-3">
+      <form onsubmit="salvarMetasGrupo(event)" class="space-y-3">
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-1">Gastos Fixos (%)</label>
@@ -366,10 +376,10 @@
 
         <div id="metaErrorMsg" class="text-[11px] font-bold text-rose-600 bg-rose-50 p-2 rounded-xl text-center hidden"></div>
 
-        <button type="submit" onclick="salvarMetasGrupo(event)" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-extrabold transition shadow-md">
+        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-extrabold transition shadow-md">
           Guardar Metas
         </button>
-      </div>
+      </form>
     </div>
   </div>
 
