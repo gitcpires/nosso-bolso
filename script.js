@@ -159,8 +159,8 @@ async function criarNovoWorkspace() {
     document.getElementById('setupWorkspaceModal').classList.add('hidden');
     initUserSession();
   } catch (err) {
-    console.error("Erro ao criar grupo:", err);
-    mostrarSetupMsg("Erro ao criar grupo. Tente novamente.", "erro");
+    console.error("Erro detalhado ao criar grupo:", err);
+    mostrarSetupMsg("Erro: " + (err.message || "Tente novamente."), "erro");
   }
 }
 
@@ -199,8 +199,8 @@ async function entrarGrupoExistente() {
     document.getElementById('setupWorkspaceModal').classList.add('hidden');
     initUserSession();
   } catch (err) {
-    console.error("Erro ao entrar no grupo:", err);
-    mostrarSetupMsg("Erro ao entrar no grupo.", "erro");
+    console.error("Erro detalhado ao entrar no grupo:", err);
+    mostrarSetupMsg("Erro: " + (err.message || "Tente novamente."), "erro");
   }
 }
 
