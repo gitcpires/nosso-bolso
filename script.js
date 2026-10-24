@@ -373,8 +373,8 @@ function ouvinteLousaGrupo() {
       const dados = docLousa.data();
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
-            lousaConteudo.innerHTML = `
-        <div class="py-2">
+        lousaConteudo.innerHTML = `
+        <div class="py-4 bg-white/80 backdrop-blur-xs rounded-2xl p-4 shadow-sm border border-white/60 inline-block max-w-full">
           <p class="text-xl sm:text-2xl font-extrabold tracking-wide text-slate-900 fonte-manuscrita break-words">"${dados.texto}"</p>
         </div>
       `;
