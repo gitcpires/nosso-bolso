@@ -20,7 +20,7 @@
     * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     .fonte-manuscrita { font-family: 'Caveat', cursive; }
     .papel-mural {
-      background-image: url('papel.jpg');
+      background-image: url('papel.jpg?v=2');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -88,23 +88,38 @@
     </div>
   </div>
 
-  <!-- Cabeçalho Principal -->
+  <!-- Cabeçalho Principal Unificado com o Seletor de Mês -->
   <header class="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3">
-    <div class="mx-auto flex max-w-md items-center justify-between">
-      <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-sm shadow-md">
-          <i class="fa-solid fa-wallet"></i>
+    <div class="mx-auto max-w-md space-y-3">
+      
+      <!-- Perfil e Definições -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-sm shadow-md">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <div>
+            <h1 id="headerUserName" class="text-xs font-extrabold text-slate-900 truncate">Utilizador</h1>
+            <p id="headerWelcomeMsg" class="text-[10px] text-slate-500 font-bold">Grupo: ----</p>
+          </div>
         </div>
-        <div>
-          <h1 id="headerUserName" class="text-xs font-extrabold text-slate-900 truncate">Utilizador</h1>
-          <p id="headerWelcomeMsg" class="text-[10px] text-slate-500 font-bold">Grupo: ----</p>
+        <div class="flex items-center gap-2">
+          <button onclick="openProfileModal()" class="w-9 h-9 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 flex items-center justify-center hover:bg-slate-100 transition">
+            <i class="fa-solid fa-gear text-xs"></i>
+          </button>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="openProfileModal()" class="w-9 h-9 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 flex items-center justify-center hover:bg-slate-100 transition">
-          <i class="fa-solid fa-gear text-xs"></i>
-        </button>
+
+      <!-- Seletor de Mês Integrado -->
+      <div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-2xl border border-slate-200/80">
+        <span class="text-xs font-bold text-slate-500">Mês de Referência:</span>
+        <select id="selectMonth" onchange="changeActiveMonth(this.value)" class="bg-white border border-slate-200 text-xs font-extrabold text-slate-800 rounded-xl px-3 py-1.5 focus:outline-none shadow-2xs">
+          <option value="Outubro 2026">Outubro 2026</option>
+          <option value="Novembro 2026">Novembro 2026</option>
+          <option value="Dezembro 2026">Dezembro 2026</option>
+        </select>
       </div>
+
     </div>
   </header>
 
@@ -113,15 +128,6 @@
 
     <!-- ABAS: RESUMO -->
     <div id="tab-resumo" class="space-y-4">
-      <div class="flex items-center justify-between bg-white p-2 rounded-2xl border border-slate-200 shadow-2xs">
-        <span class="text-xs font-bold text-slate-500 pl-2">Mês:</span>
-        <select id="selectMonth" onchange="changeActiveMonth(this.value)" class="bg-slate-100 border-none text-xs font-extrabold text-slate-800 rounded-xl px-3 py-1.5 focus:outline-none">
-          <option value="Outubro 2026">Outubro 2026</option>
-          <option value="Novembro 2026">Novembro 2026</option>
-          <option value="Dezembro 2026">Dezembro 2026</option>
-        </select>
-      </div>
-
       <div class="grid grid-cols-3 gap-2">
         <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
           <span class="text-[9px] font-bold text-slate-400 uppercase block">Entradas</span>
@@ -214,14 +220,12 @@
 
   </main>
 
-<!-- Botão Flutuante Redondo, Centralizado e Meio sobre a Barra de Navegação -->
-<div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40">
-  <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-xl hover:scale-90 active:scale-70 transition text-xl border-2 border-white">
-    <i class="fa-solid fa-plus"></i>
-  </button>
-</div>
-
-
+  <!-- Botão Flutuante Redondo Original, Centralizado e Meio sobre a Barra -->
+  <div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40">
+    <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition text-xl border-2 border-white">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+  </div>
 
   <!-- Barra de Navegação Inferior -->
   <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2">
@@ -351,7 +355,7 @@
           </div>
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-1">Investimentos (%)</label>
-            <input type="number" id="metaInvest" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-center" />
+            <input type="number" id="metaInvest" required class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center" />
           </div>
         </div>
 
