@@ -214,15 +214,15 @@
 
   </main>
 
-  <!-- Botão Flutuante Novo Lançamento (Centralizado e Corrigido na direita inferior acima da nav) -->
-  <div class="fixed bottom-20 right-6 z-30">
-    <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition text-xl">
-      <i class="fa-solid fa-plus"></i>
+  <!-- Botão Flutuante Oval, Centralizado e Meio sobre a Barra de Navegação -->
+  <div class="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40">
+    <button onclick="openNewTxModal()" class="flex items-center gap-2 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white px-6 py-3.5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition text-xs font-extrabold border-2 border-white">
+      <i class="fa-solid fa-plus text-sm"></i> Novo Lançamento
     </button>
   </div>
 
   <!-- Barra de Navegação Inferior -->
-  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2">
+  <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2">
     <div class="mx-auto max-w-md flex items-center justify-around">
       <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 transition active:scale-95">
         <i class="fa-solid fa-chart-pie text-sm"></i>
@@ -349,7 +349,7 @@
           </div>
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-1">Investimentos (%)</label>
-            <input type="number" id="metaInvest" required class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center" />
+            <input type="number" id="metaInvest" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-center" />
           </div>
         </div>
 
