@@ -22,31 +22,39 @@
 <body class="bg-slate-100/70 text-slate-900 pb-36 antialiased selection:bg-blue-600 selection:text-white">
 
   <!-- TELA DE CARREGAMENTO INICIAL -->
-  <div id="loadingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-100 p-4">
+  <div id="loadingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4">
     <div class="text-center space-y-3">
-      <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-      <p class="text-xs font-bold text-slate-500">A carregar o seu espaço...</p>
+      <div class="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+      <p class="text-xs font-bold text-slate-400">A carregar o seu espaço...</p>
     </div>
   </div>
 
-  <!-- TELA DE BLOQUEIO / AGUARDANDO APROVAÇÃO -->
-  <div id="pendingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/90 p-4 hidden backdrop-blur-md">
-    <div class="w-full max-w-md bg-white p-8 rounded-[2.5rem] shadow-2xl text-center space-y-4">
-      <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto text-2xl">
+  <!-- TELA DE BLOQUEIO / AGUARDANDO APROVAÇÃO (Estilo Glassmorphism Premium) -->
+  <div id="pendingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm bg-white/5 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/10 shadow-2xl text-center space-y-5 relative overflow-hidden">
+      
+      <!-- Brilho subtil decorativo -->
+      <div class="absolute -top-20 -right-20 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="w-16 h-16 bg-gradient-to-tr from-amber-500/20 to-amber-300/15 border border-amber-500/30 text-amber-400 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
         <i class="fa-solid fa-clock-rotate-left"></i>
       </div>
-      <h2 class="text-xl font-black text-slate-900">Aguardando Aprovação</h2>
-      <p class="text-xs text-slate-500 leading-relaxed">
-        Sua conta foi criada com sucesso, mas o acesso ao painel financeiro requer liberação do administrador.
-      </p>
-      <button onclick="logout()" class="w-full py-3 bg-slate-900 text-white rounded-2xl text-xs font-extrabold hover:bg-slate-800 transition">
-        Sair da Conta
+      
+      <div class="space-y-2">
+        <h2 class="text-lg font-black text-white tracking-tight">Aguardando Aprovação</h2>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Sua conta foi criada com sucesso, mas o acesso ao painel financeiro requer liberação do administrador.
+        </p>
+      </div>
+
+      <button onclick="logout()" class="w-full py-3.5 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-600 text-white rounded-2xl text-xs font-extrabold tracking-wider shadow-lg shadow-amber-500/20 transition active:scale-95">
+        SAIR DA CONTA
       </button>
     </div>
   </div>
 
   <!-- MODAL DE ESCOLHA DE GRUPO -->
-  <div id="setupWorkspaceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4 hidden backdrop-blur-md">
+  <div id="setupWorkspaceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-md bg-white p-6 sm:p-7 rounded-[2.5rem] shadow-2xl space-y-5">
       <div class="text-center">
         <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-xl mb-3">
@@ -167,7 +175,7 @@
       <!-- Cartões de Categorias Compactos em Grelha 2x2 -->
       <div class="grid grid-cols-2 gap-2" id="cardsCategoryContainer"></div>
       
-      <!-- Gráfico de Pizza Compacto com Legenda ao Lado -->
+      <!-- Gráfico de Pizza Centralizado -->
       <div class="rounded-2xl bg-white p-3 border border-slate-200/80 shadow-2xs space-y-1.5">
         <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1">
           <i class="fa-solid fa-chart-pie text-blue-600"></i> Distribuição por Categoria
@@ -276,9 +284,8 @@
         <span class="text-[9px] font-bold mt-1">Mural</span>
       </button>
       <button onclick="openNewTxModal()" class="fab-center flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-rose-500 text-white shadow-lg shadow-blue-500/30 border-2 border-white active:scale-90 transition-all">
-  <i class="fa-solid fa-plus text-base font-black"></i>
-</button>
-
+        <i class="fa-solid fa-plus text-base font-black"></i>
+      </button>
     </div>
   </nav>
 
@@ -401,7 +408,7 @@
     </div>
   </div>
 
-  <!-- Ficheiro JavaScript Externo Separado -->
+  <!-- Ficheiro JavaScript Externo -->
   <script src="script.js"></script>
 </body>
 </html>
