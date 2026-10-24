@@ -47,7 +47,7 @@
       border-color: rgba(217, 119, 6, 0.7);
     }
 
-    /* Botão com degradê dourado/champanhe idêntico à referência */
+    /* Botão com degradê dourado/champanhe */
     .btn-gold {
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
       color: #ffffff;
@@ -81,37 +81,37 @@
         <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 text-xs">
           <i class="fa-regular fa-envelope"></i>
         </span>
-        <input type="email" id="loginEmail" required placeholder="Email" class="w-full rounded-2xl glass-input pl-11 pr-4 py-3.5 text-xs font-semibold focus:outline-none transition" />
+        <input type="email" id="loginEmail" required placeholder="E-mail" class="w-full rounded-2xl glass-input pl-11 pr-4 py-3.5 text-xs font-semibold focus:outline-none transition" />
       </div>
 
-      <!-- Campo Password com Ícone e Botão Olho (Mostrar/Esconder) -->
+      <!-- Campo Senha com Ícone e Botão Olho (Mostrar/Esconder) -->
       <div class="space-y-1">
         <div class="relative">
           <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 text-xs">
             <i class="fa-solid fa-lock"></i>
           </span>
-          <input type="password" id="loginPassword" required placeholder="Password" class="w-full rounded-2xl glass-input pl-11 pr-11 py-3.5 text-xs font-semibold focus:outline-none transition" />
+          <input type="password" id="loginPassword" required placeholder="Senha" class="w-full rounded-2xl glass-input pl-11 pr-11 py-3.5 text-xs font-semibold focus:outline-none transition" />
           <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-white text-xs">
             <i id="eyeIcon" class="fa-solid fa-eye-slash"></i>
           </button>
         </div>
         <div class="text-right pt-1">
-          <a href="#" onclick="alert('Funcionalidade de recuperar palavra-passe em breve.')" class="text-[10px] text-slate-400 hover:text-amber-400 transition font-medium">Forgot Password?</a>
+          <a href="#" onclick="alert('Funcionalidade de recuperar senha em breve.')" class="text-[10px] text-slate-400 hover:text-amber-400 transition font-medium">Esqueceu a senha?</a>
         </div>
       </div>
 
       <div id="loginErrorMsg" class="text-xs font-bold text-rose-300 text-center bg-rose-950/60 p-2.5 rounded-xl border border-rose-800/40 hidden"></div>
 
       <!-- Botão LOGIN -->
-      <button type="submit" id="loginBtn" class="w-full py-3.5 btn-gold rounded-2xl text-xs font-extrabold tracking-widest transition active:scale-95 pt-3.5 pb-3.5">
-        LOGIN
+      <button type="submit" id="loginBtn" class="w-full py-3.5 btn-gold rounded-2xl text-xs font-extrabold tracking-widest transition active:scale-95">
+        ENTRAR
       </button>
     </form>
 
     <!-- Criar Conta / Registo -->
     <div class="text-center pt-2">
       <button onclick="openRegisterModal()" class="text-xs text-slate-400 hover:text-white font-medium transition">
-        Create Account
+        Criar Conta / Solicitar Acesso
       </button>
     </div>
   </div>
@@ -120,25 +120,25 @@
   <div id="registerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-sm glass-card p-6 rounded-[2.5rem] space-y-4 border border-white/10">
       <div class="flex items-center justify-between pb-2 border-b border-white/10">
-        <h3 class="text-sm font-extrabold text-white">Create Account</h3>
+        <h3 class="text-sm font-extrabold text-white">Solicitar Acesso</h3>
         <button onclick="closeRegisterModal()" class="text-slate-400 text-base hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <p class="text-xs text-slate-400 leading-relaxed">Insira o seu e-mail e crie uma palavra-passe. O acesso precisará de aprovação.</p>
+      <p class="text-xs text-slate-400 leading-relaxed">Insira o seu e-mail e crie uma senha. O acesso precisará de aprovação do administrador.</p>
       
       <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-3">
         <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Email</label>
+          <label class="block text-xs font-bold text-slate-300 mb-1">E-mail</label>
           <input type="email" id="regEmail" required placeholder="seu@email.com" class="w-full rounded-xl glass-input px-3.5 py-3 text-xs font-bold focus:outline-none" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Password</label>
+          <label class="block text-xs font-bold text-slate-300 mb-1">Senha (mín. 6 caracteres)</label>
           <input type="password" id="regPassword" required placeholder="••••••••" class="w-full rounded-xl glass-input px-3.5 py-3 text-xs font-bold focus:outline-none" />
         </div>
 
         <div id="regErrorMsg" class="text-xs font-bold text-rose-300 text-center bg-rose-950/60 p-2 rounded-xl border border-rose-800/40 hidden"></div>
 
         <button type="submit" class="w-full py-3.5 btn-gold rounded-2xl text-xs font-extrabold tracking-wider transition shadow-md">
-          SUBMIT REQUEST
+          ENVIAR SOLICITAÇÃO
         </button>
       </form>
     </div>
@@ -161,7 +161,7 @@
     let tentativasFalhadas = 0;
     let bloqueadoAte = 0;
 
-    // Função para mostrar/esconder a password ao clicar no olho
+    // Função para mostrar/esconder a senha ao clicar no olho
     function togglePassword() {
       const passInput = document.getElementById('loginPassword');
       const eyeIcon = document.getElementById('eyeIcon');
@@ -191,7 +191,7 @@
       if (agora < bloqueadoAte) {
         const segundosRestantes = Math.ceil((bloqueadoAte - agora) / 1000);
         const errDiv = document.getElementById('loginErrorMsg');
-        errDiv.innerText = `Muitas tentativas falhadas. Aguarde ${segundosRestantes}s para tentar novamente.`;
+        errDiv.innerText = `Muitas tentativas incorretas. Aguarde ${segundosRestantes}s para tentar novamente.`;
         errDiv.classList.remove('hidden');
         return;
       }
@@ -222,7 +222,7 @@
               clearInterval(intervalo);
               btn.disabled = false;
               btn.classList.remove('opacity-50', 'cursor-not-allowed');
-              btn.innerText = "LOGIN";
+              btn.innerText = "ENTRAR";
               errDiv.classList.add('hidden');
               tentativasFalhadas = 0;
             } else {
@@ -231,7 +231,7 @@
           }, 1000);
         } else {
           const restam = 3 - tentativasFalhadas;
-          errDiv.innerText = `Dados incorretos. Tem mais ${restam} tentativa(s).`;
+          errDiv.innerText = `E-mail ou senha incorretos. Tem mais ${restam} tentativa(s).`;
           errDiv.classList.remove('hidden');
         }
       }
@@ -257,7 +257,7 @@
         alert("Conta solicitada com sucesso! Aguarde a aprovação do administrador.");
         closeRegisterModal();
       } catch (err) {
-        errDiv.innerText = "Erro ao registar: " + err.message;
+        errDiv.innerText = "Erro ao registrar: " + err.message;
         errDiv.classList.remove('hidden');
       }
     }
