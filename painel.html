@@ -276,10 +276,10 @@
 
       <form id="txForm" onsubmit="handleSaveTransaction(event)" class="space-y-3">
         <div class="flex bg-slate-100 p-1 rounded-xl">
-          <label id="labelTabEntrada" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition">
+          <label id="labelTabEntrada" onclick="selecionarTipoTx('INCOME')" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition">
             <input type="radio" name="txType" value="INCOME" onchange="toggleTxTypeUI()" class="hidden" /> Entrada
           </label>
-          <label id="labelTabSaida" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition">
+          <label id="labelTabSaida" onclick="selecionarTipoTx('EXPENSE')" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition">
             <input type="radio" name="txType" value="EXPENSE" checked onchange="toggleTxTypeUI()" class="hidden" /> Saída
           </label>
         </div>
