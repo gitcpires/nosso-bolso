@@ -120,16 +120,16 @@
         return;
       }
 
-      carregarDadosAdmin();
+      // Ativa a escuta em tempo real da coleção de utilizadores
+      ouvinteDadosAdmin();
     });
 
-    async function carregarDadosAdmin() {
+    function ouvinteDadosAdmin() {
       const containerPendentes = document.getElementById('lista-solicitacoes');
       const containerUsuarios = document.getElementById('lista-usuarios');
 
-      try {
-        const snapshot = await db.collection('users').get();
-        
+      // onSnapshot atualiza automaticamente sempre que houver novo registo, aprovação ou exclusão
+      db.collection('users').onSnapshot((snapshot) => {
         if (snapshot.empty) {
           containerPendentes.innerHTML = `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs">Nenhuma solicitação pendente.</div>`;
           containerUsuarios.innerHTML = `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs">Nenhum utilizador registado.</div>`;
@@ -201,10 +201,10 @@
         containerPendentes.innerHTML = qtdPendentes > 0 ? htmlPendentes : `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">Nenhuma solicitação pendente no momento.</div>`;
         containerUsuarios.innerHTML = qtdAtivos > 0 ? htmlUsuarios : `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">Nenhum utilizador com acesso ativo.</div>`;
 
-      } catch (err) {
+      }, (err) => {
         console.error(err);
         containerPendentes.innerHTML = `<div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl text-center text-rose-700 text-xs">Erro ao carregar dados do banco.</div>`;
-      }
+      });
     }
 
     async function aprovarUsuario(uid) {
@@ -214,7 +214,6 @@
         });
 
         alert('Utilizador aprovado com sucesso! O cliente já pode configurar o grupo dele.');
-        carregarDadosAdmin();
       } catch (err) {
         alert('Erro ao aprovar utilizador.');
       }
@@ -225,7 +224,6 @@
         try {
           await db.collection('users').doc(uid).delete();
           alert('Acesso removido com sucesso!');
-          carregarDadosAdmin();
         } catch (err) {
           alert('Erro ao excluir registo.');
         }
