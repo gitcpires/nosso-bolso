@@ -18,7 +18,7 @@ let activeMonth = 'Outubro 2026';
 let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
 let lousaDocId = null;
-let modoMetasAtual = 'perc'; // 'perc' ou 'dinheiro'
+let modoMetasAtual = 'perc';
 
 auth.onAuthStateChanged(async (userAuth) => {
   if (!userAuth) {
@@ -38,32 +38,38 @@ auth.onAuthStateChanged(async (userAuth) => {
   }
 
   try {
-    const userDoc = await db.collection('users').doc(uid).get();
-    if (userDoc.exists) {
-      const userData = userDoc.data();
-      
-      if (userData.status !== 'approved') {
-        document.getElementById('loadingScreen').classList.add('hidden');
-        document.getElementById('pendingScreen').classList.remove('hidden');
-        return;
-      }
+    const userDocRef = db.collection('users').doc(uid);
+    let userDoc = await userDocRef.get();
+    
+    // REDE DE SEGURANÇA: Se o documento não existir no Firestore, cria agora automaticamente como pendente
+    if (!userDoc.exists) {
+      await userDocRef.set({
+        email: email,
+        status: 'pending',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      userDoc = await userDocRef.get();
+    }
 
-      if (!userData.workspaceId) {
-        document.getElementById('loadingScreen').classList.add('hidden');
-        document.getElementById('setupWorkspaceModal').classList.remove('hidden');
-        return;
-      }
-
-      currentWorkspace.id = userData.workspaceId;
-      currentWorkspace.code = userData.workspaceCode || '----';
-
-      if (userData.metas) {
-        currentWorkspace.metas = userData.metas;
-      }
-    } else {
+    const userData = userDoc.data();
+    
+    if (userData.status !== 'approved') {
       document.getElementById('loadingScreen').classList.add('hidden');
       document.getElementById('pendingScreen').classList.remove('hidden');
       return;
+    }
+
+    if (!userData.workspaceId) {
+      document.getElementById('loadingScreen').classList.add('hidden');
+      document.getElementById('setupWorkspaceModal').classList.remove('hidden');
+      return;
+    }
+
+    currentWorkspace.id = userData.workspaceId;
+    currentWorkspace.code = userData.workspaceCode || '----';
+
+    if (userData.metas) {
+      currentWorkspace.metas = userData.metas;
     }
 
     document.getElementById('loadingScreen').classList.add('hidden');
@@ -362,7 +368,7 @@ function ouvinteLousaGrupo() {
 
       if (snapshot.empty) {
         lousaDocId = null;
-        lousaConteudo.innerHTML = `<p class="text-xs text-slate-400 italic">Mural limpo. Escreva um recado!</p>`;
+        lousaConteudo.innerHTML = `<p class="text-xs text-slate-500 italic">Mural limpo. Escreva um recado!</p>`;
         lousaAutorContainer.classList.add('hidden');
         btnLimparLousa.classList.add('hidden');
         return;
@@ -373,12 +379,11 @@ function ouvinteLousaGrupo() {
       const dados = docLousa.data();
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
-        lousaConteudo.innerHTML = `
+      lousaConteudo.innerHTML = `
         <div class="py-4 bg-white/80 backdrop-blur-xs rounded-2xl p-4 shadow-sm border border-white/60 inline-block max-w-full">
           <p class="text-xl sm:text-2xl font-extrabold tracking-wide text-slate-900 fonte-manuscrita break-words">"${dados.texto}"</p>
         </div>
       `;
-
       
       lousaAutorNome.innerText = autor;
       lousaAutorContainer.classList.remove('hidden');
