@@ -137,7 +137,7 @@
 
         <div id="regErrorMsg" class="text-xs font-bold text-rose-300 text-center bg-rose-950/60 p-2 rounded-xl border border-rose-800/40 hidden"></div>
 
-        <button type="submit" class="w-full py-3.5 btn-gold rounded-2xl text-xs font-extrabold tracking-wider transition shadow-md">
+        <button type="submit" id="regBtn" class="w-full py-3.5 btn-gold rounded-2xl text-xs font-extrabold tracking-wider transition shadow-md">
           ENVIAR SOLICITAÇÃO
         </button>
       </form>
@@ -201,12 +201,23 @@
       const btn = document.getElementById('loginBtn');
       errDiv.classList.add('hidden');
 
+      // 1. ATIVA O LOADING STATE (Bloqueia cliques duplos)
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+      const textoOriginalBtn = btn.innerText;
+      btn.innerText = "A ENTRAR...";
+
       try {
         await auth.signInWithEmailAndPassword(email, pass);
         tentativasFalhadas = 0; 
       } catch (err) {
         tentativasFalhadas++;
         
+        // Restaura o botão em caso de erro comum
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        btn.innerText = textoOriginalBtn;
+
         if (tentativasFalhadas >= 3) {
           bloqueadoAte = Date.now() + 30000; 
           errDiv.innerText = "3 tentativas incorretas. Conta bloqueada por 30 segundos.";
@@ -244,7 +255,14 @@
       const email = document.getElementById('regEmail').value.trim();
       const pass = document.getElementById('regPassword').value.trim();
       const errDiv = document.getElementById('regErrorMsg');
+      const btnReg = document.getElementById('regBtn');
       errDiv.classList.add('hidden');
+
+      // 1. ATIVA O LOADING STATE NO REGISTO
+      btnReg.disabled = true;
+      btnReg.classList.add('opacity-50', 'cursor-not-allowed');
+      const textoOriginalReg = btnReg.innerText;
+      btnReg.innerText = "A ENVIAR SOLICITAÇÃO...";
 
       try {
         const cred = await auth.createUserWithEmailAndPassword(email, pass);
@@ -266,6 +284,11 @@
         console.error("Erro detalhado no registo:", err);
         errDiv.innerText = "Erro ao registar: " + err.message;
         errDiv.classList.remove('hidden');
+      } finally {
+        // Restaura o botão de registo quer dê sucesso (ao fechar) quer dê erro
+        btnReg.disabled = false;
+        btnReg.classList.remove('opacity-50', 'cursor-not-allowed');
+        btnReg.innerText = textoOriginalReg;
       }
     }
   </script>
