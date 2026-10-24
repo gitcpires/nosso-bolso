@@ -17,87 +17,131 @@
 
   <style>
     * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    
+    /* Fundo com degradê refinado e elegante */
+    .bg-custom-dark {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #090d16 100%);
+    }
+
+    /* Efeito de Vidro Fosco (Glassmorphism) */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-input {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f8fafc;
+    }
+
+    .glass-input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .glass-input:focus {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(217, 119, 6, 0.6);
+    }
+
+    /* Botão com tom dourado elegante */
+    .btn-gold {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #ffffff;
+      box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.4);
+    }
+
+    .btn-gold:hover {
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+    }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-900 min-h-screen flex items-center justify-center p-4 antialiased">
+<body class="bg-custom-dark text-slate-100 min-h-screen flex items-center justify-center p-4 antialiased">
 
-  <div class="w-full max-w-sm bg-white p-7 sm:p-8 rounded-[2.5rem] shadow-2xl space-y-6">
-    <!-- Cabeçalho do Login -->
-    <div class="text-center space-y-2">
-      <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto text-xl shadow-md shadow-blue-500/30">
+  <div class="w-full max-w-sm glass-card p-7 sm:p-8 rounded-[2.5rem] shadow-2xl space-y-6 relative overflow-hidden">
+    
+    <!-- Brilho subtil no topo do card -->
+    <div class="absolute -top-24 -left-24 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Cabeçalho / Logótipo -->
+    <div class="text-center space-y-3">
+      <div class="w-14 h-14 bg-gradient-to-tr from-amber-500 to-amber-200 text-slate-900 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-lg shadow-amber-500/20 font-black">
         <i class="fa-solid fa-wallet"></i>
       </div>
-      <span class="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Nosso Bolso</span>
-      <h1 class="text-xl font-black text-slate-900 tracking-tight pt-1">Bem-vindo de volta</h1>
-      <p class="text-xs text-slate-400">Controle financeiro inteligente em grupo</p>
+      <div>
+        <h1 class="text-xl font-black tracking-tight text-white">Nosso Bolso</h1>
+        <p class="text-[11px] text-slate-400 mt-0.5">Controle financeiro inteligente</p>
+      </div>
     </div>
 
     <!-- Formulário de Login -->
     <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
       <div class="space-y-1">
-        <label class="block text-xs font-bold text-slate-700">E-mail</label>
+        <label class="block text-xs font-bold text-slate-300">E-mail</label>
         <div class="relative">
           <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-xs">
             <i class="fa-regular fa-envelope"></i>
           </span>
-          <!-- type="email" força a validação nativa do navegador para exigir @ e provedor -->
-          <input type="email" id="loginEmail" required placeholder="seu@email.com" class="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition" />
+          <input type="email" id="loginEmail" required placeholder="seu@email.com" class="w-full rounded-2xl glass-input pl-10 pr-3.5 py-3 text-xs font-bold focus:outline-none transition" />
         </div>
       </div>
 
       <div class="space-y-1">
-        <label class="block text-xs font-bold text-slate-700">Palavra-passe</label>
+        <label class="block text-xs font-bold text-slate-300">Palavra-passe</label>
         <div class="relative">
           <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-xs">
             <i class="fa-solid fa-lock"></i>
           </span>
-          <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition" />
+          <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full rounded-2xl glass-input pl-10 pr-3.5 py-3 text-xs font-bold focus:outline-none transition" />
         </div>
       </div>
 
-      <div id="loginErrorMsg" class="text-xs font-bold text-rose-600 text-center bg-rose-50 p-2.5 rounded-xl border border-rose-100 hidden"></div>
+      <div id="loginErrorMsg" class="text-xs font-bold text-rose-300 text-center bg-rose-950/50 p-2.5 rounded-xl border border-rose-800/50 hidden"></div>
 
-      <button type="submit" id="loginBtn" class="w-full py-3.5 bg-slate-900 text-white rounded-2xl text-xs font-extrabold hover:bg-slate-800 transition shadow-lg active:scale-95">
-        Entrar na Conta
+      <button type="submit" id="loginBtn" class="w-full py-3.5 btn-gold rounded-2xl text-xs font-extrabold transition active:scale-95">
+        ENTRAR
       </button>
     </form>
 
     <div class="relative flex py-1 items-center">
-      <div class="flex-grow border-t border-slate-100"></div>
-      <span class="flex-shrink mx-3 text-[10px] font-bold text-slate-400 uppercase">ou</span>
-      <div class="flex-grow border-t border-slate-100"></div>
+      <div class="flex-grow border-t border-white/10"></div>
+      <span class="flex-shrink mx-3 text-[10px] font-bold text-slate-500 uppercase">ou</span>
+      <div class="flex-grow border-t border-white/10"></div>
     </div>
 
-    <!-- Botão para Solicitar Acesso / Criar Conta -->
+    <!-- Botão para Criar Conta / Solicitar Acesso -->
     <div>
-      <button onclick="openRegisterModal()" class="w-full py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-2xl text-xs font-extrabold transition text-center">
-        Criar Nova Conta / Solicitar Acesso
+      <button onclick="openRegisterModal()" class="w-full py-3.5 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 rounded-2xl text-xs font-extrabold transition text-center backdrop-blur-md">
+        Create Account / Solicitar Acesso
       </button>
     </div>
   </div>
 
   <!-- MODAL DE REGISTO / SOLICITAÇÃO DE ACESSO -->
-  <div id="registerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4 hidden backdrop-blur-md">
-    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] shadow-2xl space-y-4">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <h3 class="text-sm font-extrabold text-slate-800">Solicitar Acesso</h3>
-        <button onclick="closeRegisterModal()" class="text-slate-400 text-base"><i class="fa-solid fa-xmark"></i></button>
+  <div id="registerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm glass-card p-6 rounded-[2.5rem] shadow-2xl space-y-4 border border-white/10">
+      <div class="flex items-center justify-between pb-2 border-b border-white/10">
+        <h3 class="text-sm font-extrabold text-white">Solicitar Acesso</h3>
+        <button onclick="closeRegisterModal()" class="text-slate-400 text-base hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <p class="text-xs text-slate-500 leading-relaxed">Insira o seu e-mail (com @ e provedor) e crie uma palavra-passe. O acesso precisará de aprovação.</p>
+      <p class="text-xs text-slate-400 leading-relaxed">Insira o seu e-mail (com @ e provedor) e crie uma palavra-passe. O acesso precisará de aprovação.</p>
       
       <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-3">
         <div>
-          <label class="block text-xs font-bold text-slate-700">E-mail</label>
-          <input type="email" id="regEmail" required placeholder="seu@email.com" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
+          <label class="block text-xs font-bold text-slate-300">E-mail</label>
+          <input type="email" id="regEmail" required placeholder="seu@email.com" class="mt-1 w-full rounded-xl glass-input px-3 py-2.5 text-xs font-bold focus:outline-none" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-700">Palavra-passe (mín. 6 carateres)</label>
-          <input type="password" id="regPassword" required placeholder="••••••••" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
+          <label class="block text-xs font-bold text-slate-300">Palavra-passe (mín. 6 carateres)</label>
+          <input type="password" id="regPassword" required placeholder="••••••••" class="mt-1 w-full rounded-xl glass-input px-3 py-2.5 text-xs font-bold focus:outline-none" />
         </div>
 
-        <div id="regErrorMsg" class="text-xs font-bold text-rose-600 text-center hidden"></div>
+        <div id="regErrorMsg" class="text-xs font-bold text-rose-300 text-center bg-rose-950/50 p-2 rounded-xl border border-rose-800/50 hidden"></div>
 
-        <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-2xl text-xs font-extrabold hover:bg-blue-700 transition shadow-md">
+        <button type="submit" class="w-full py-3 btn-gold rounded-2xl text-xs font-extrabold transition shadow-md">
           Enviar Solicitação
         </button>
       </form>
@@ -151,12 +195,12 @@
 
       try {
         await auth.signInWithEmailAndPassword(email, pass);
-        tentativasFalhadas = 0; // Reset em caso de sucesso
+        tentativasFalhadas = 0; 
       } catch (err) {
         tentativasFalhadas++;
         
         if (tentativasFalhadas >= 3) {
-          bloqueadoAte = Date.now() + 30000; // Bloqueia por 30 segundos
+          bloqueadoAte = Date.now() + 30000; 
           errDiv.innerText = "3 tentativas incorretas. Conta temporariamente bloqueada por 30 segundos.";
           errDiv.classList.remove('hidden');
           
@@ -169,7 +213,7 @@
               clearInterval(intervalo);
               btn.disabled = false;
               btn.classList.remove('opacity-50', 'cursor-not-allowed');
-              btn.innerText = "Entrar na Conta";
+              btn.innerText = "ENTRAR";
               errDiv.classList.add('hidden');
               tentativasFalhadas = 0;
             } else {
