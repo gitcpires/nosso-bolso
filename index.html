@@ -18,18 +18,18 @@
   <style>
     * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     
-    /* Fundo escuro imersivo com gradiente */
-    .bg-immersive {
-      background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0f172a 50%, #020617 100%);
+    /* Fundo escuro com degradê refinado */
+    .bg-custom-dark {
+      background: linear-gradient(135deg, #090d16 0%, #121829 50%, #05070b 100%);
     }
 
     /* Efeito de Vidro Fosco (Glassmorphism) */
     .glass-card {
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     }
 
     .glass-input {
@@ -39,54 +39,44 @@
     }
 
     .glass-input::placeholder {
-      color: rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.35);
     }
 
     .glass-input:focus {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(245, 158, 11, 0.6);
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(217, 119, 6, 0.7);
     }
 
-    /* Botão com degradê dourado elegante */
+    /* Botão com degradê dourado/champanhe */
     .btn-gold {
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
       color: #ffffff;
-      box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.4);
+      box-shadow: 0 8px 20px -4px rgba(217, 119, 6, 0.4);
     }
 
     .btn-gold:hover {
       background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
     }
-
-    @keyframes pulse-slow {
-      0%, 100% { transform: scale(1); opacity: 0.4; }
-      50% { transform: scale(1.15); opacity: 0.7; }
-    }
-    .animate-glow {
-      animation: pulse-slow 8s ease-in-out infinite;
-    }
   </style>
 </head>
-<body class="bg-immersive text-slate-100 min-h-screen flex items-center justify-center p-4 overflow-hidden relative antialiased">
+<body class="bg-custom-dark text-slate-100 min-h-screen flex items-center justify-center p-4 antialiased">
 
-  <!-- Elementos de luz de fundo -->
-  <div class="absolute -top-32 -left-32 w-80 h-80 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none animate-glow"></div>
-  <div class="absolute -bottom-32 -right-32 w-80 h-80 bg-amber-500/15 rounded-full blur-[100px] pointer-events-none animate-glow" style="animation-delay: 4s;"></div>
-
-  <div class="w-full max-w-sm glass-card p-8 rounded-[2.5rem] space-y-7 relative z-10">
+  <div class="w-full max-w-sm glass-card p-8 rounded-[2.5rem] space-y-7 relative overflow-hidden">
     
+    <!-- Brilho subtil decorativo -->
+    <div class="absolute -top-20 -right-20 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
     <!-- Logótipo Dourado Minimalista -->
-    <div class="text-center space-y-3 pt-1">
+    <div class="text-center space-y-4 pt-2">
       <div class="w-16 h-16 bg-gradient-to-tr from-amber-500/20 to-amber-300/10 border border-amber-500/30 text-amber-400 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
         <i class="fa-solid fa-wallet"></i>
       </div>
-      <h1 class="text-lg font-black tracking-tight text-white">Nosso Bolso</h1>
     </div>
 
     <!-- Formulário de Login -->
     <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
       
-      <!-- Campo E-mail -->
+      <!-- Campo E-mail com Ícone -->
       <div class="relative">
         <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 text-xs">
           <i class="fa-regular fa-envelope"></i>
@@ -94,7 +84,7 @@
         <input type="email" id="loginEmail" required placeholder="E-mail" class="w-full rounded-2xl glass-input pl-11 pr-4 py-3.5 text-xs font-semibold focus:outline-none transition" />
       </div>
 
-      <!-- Campo Senha -->
+      <!-- Campo Senha com Ícone e Botão Olho (Mostrar/Esconder) -->
       <div class="space-y-1">
         <div class="relative">
           <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 text-xs">
@@ -118,9 +108,9 @@
       </button>
     </form>
 
-    <!-- Criar Conta -->
-    <div class="text-center pt-1">
-      <button onclick="openRegisterModal()" class="text-xs text-slate-400 hover:text-amber-400 font-medium transition">
+    <!-- Criar Conta / Registo -->
+    <div class="text-center pt-2">
+      <button onclick="openRegisterModal()" class="text-xs text-slate-400 hover:text-white font-medium transition">
         Criar Conta / Solicitar Acesso
       </button>
     </div>
@@ -195,11 +185,12 @@
 
     async function handleLogin(e) {
       e.preventDefault();
+      
       const agora = Date.now();
       if (agora < bloqueadoAte) {
         const segundosRestantes = Math.ceil((bloqueadoAte - agora) / 1000);
         const errDiv = document.getElementById('loginErrorMsg');
-        errDiv.innerText = `Aguarde ${segundosRestantes}s para tentar novamente.`;
+        errDiv.innerText = `Muitas tentativas incorretas. Aguarde ${segundosRestantes}s para tentar novamente.`;
         errDiv.classList.remove('hidden');
         return;
       }
@@ -215,10 +206,12 @@
         tentativasFalhadas = 0; 
       } catch (err) {
         tentativasFalhadas++;
+        
         if (tentativasFalhadas >= 3) {
           bloqueadoAte = Date.now() + 30000; 
-          errDiv.innerText = "Conta bloqueada por 30 segundos devido a várias tentativas.";
+          errDiv.innerText = "3 tentativas incorretas. Conta bloqueada por 30 segundos.";
           errDiv.classList.remove('hidden');
+          
           btn.disabled = true;
           btn.classList.add('opacity-50', 'cursor-not-allowed');
 
@@ -236,7 +229,8 @@
             }
           }, 1000);
         } else {
-          errDiv.innerText = `E-mail ou senha incorretos. Tentativa ${tentativasFalhadas}/3.`;
+          const restam = 3 - tentativasFalhadas;
+          errDiv.innerText = `E-mail ou senha incorretos. Tem mais ${restam} tentativa(s).`;
           errDiv.classList.remove('hidden');
         }
       }
@@ -253,25 +247,19 @@
       errDiv.classList.add('hidden');
 
       try {
-        // 1. Cria a conta no Firebase Auth (o utilizador fica autenticado temporariamente)
         const cred = await auth.createUserWithEmailAndPassword(email, pass);
-        const uid = cred.user.uid;
-
-        // 2. Grava imediatamente no Firestore enquanto a sessão está ativa
-        await db.collection('users').doc(uid).set({
+        await db.collection('users').doc(cred.user.uid).set({
           email: email,
           status: 'pending',
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // 3. Termina a sessão para que o utilizador não entre no painel sem aprovação
         await auth.signOut();
 
-        alert("Solicitação enviada com sucesso! Aguarde a aprovação do administrador.");
+        alert("Conta solicitada com sucesso! Aguarde a aprovação do administrador.");
         closeRegisterModal();
         document.getElementById('registerForm').reset();
       } catch (err) {
-        console.error("Erro no registo:", err);
         errDiv.innerText = "Erro ao registrar: " + err.message;
         errDiv.classList.remove('hidden');
       }
