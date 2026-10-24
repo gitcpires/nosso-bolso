@@ -13,10 +13,11 @@
   backdrop-filter: blur(16px); 
 }
 
+/* Botão central flutuante mais abaixo, redondo e com sombra elegante */
 .fab-center { 
   position: absolute; 
   left: 50%; 
-  top: -22px; 
+  top: -18px; 
   transform: translateX(-50%); 
 }
 
