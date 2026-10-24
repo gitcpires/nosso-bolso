@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Nosso Bolso - Acesso Seguro</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Nosso Bolso - Entrar</title>
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
+
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -18,55 +19,88 @@
     * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
   </style>
 </head>
-<body class="bg-slate-100/70 text-slate-800 flex items-center justify-center min-h-screen p-4 antialiased relative">
+<body class="bg-slate-900 text-slate-900 min-h-screen flex items-center justify-center p-4 antialiased">
 
-  <!-- Card Principal -->
-  <div class="w-full max-w-sm bg-white p-6 sm:p-7 rounded-[2.5rem] shadow-xl border border-slate-200/80 flex flex-col justify-between relative">
-    
-    <div class="flex items-center justify-between mb-2">
-      <div class="text-[10px] font-extrabold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">Nosso Bolso</div>
+  <div class="w-full max-w-sm bg-white p-7 sm:p-8 rounded-[2.5rem] shadow-2xl space-y-6">
+    <!-- Cabeçalho do Login -->
+    <div class="text-center space-y-2">
+      <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto text-xl shadow-md shadow-blue-500/30">
+        <i class="fa-solid fa-wallet"></i>
+      </div>
+      <span class="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">Nosso Bolso</span>
+      <h1 class="text-xl font-black text-slate-900 tracking-tight pt-1">Bem-vindo de volta</h1>
+      <p class="text-xs text-slate-400">Controle financeiro inteligente em grupo</p>
     </div>
 
-    <div>
-      <h1 class="text-2xl font-black text-slate-900 tracking-tight" id="mainTitle">Bem-vindo</h1>
-      <p class="text-xs text-slate-400 font-medium mt-0.5" id="mainSub">Controle financeiro inteligente</p>
-    </div>
-
-    <!-- Ilustração Visual Acolhedor -->
-    <div class="my-4 bg-gradient-to-br from-blue-50/80 to-indigo-50/50 rounded-3xl p-4 border border-blue-100/60 relative flex flex-col items-center justify-center text-center">
-      <div class="absolute top-2.5 left-3 text-[9px] font-extrabold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Finanças a Dois</div>
-      <div class="py-2 flex items-center justify-center gap-2 text-slate-700 mt-2">
-        <div class="flex items-center gap-1.5 bg-white px-3.5 py-2.5 rounded-2xl shadow-xs border border-blue-100">
-          <i class="fa-solid fa-couch text-blue-600 text-sm"></i>
-          <span class="text-xs font-extrabold text-slate-800">Casal no Sofá</span>
+    <!-- Formulário de Login -->
+    <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+      <div class="space-y-1">
+        <label class="block text-xs font-bold text-slate-700">E-mail</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-xs">
+            <i class="fa-regular fa-envelope"></i>
+          </span>
+          <input type="email" id="loginEmail" required placeholder="seu@email.com" class="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition" />
         </div>
       </div>
-      <p class="text-[10px] text-slate-500 font-medium mt-1">Gestão prática para você e sua família</p>
-    </div>
 
-    <!-- Formulário de Autenticação -->
-    <form id="auth-form" class="space-y-3">
-      <div>
-        <label class="block text-[11px] font-extrabold text-slate-600 mb-1">E-mail</label>
-        <input type="email" id="email" required placeholder="seu@email.com" class="w-full rounded-2xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition" />
-      </div>
-      <div>
-        <label class="block text-[11px] font-extrabold text-slate-600 mb-1">Palavra-passe</label>
-        <input type="password" id="senha" required placeholder="••••••••" class="w-full rounded-2xl bg-slate-50 border border-slate-200 px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition" />
+      <div class="space-y-1">
+        <label class="block text-xs font-bold text-slate-700">Palavra-passe</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 text-xs">
+            <i class="fa-solid fa-lock"></i>
+          </span>
+          <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition" />
+        </div>
       </div>
 
-      <div id="mensagem" class="text-xs font-semibold text-center p-2.5 rounded-2xl hidden"></div>
+      <div id="loginErrorMsg" class="text-xs font-bold text-rose-600 text-center bg-rose-50 p-2.5 rounded-xl border border-rose-100 hidden"></div>
 
-      <div class="space-y-2 pt-1">
-        <button type="submit" id="mainSubmitBtn" class="w-full py-3 px-4 rounded-2xl bg-slate-900 text-white font-extrabold text-xs shadow-md hover:bg-slate-800 transition active:scale-95 text-center">
-          Entrar na Conta
-        </button>
-        <button type="button" id="secondaryToggleBtn" onclick="alternarModoVisual()" class="w-full py-3 px-4 rounded-2xl border border-blue-200 bg-blue-50 text-blue-700 font-extrabold text-xs hover:bg-blue-100 transition active:scale-95 text-center">
-          Criar Nova Conta / Solicitar Acesso
-        </button>
-      </div>
+      <button type="submit" id="loginBtn" class="w-full py-3.5 bg-slate-900 text-white rounded-2xl text-xs font-extrabold hover:bg-slate-800 transition shadow-lg active:scale-95">
+        Entrar na Conta
+      </button>
     </form>
 
+    <div class="relative flex py-1 items-center">
+      <div class="flex-grow border-t border-slate-100"></div>
+      <span class="flex-shrink mx-3 text-[10px] font-bold text-slate-400 uppercase">ou</span>
+      <div class="flex-grow border-t border-slate-100"></div>
+    </div>
+
+    <!-- Botão para Solicitar Acesso / Criar Conta -->
+    <div>
+      <button onclick="openRegisterModal()" class="w-full py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-2xl text-xs font-extrabold transition text-center">
+        Criar Nova Conta / Solicitar Acesso
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL DE REGISTO / SOLICITAÇÃO DE ACESSO -->
+  <div id="registerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="text-sm font-extrabold text-slate-800">Solicitar Acesso</h3>
+        <button onclick="closeRegisterModal()" class="text-slate-400 text-base"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-slate-500 leading-relaxed">Insira o seu e-mail e crie uma palavra-passe. O acesso ao painel precisará de aprovação do administrador.</p>
+      
+      <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700">E-mail</label>
+          <input type="email" id="regEmail" required placeholder="seu@email.com" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700">Palavra-passe (mín. 6 carateres)</label>
+          <input type="password" id="regPassword" required placeholder="••••••••" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
+        </div>
+
+        <div id="regErrorMsg" class="text-xs font-bold text-rose-600 text-center hidden"></div>
+
+        <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-2xl text-xs font-extrabold hover:bg-blue-700 transition shadow-md">
+          Enviar Solicitação
+        </button>
+      </form>
+    </div>
   </div>
 
   <script>
@@ -82,80 +116,56 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    let modoCadastro = false;
 
-    function alternarModoVisual() {
-      modoCadastro = !modoCadastro;
-      const mainBtn = document.getElementById('mainSubmitBtn');
-      const secondBtn = document.getElementById('secondaryToggleBtn');
-      const mainTitle = document.getElementById('mainTitle');
-      const mainSub = document.getElementById('mainSub');
-      
-      if (modoCadastro) {
-        mainTitle.innerText = "Criar Conta";
-        mainSub.innerText = "Solicite acesso ao painel";
-        mainBtn.innerText = "Registar (Solicitar Acesso)";
-        mainBtn.className = "w-full py-3 px-4 rounded-2xl bg-blue-600 text-white font-extrabold text-xs shadow-md hover:bg-blue-700 transition active:scale-95 text-center";
-        secondBtn.innerText = "Já tem uma conta? Faça Login";
-      } else {
-        mainTitle.innerText = "Bem-vindo";
-        mainSub.innerText = "Controle financeiro inteligente";
-        mainBtn.innerText = "Entrar na Conta";
-        mainBtn.className = "w-full py-3 px-4 rounded-2xl bg-slate-900 text-white font-extrabold text-xs shadow-md hover:bg-slate-800 transition active:scale-95 text-center";
-        secondBtn.innerText = "Criar Nova Conta / Solicitar Acesso";
-      }
-      document.getElementById('mensagem').classList.add('hidden');
-    }
-
-    function mostrarMensagem(texto, tipo) {
-      const div = document.getElementById('mensagem');
-      div.className = `text-xs font-semibold text-center p-2.5 rounded-2xl block border ${
-        tipo === 'sucesso' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-        tipo === 'erro' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-        'bg-blue-50 text-blue-700 border-blue-200'
-      }`;
-      div.innerHTML = texto;
-    }
-
-    document.getElementById('auth-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      const senha = document.getElementById('senha').value.trim();
-      mostrarMensagem("A processar...", "info");
-
-      try {
-        if (modoCadastro) {
-          const userCredential = await auth.createUserWithEmailAndPassword(email, senha);
-          const uid = userCredential.user.uid;
-
-          await db.collection('users').doc(uid).set({
-            email: email,
-            status: 'pending',
-            createdAt: new Date().toISOString()
-          });
-
-          mostrarMensagem("Registo efetuado com sucesso! Aguarde a liberação do administrador.", "sucesso");
-          setTimeout(() => { auth.signOut(); alternarModoVisual(); }, 3500);
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        if (user.email === 'c.pirespm@gmail.com') {
+          window.location.replace("admin.html");
         } else {
-          await auth.signInWithEmailAndPassword(email, senha);
-          mostrarMensagem("Login efetuado com sucesso!", "sucesso");
-          
-          setTimeout(() => {
-            if (email === 'c.pirespm@gmail.com') {
-              window.location.replace("admin.html");
-            } else {
-              window.location.replace("painel.html");
-            }
-          }, 800);
+          window.location.replace("painel.html");
         }
-      } catch (error) {
-        let msg = "Ocorreu um erro. Verifique os seus dados.";
-        if (error.code === 'auth/email-already-in-use') msg = "Este e-mail já está registado.";
-        if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') msg = "E-mail ou palavra-passe incorretos.";
-        if (error.code === 'auth/weak-password') msg = "A palavra-passe deve ter pelo menos 6 caracteres.";
-        mostrarMensagem(msg, "erro");
       }
     });
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPassword').value.trim();
+      const errDiv = document.getElementById('loginErrorMsg');
+      errDiv.classList.add('hidden');
+
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+      } catch (err) {
+        errDiv.innerText = "E-mail ou palavra-passe incorretos.";
+        errDiv.classList.remove('hidden');
+      }
+    }
+
+    function openRegisterModal() { document.getElementById('registerModal').classList.remove('hidden'); }
+    function closeRegisterModal() { document.getElementById('registerModal').classList.add('hidden'); }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const email = document.getElementById('regEmail').value.trim();
+      const pass = document.getElementById('regPassword').value.trim();
+      const errDiv = document.getElementById('regErrorMsg');
+      errDiv.classList.add('hidden');
+
+      try {
+        const cred = await auth.createUserWithEmailAndPassword(email, pass);
+        await db.collection('users').doc(cred.user.uid).set({
+          email: email,
+          status: 'pending',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("Conta solicitada com sucesso! Aguarde a aprovação do administrador.");
+        closeRegisterModal();
+      } catch (err) {
+        errDiv.innerText = "Erro ao registar: " + err.message;
+        errDiv.classList.remove('hidden');
+      }
+    }
   </script>
 </body>
 </html>
