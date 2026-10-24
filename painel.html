@@ -1,414 +1,384 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Nosso Bolso - Painel Financeiro</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Fonte Manuscrita para o Mural -->
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Ficheiros Externos -->
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    .fonte-manuscrita { font-family: 'Caveat', cursive; }
+    .papel-mural {
+      background-image: url('papel.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+  </style>
 </head>
-<body class="bg-slate-100/70 text-slate-900 pb-36 antialiased selection:bg-blue-600 selection:text-white">
+<body class="bg-slate-100 text-slate-900 pb-28 antialiased selection:bg-blue-600 selection:text-white">
 
-  <!-- TELA DE CARREGAMENTO INICIAL -->
-  <div id="loadingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4">
-    <div class="text-center space-y-3">
-      <div class="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-      <p class="text-xs font-bold text-slate-400">A carregar o seu espaço...</p>
-    </div>
+  <!-- Ecrã de Carregamento -->
+  <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-white space-y-4">
+    <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-xs font-bold tracking-wider">A carregar o seu Nosso Bolso...</p>
   </div>
 
-  <!-- TELA DE BLOQUEIO / AGUARDANDO APROVAÇÃO (Estilo Glassmorphism Premium) -->
-  <div id="pendingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 hidden backdrop-blur-md">
-    <div class="w-full max-w-sm bg-white/5 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/10 shadow-2xl text-center space-y-5 relative overflow-hidden">
-      
-      <!-- Brilho subtil decorativo -->
-      <div class="absolute -top-20 -right-20 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-      <div class="w-16 h-16 bg-gradient-to-tr from-amber-500/20 to-amber-300/15 border border-amber-500/30 text-amber-400 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
+  <!-- Ecrã de Pendente / Aguardando Aprovação -->
+  <div id="pendingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4 hidden">
+    <div class="w-full max-w-sm bg-white p-8 rounded-[2.5rem] text-center space-y-4 shadow-2xl">
+      <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mx-auto text-2xl">
         <i class="fa-solid fa-clock-rotate-left"></i>
       </div>
-      
-      <div class="space-y-2">
-        <h2 class="text-lg font-black text-white tracking-tight">Aguardando Aprovação</h2>
-        <p class="text-xs text-slate-400 leading-relaxed">
-          Sua conta foi criada com sucesso, mas o acesso ao painel financeiro requer liberação do administrador.
-        </p>
-      </div>
-
-      <button onclick="logout()" class="w-full py-3.5 bg-gradient-to-br from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-600 text-white rounded-2xl text-xs font-extrabold tracking-wider shadow-lg shadow-amber-500/20 transition active:scale-95">
-        SAIR DA CONTA
+      <h3 class="text-base font-extrabold text-slate-900">Acesso Pendente</h3>
+      <p class="text-xs text-slate-500 leading-relaxed">A sua conta foi criada mas ainda precisa de ser aprovada pelo administrador do sistema.</p>
+      <button onclick="logout()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition">
+        Sair / Voltar ao Login
       </button>
     </div>
   </div>
 
-  <!-- MODAL DE ESCOLHA DE GRUPO -->
+  <!-- Modal de Configuração / Criação de Grupo -->
   <div id="setupWorkspaceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
-    <div class="w-full max-w-md bg-white p-6 sm:p-7 rounded-[2.5rem] shadow-2xl space-y-5">
-      <div class="text-center">
-        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-xl mb-3">
-          <i class="fa-solid fa-people-roof"></i>
+    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-6 shadow-2xl">
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
+          <i class="fa-solid fa-house-user"></i>
         </div>
-        <h2 class="text-lg font-black text-slate-900">Configure o seu Espaço</h2>
-        <p class="text-xs text-slate-400 mt-1">Como deseja iniciar o seu controle financeiro?</p>
+        <h3 class="text-base font-extrabold text-slate-900">Configure o seu Espaço</h3>
+        <p class="text-xs text-slate-500">Como deseja iniciar o seu controle financeiro?</p>
       </div>
 
       <div class="space-y-3">
-        <button onclick="criarNovoWorkspace()" class="w-full text-left p-4 rounded-2xl border-2 border-blue-200 bg-blue-50/50 hover:bg-blue-50 transition flex items-center gap-3.5 group">
-          <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-plus text-sm"></i>
+        <button onclick="criarNovoWorkspace()" class="w-full p-4 rounded-2xl border-2 border-blue-500/30 hover:border-blue-600 bg-blue-50/40 hover:bg-blue-50 text-left transition space-y-1 group">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-blue-900">Criar um Novo Grupo</span>
+            <i class="fa-solid fa-circle-plus text-blue-600"></i>
           </div>
-          <div>
-            <div class="text-xs font-extrabold text-blue-900">Criar um Novo Grupo</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">Gerar um novo espaço exclusivo e código próprio.</div>
-          </div>
+          <p class="text-[10px] text-slate-500">Gerar um novo espaço exclusivo e código próprio.</p>
         </button>
 
-        <div class="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50 space-y-3">
-          <div class="flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
-              <i class="fa-solid fa-key text-sm"></i>
-            </div>
-            <div>
-              <div class="text-xs font-extrabold text-slate-800">Entrar com Código de Convite</div>
-              <div class="text-[10px] text-slate-500 mt-0.5">Junte-se ao grupo da família ou sócios.</div>
-            </div>
-          </div>
-          <div class="flex gap-2 pt-1">
-            <input type="text" id="inputWorkspaceCode" placeholder="Ex: 8660" maxlength="6" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 text-center tracking-widest" />
-            <button onclick="entrarGrupoExistente()" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition shrink-0">Entrar</button>
+        <div class="relative flex py-1 items-center">
+          <div class="flex-grow border-t border-slate-200"></div>
+          <span class="flex-shrink mx-4 text-[10px] text-slate-400 font-bold uppercase">ou</span>
+          <div class="flex-grow border-t border-slate-200"></div>
+        </div>
+
+        <div class="p-4 rounded-2xl border border-slate-200 space-y-3 bg-slate-50/50">
+          <span class="text-xs font-extrabold text-slate-800 block">Entrar com Código de Convite</span>
+          <div class="flex gap-2">
+            <input type="text" id="inputWorkspaceCode" maxlength="4" placeholder="Ex: 8660" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-bold tracking-widest text-center focus:outline-none focus:border-blue-600" />
+            <button onclick="entrarGrupoExistente()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition">Entrar</button>
           </div>
         </div>
       </div>
 
-      <div id="setupMsg" class="text-xs font-semibold text-center hidden"></div>
+      <div id="setupMsg" class="hidden"></div>
     </div>
   </div>
 
-  <!-- CABEÇALHO -->
-  <header class="sticky top-0 z-40 w-full border-b border-slate-200/90 glass-nav px-3.5 py-2.5 shadow-xs">
-    <div class="mx-auto flex max-w-5xl items-center justify-between gap-2">
-      <div class="flex items-center gap-2 min-w-0">
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-sm">
-          <i class="fa-solid fa-wallet text-sm"></i>
+  <!-- Cabeçalho Principal -->
+  <header class="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3">
+    <div class="mx-auto flex max-w-md items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-sm shadow-md">
+          <i class="fa-solid fa-wallet"></i>
         </div>
-        <div class="min-w-0">
-          <div class="flex items-center gap-1.5 leading-tight">
-            <span class="text-sm font-extrabold tracking-tight text-slate-900 truncate" id="topWorkspaceTitle">Nosso Bolso</span>
-            <span class="rounded-full bg-blue-100 px-2 py-0.5 text-[9px] font-extrabold text-blue-700">Outubro 2026</span>
-          </div>
-          <div class="flex items-center gap-1 leading-tight mt-0.5">
-            <span class="h-2 w-2 rounded-full bg-emerald-500 inline-block"></span>
-            <p class="text-[10px] text-slate-500 font-semibold truncate" id="headerWelcomeMsg">Conectado</p>
-          </div>
+        <div>
+          <h1 id="headerUserName" class="text-xs font-extrabold text-slate-900 truncate">Utilizador</h1>
+          <p id="headerWelcomeMsg" class="text-[10px] text-slate-500 font-bold">Grupo: ----</p>
         </div>
       </div>
-
-      <div class="flex items-center gap-1.5 shrink-0">
-        <button onclick="openProfileModal()" class="flex h-8.5 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition">
-          <span id="headerUserEmoji">👤</span>
-          <span id="headerUserName" class="max-w-[75px] truncate">Conta</span>
-          <i class="fa-solid fa-gear text-[10px] text-slate-500"></i>
+      <div class="flex items-center gap-2">
+        <button onclick="openProfileModal()" class="w-9 h-9 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 flex items-center justify-center hover:bg-slate-100 transition">
+          <i class="fa-solid fa-gear text-xs"></i>
         </button>
-
-        <button onclick="logout()" class="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 transition">
-          <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- Indicadores -->
-    <div class="mx-auto mt-2 max-w-5xl">
-      <div class="grid grid-cols-3 gap-2">
-        <div class="rounded-2xl bg-white p-2 border border-slate-200/80 shadow-2xs">
-          <div class="text-[9px] font-bold text-slate-400 uppercase">Renda</div>
-          <div id="statIncome" class="mt-0.5 text-xs sm:text-sm font-extrabold text-emerald-700 truncate">R$ 0,00</div>
-        </div>
-        <div class="rounded-2xl bg-white p-2 border border-slate-200/80 shadow-2xs">
-          <div class="text-[9px] font-bold text-slate-400 uppercase">Despesas</div>
-          <div id="statExpense" class="mt-0.5 text-xs sm:text-sm font-extrabold text-rose-600 truncate">R$ 0,00</div>
-        </div>
-        <div class="rounded-2xl bg-white p-2 border border-slate-200/80 shadow-2xs">
-          <div class="text-[9px] font-bold text-slate-400 uppercase">Saldo</div>
-          <div id="statBalance" class="mt-0.5 text-xs sm:text-sm font-extrabold text-slate-800 truncate">R$ 0,00</div>
-        </div>
       </div>
     </div>
   </header>
 
-  <!-- CONTEÚDO PRINCIPAL DO PAINEL -->
-  <main class="mx-auto max-w-5xl px-3.5 pt-2.5 space-y-2.5">
-    <div class="flex items-center justify-between bg-white rounded-2xl p-2 border border-slate-200/80 shadow-2xs">
-      <div class="flex items-center gap-1.5">
-        <i class="fa-regular fa-calendar-days text-blue-600 text-xs"></i>
-        <span class="text-xs font-bold text-slate-600">Mês:</span>
-        <select id="monthSelect" onchange="changeActiveMonth(this.value)" class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-800 focus:outline-none">
+  <!-- Conteúdo Principal por Abas -->
+  <main class="mx-auto max-w-md px-4 pt-4 space-y-4">
+
+    <!-- ABAS: RESUMO -->
+    <div id="tab-resumo" class="space-y-4">
+      
+      <!-- Seletor de Mês -->
+      <div class="flex items-center justify-between bg-white p-2 rounded-2xl border border-slate-200 shadow-2xs">
+        <span class="text-xs font-bold text-slate-500 pl-2">Mês:</span>
+        <select id="selectMonth" onchange="changeActiveMonth(this.value)" class="bg-slate-100 border-none text-xs font-extrabold text-slate-800 rounded-xl px-3 py-1.5 focus:outline-none">
           <option value="Outubro 2026">Outubro 2026</option>
+          <option value="Novembro 2026">Novembro 2026</option>
+          <option value="Dezembro 2026">Dezembro 2026</option>
         </select>
       </div>
-      <button onclick="openNewTxModal()" class="flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-extrabold text-white shadow-xs">
-        <i class="fa-solid fa-plus text-[10px]"></i> Lançar
-      </button>
-    </div>
 
-    <!-- NAVEGAÇÃO POR ABAS SUPERIOR -->
-    <div class="flex border-b border-slate-200 hide-scrollbar overflow-x-auto gap-6 pt-0.5">
-      <button onclick="switchTab('resumo')" id="tabBtn-resumo" class="pb-2 text-xs sm:text-sm font-extrabold text-blue-600 border-b-2 border-blue-600 whitespace-nowrap"><i class="fa-solid fa-chart-pie mr-1"></i> Resumo</button>
-      <button onclick="switchTab('extrato')" id="tabBtn-extrato" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-receipt mr-1"></i> Extrato</button>
-      <button onclick="switchTab('invest')" id="tabBtn-invest" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-vault mr-1"></i> Invest</button>
-      <button onclick="switchTab('mural')" id="tabBtn-mural" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-chalkboard mr-1"></i> Mural</button>
-    </div>
-
-    <!-- ABA 1: RESUMO -->
-    <div id="tab-resumo" class="space-y-2.5">
-      <!-- Cartões de Categorias Compactos em Grelha 2x2 -->
-      <div class="grid grid-cols-2 gap-2" id="cardsCategoryContainer"></div>
-      
-      <!-- Gráfico de Pizza Centralizado -->
-      <div class="rounded-2xl bg-white p-3 border border-slate-200/80 shadow-2xs space-y-1.5">
-        <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1">
-          <i class="fa-solid fa-chart-pie text-blue-600"></i> Distribuição por Categoria
-        </h3>
-        <div class="relative w-full h-44">
-          <canvas id="categoryPieChart"></canvas>
+      <!-- Cards de Resumo Financeiro -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+          <span class="text-[9px] font-bold text-slate-400 uppercase block">Entradas</span>
+          <div id="statIncome" class="text-xs sm:text-sm font-black text-emerald-600 truncate">R$ 0,00</div>
+        </div>
+        <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+          <span class="text-[9px] font-bold text-slate-400 uppercase block">Saídas</span>
+          <div id="statExpense" class="text-xs sm:text-sm font-black text-rose-600 truncate">R$ 0,00</div>
+        </div>
+        <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
+          <span class="text-[9px] font-bold text-slate-400 uppercase block">Saldo</span>
+          <div id="statBalance" class="text-xs sm:text-sm font-black text-slate-900 truncate">R$ 0,00</div>
         </div>
       </div>
 
-      <!-- Gráfico de Colunas Compacto -->
-      <div class="rounded-2xl bg-white p-3 border border-slate-200/80 shadow-2xs space-y-1.5">
-        <h3 class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1">
-          <i class="fa-solid fa-chart-column text-blue-600"></i> Comparativo de Gastos
-        </h3>
-        <div class="relative w-full h-36">
-          <canvas id="categoryBarChart"></canvas>
+      <!-- Orçamento por Categorias (Metas) -->
+      <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Progresso de Metas</h3>
+          <button onclick="openMetasModal()" class="text-[10px] text-blue-600 font-bold hover:underline"><i class="fa-solid fa-sliders mr-1"></i>Ajustar Metas</button>
+        </div>
+        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2.5">
+          <!-- Preenchido via JS -->
         </div>
       </div>
+
+      <!-- Gráficos -->
+      <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
+        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Distribuição de Gastos</h3>
+        <div class="grid grid-cols-2 gap-4 items-center">
+          <div class="h-40 relative"><canvas id="categoryPieChart"></canvas></div>
+          <div class="h-40 relative"><canvas id="categoryBarChart"></canvas></div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- ABA 2: EXTRATO -->
-    <div id="tab-extrato" class="hidden space-y-3">
-      <div class="flex flex-col sm:flex-row gap-2">
-        <input type="text" id="searchExpense" placeholder="Buscar lançamento..." oninput="renderTransactionsList(transactions)" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold w-full focus:outline-none" />
-        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none">
+    <!-- ABAS: EXTRATO -->
+    <div id="tab-extrato" class="space-y-3 hidden">
+      <div class="flex gap-2">
+        <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
+      </div>
+      <div class="flex gap-2">
+        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
           <option value="">👤 Todos os Membros</option>
         </select>
-        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none">
-          <option value="">📂 Todas as Categorias</option>
-          <option value="Gastos Fixos">🏠 Gastos Fixos</option>
-          <option value="Gastos Gerais">🛒 Gastos Gerais</option>
-          <option value="Lazer">🎉 Lazer</option>
-          <option value="Investimentos">📈 Investimentos</option>
-          <option value="Salário">💼 Salário</option>
-          <option value="Renda Extra">✨ Renda Extra</option>
+        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
+          <option value="">🏷️ Todas Categorias</option>
+          <option value="Gastos Fixos">Gastos Fixos</option>
+          <option value="Gastos Gerais">Gastos Gerais</option>
+          <option value="Lazer">Lazer</option>
+          <option value="Investimentos">Investimentos</option>
         </select>
       </div>
-      <div id="txListContainer" class="space-y-2"></div>
-    </div>
-
-    <!-- ABA 3: INVESTIMENTOS -->
-    <div id="tab-invest" class="hidden space-y-3.5">
-      <div class="rounded-3xl bg-gradient-to-br from-slate-900 to-indigo-950 p-5 text-white shadow-xl">
-        <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-300">Total Investido no Mês</span>
-        <div id="monthInvestTotalHeader" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">R$ 0,00</div>
-      </div>
-      <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-2xs">
-        <div id="monthInvestmentsList" class="space-y-2"></div>
+      <div id="txListContainer" class="space-y-2">
+        <!-- Preenchido via JS -->
       </div>
     </div>
 
-    <!-- ABA 4: MURAL / LOUSA -->
-    <div id="tab-mural" class="hidden space-y-4">
-      <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-2xs space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">Mural</h3>
-          <button onclick="apagarLousa()" id="btnLimparLousa" class="text-xs font-bold text-rose-600 hover:underline hidden">
-            <i class="fa-solid fa-eraser mr-1"></i> Limpar
-          </button>
+    <!-- ABAS: INVESTIMENTOS -->
+    <div id="tab-invest" class="space-y-3 hidden">
+      <div class="bg-gradient-to-tr from-emerald-600 to-teal-700 p-5 rounded-3xl text-white shadow-lg space-y-1">
+        <span class="text-[10px] font-bold text-emerald-200 uppercase tracking-wider">Total Investido no Mês</span>
+        <div id="monthInvestTotalHeader" class="text-xl font-black">R$ 0,00</div>
+      </div>
+      <div id="monthInvestmentsList" class="space-y-2">
+        <!-- Preenchido via JS -->
+      </div>
+    </div>
+
+    <!-- ABAS: MURAL / LOUSA -->
+    <div id="tab-mural" class="space-y-4 hidden">
+      <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs space-y-4 text-center">
+        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-note-sticky text-amber-500 mr-1.5"></i>Mural do Grupo</h3>
+        
+        <!-- Bloco do Bilhete com imagem de papel e letra manuscrita -->
+        <div id="lousaConteudo" class="py-2">
+          <p class="text-xs text-slate-400 italic">Mural limpo. Escreva um recado!</p>
         </div>
 
-        <div class="lousa-board p-5 rounded-2xl shadow-inner min-h-[120px] flex flex-col justify-center text-center relative">
-          <div id="lousaConteudo" class="my-auto">
-            <p class="text-xs text-slate-400 italic">Mural limpo.</p>
-          </div>
-          <div id="lousaAutorContainer" class="text-right text-[10px] text-emerald-400 font-bold pt-2 mt-2 border-t border-slate-700/60 hidden">
-            Por: <span id="lousaAutorNome">---</span>
-          </div>
+        <div id="lousaAutorContainer" class="text-[10px] text-slate-400 font-semibold hidden">
+          Deixado por: <span id="lousaAutorNome" class="font-bold text-slate-700"></span>
         </div>
 
-        <form id="lousaForm" onsubmit="escreverNaLousa(event)" class="space-y-2">
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-[11px] font-extrabold text-slate-600">Deixe sua mensagem</label>
-              <span id="charCount" class="text-[10px] font-bold text-slate-400">25 restantes</span>
-            </div>
-            <div class="flex gap-2">
-              <input type="text" id="inputLousaTexto" required maxlength="25" oninput="atualizarContador(this)" placeholder="Ex: Comprar café" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
-              <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-extrabold hover:bg-blue-700 transition shrink-0">
-                Enviar
-              </button>
-            </div>
+        <form onsubmit="escreverNaLousa(event)" class="space-y-2 pt-2 border-t border-slate-100">
+          <div class="relative">
+            <input type="text" id="inputLousaTexto" maxlength="25" oninput="atualizarContador(this)" placeholder="Deixe um recado (máx. 25 carac.)" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-blue-600" />
+          </div>
+          <div class="flex items-center justify-between px-1">
+            <span id="charCount" class="text-[9px] text-slate-400 font-semibold">25 restantes</span>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-md">Fixar Recado</button>
           </div>
         </form>
+
+        <button id="btnLimparLousa" onclick="apagarLousa()" class="text-rose-500 hover:text-rose-700 text-[10px] font-bold hidden pt-1">
+          <i class="fa-solid fa-trash-can mr-1"></i>Limpar Mural
+        </button>
       </div>
     </div>
+
   </main>
 
-  <!-- BARRA INFERIOR MOBILE -->
-  <nav class="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 backdrop-blur-md shadow-lg">
-    <div class="relative max-w-md mx-auto grid grid-cols-4 items-center h-16 px-2">
+  <!-- Botão Flutuante Novo Lançamento -->
+  <div class="fixed bottom-20 right-4 z-30">
+    <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition text-xl">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+  </div>
+
+  <!-- Barra de Navegação Inferior -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2">
+    <div class="mx-auto max-w-md flex items-center justify-around">
       <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 transition active:scale-95">
-        <i class="fa-solid fa-chart-pie text-base"></i>
-        <span class="text-[9px] font-extrabold mt-1">Resumo</span>
+        <i class="fa-solid fa-chart-pie text-sm"></i>
+        <span class="text-[9px] font-extrabold mt-0.5">Resumo</span>
       </button>
       <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
-        <i class="fa-solid fa-receipt text-base"></i>
-        <span class="text-[9px] font-bold mt-1">Extrato</span>
+        <i class="fa-solid fa-receipt text-sm"></i>
+        <span class="text-[9px] font-extrabold mt-0.5">Extrato</span>
       </button>
       <button onclick="switchTab('invest')" id="bottomNavInvest" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
-        <i class="fa-solid fa-vault text-base"></i>
-        <span class="text-[9px] font-bold mt-1">Invest</span>
+        <i class="fa-solid fa-chart-line text-sm"></i>
+        <span class="text-[9px] font-extrabold mt-0.5">Invest</span>
       </button>
       <button onclick="switchTab('mural')" id="bottomNavMural" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95">
-        <i class="fa-solid fa-chalkboard text-base"></i>
-        <span class="text-[9px] font-bold mt-1">Mural</span>
-      </button>
-      <button onclick="openNewTxModal()" class="fab-center flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-rose-500 text-white shadow-lg shadow-blue-500/30 border-2 border-white active:scale-90 transition-all">
-        <i class="fa-solid fa-plus text-base font-black"></i>
+        <i class="fa-solid fa-note-sticky text-sm"></i>
+        <span class="text-[9px] font-extrabold mt-0.5">Mural</span>
       </button>
     </div>
   </nav>
 
-  <!-- MODAL DE EDIÇÃO DE METAS PERCENTUAIS -->
-  <div id="metasModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 hidden backdrop-blur-sm">
-    <div class="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <h3 class="text-sm font-extrabold text-slate-800">Definir Metas do Grupo</h3>
-        <button onclick="closeMetasModal()" class="text-slate-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
+  <!-- Modal Novo Lançamento -->
+  <div id="newTxModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="text-xs font-extrabold text-slate-900 uppercase">Novo Lançamento</h3>
+        <button onclick="closeNewTxModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <p class="text-[11px] text-slate-500">Defina a percentagem ideal de cada categoria com base nas entradas. A soma total deve ser obrigatoriamente <strong>100%</strong>.</p>
-      
-      <form id="metasForm" onsubmit="salvarMetasGrupo(event)" class="space-y-3">
-        <div>
-          <label class="block text-xs font-bold text-slate-600">Gastos Fixos (%)</label>
-          <input type="number" id="metaFixos" required min="0" max="100" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold focus:outline-none" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600">Gastos Gerais (%)</label>
-          <input type="number" id="metaGerais" required min="0" max="100" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold focus:outline-none" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600">Lazer (%)</label>
-          <input type="number" id="metaLazer" required min="0" max="100" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold focus:outline-none" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600">Investimentos (%)</label>
-          <input type="number" id="metaInvest" required min="0" max="100" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold focus:outline-none" />
+
+      <form id="txForm" onsubmit="handleSaveTransaction(event)" class="space-y-3">
+        <div class="flex bg-slate-100 p-1 rounded-xl">
+          <label class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-emerald-600 shadow-2xs">
+            <input type="radio" name="txType" value="INCOME" onchange="toggleTxTypeUI()" class="hidden" /> Entrada
+          </label>
+          <label class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500">
+            <input type="radio" name="txType" value="EXPENSE" checked onchange="toggleTxTypeUI()" class="hidden" /> Saída
+          </label>
         </div>
 
-        <div id="metaErrorMsg" class="text-xs font-bold text-rose-600 text-center hidden"></div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1">Descrição</label>
+          <input type="text" id="txDesc" required placeholder="Ex: Supermercado" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
+        </div>
 
-        <button type="submit" class="w-full rounded-2xl bg-blue-600 py-3 text-xs font-extrabold text-white shadow-lg">Guardar Metas (100%)</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL DE LANÇAMENTO -->
-  <div id="newTxModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 p-0 sm:p-4 hidden backdrop-blur-sm">
-    <div class="w-full max-w-md rounded-t-3xl sm:rounded-3xl bg-white p-5 shadow-2xl max-h-[95vh] overflow-y-auto">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <h3 class="text-sm font-extrabold text-slate-800">Nova Movimentação</h3>
-        <button onclick="closeNewTxModal()" class="text-slate-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <form id="txForm" onsubmit="handleSaveTransaction(event)" class="mt-4 space-y-3.5">
         <div class="grid grid-cols-2 gap-2">
-          <label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 p-2.5 has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50">
-            <input type="radio" name="txType" value="EXPENSE" class="hidden" checked onchange="toggleTxTypeUI()" />
-            <span class="text-xs font-bold text-slate-700">Despesa (-)</span>
-          </label>
-          <label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 p-2.5 has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50">
-            <input type="radio" name="txType" value="INCOME" class="hidden" onchange="toggleTxTypeUI()" />
-            <span class="text-xs font-bold text-slate-700">Entrada (+)</span>
-          </label>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600">Descrição</label>
-          <input type="text" id="txDesc" required placeholder="Ex: Supermercado" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold focus:outline-none" />
-        </div>
-        <div class="grid grid-cols-2 gap-2.5">
           <div>
-            <label class="block text-xs font-bold text-slate-600">Valor (R$)</label>
-            <input type="number" step="0.01" id="txAmount" required placeholder="0,00" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold focus:outline-none" />
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Valor (R$)</label>
+            <input type="number" step="0.01" id="txAmount" required placeholder="0,00" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600">Data</label>
-            <input type="date" id="txDate" required class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold focus:outline-none" />
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Data</label>
+            <input type="date" id="txDate" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
           </div>
         </div>
+
         <div>
-          <label class="block text-xs font-bold text-slate-600">Categoria</label>
-          <select id="txCat" class="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold focus:outline-none">
-            <option value="Gastos Fixos">🏠 Gastos Fixos</option>
-            <option value="Gastos Gerais">🛒 Gastos Gerais</option>
-            <option value="Lazer">🎉 Lazer</option>
-            <option value="Investimentos">📈 Investimentos</option>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1">Categoria</label>
+          <select id="txCat" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white">
+            <option value="Gastos Fixos">Gastos Fixos</option>
+            <option value="Gastos Gerais">Gastos Gerais</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Investimentos">Investimentos</option>
           </select>
         </div>
-        <button type="submit" class="w-full rounded-2xl bg-blue-600 py-3 text-xs font-extrabold text-white shadow-lg">Confirmar Lançamento</button>
+
+        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-extrabold transition shadow-md">
+          Guardar Lançamento
+        </button>
       </form>
     </div>
   </div>
 
-  <!-- MODAL DE PERFIL / CÓDIGO DO GRUPO, MEMBROS E BOTÃO DE EDITAR METAS -->
-  <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 hidden backdrop-blur-sm">
-    <div class="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl space-y-3.5 max-h-[90vh] overflow-y-auto">
+  <!-- Modal de Perfil e Grupo -->
+  <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-5 shadow-2xl max-h-[85vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <h3 class="text-sm font-extrabold text-slate-800">Definições do Grupo</h3>
-        <button onclick="closeProfileModal()" class="text-slate-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
+        <h3 class="text-xs font-extrabold text-slate-900 uppercase">Gestão do Grupo</h3>
+        <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div class="text-center p-3 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-between">
-        <div class="text-left min-w-0">
-          <span class="text-[9px] font-black uppercase text-blue-600 block">Código do Grupo</span>
-          <div class="text-lg font-black tracking-widest text-slate-900 truncate" id="profileWorkspaceCodeDisplay">----</div>
-        </div>
-        <button onclick="copyWorkspaceCountCode()" id="copyCodeBtn" class="px-3 py-1.5 bg-blue-600 text-white rounded-xl text-[10px] font-bold shrink-0">Copiar</button>
-      </div>
-
-      <div>
-        <button onclick="closeProfileModal(); openMetasModal();" class="w-full py-2.5 px-4 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-extrabold transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-bullseye"></i> Editar Metas Percentuais do Grupo
+      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center space-y-2">
+        <span class="text-[10px] font-bold text-slate-400 uppercase block">Código de Convite do Grupo</span>
+        <div id="profileWorkspaceCodeDisplay" class="text-xl font-black text-blue-600 tracking-wider">----</div>
+        <button onclick="copyWorkspaceCountCode()" class="w-full py-2 bg-blue-600 text-white rounded-xl text-xs font-bold transition shadow-xs">
+          <i class="fa-solid fa-copy mr-1.5"></i>Copiar Código
         </button>
       </div>
 
-      <div class="space-y-1.5 pt-1">
-        <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
-          <i class="fa-solid fa-users text-blue-600"></i> Membros deste Grupo:
-        </span>
-        <div id="workspaceMembersList" class="space-y-1.5 max-h-32 overflow-y-auto p-2 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
-          <div class="text-slate-400 text-center py-2">A carregar membros...</div>
+      <div class="space-y-2">
+        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Membros do Grupo</span>
+        <div id="workspaceMembersList" class="space-y-1.5">
+          <!-- Preenchido via JS -->
         </div>
       </div>
 
-      <div class="pt-2 border-t border-slate-100">
-        <button onclick="deixarGrupo()" class="w-full py-2.5 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-extrabold transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-right-from-bracket"></i> Deixar este Grupo / Sair
+      <div class="pt-2 border-t border-slate-100 space-y-2">
+        <button onclick="deixarGrupo()" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-2xl text-xs font-bold transition">
+          <i class="fa-solid fa-right-from-bracket mr-1.5"></i>Sair deste Grupo
+        </button>
+        <button onclick="logout()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition">
+          <i class="fa-solid fa-power-off mr-1.5"></i>Terminar Sessão
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Ficheiro JavaScript Externo -->
+  <!-- Modal de Ajuste de Metas -->
+  <div id="metasModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="text-xs font-extrabold text-slate-900 uppercase">Ajustar Metas (%)</h3>
+        <button onclick="closeMetasModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-[11px] text-slate-500">Defina a percentagem ideal para cada categoria. A soma total deve ser exatamente 100%.</p>
+      
+      <form onsubmit="salvarMetasGrupo(event)" class="space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Gastos Fixos (%)</label>
+            <input type="number" id="metaFixos" required class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Gastos Gerais (%)</label>
+            <input type="number" id="metaGerais" required class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Lazer (%)</label>
+            <input type="number" id="metaLazer" required class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Investimentos (%)</label>
+            <input type="number" id="metaInvest" required class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center" />
+          </div>
+        </div>
+
+        <div id="metaErrorMsg" class="text-[11px] font-bold text-rose-600 bg-rose-50 p-2 rounded-xl text-center hidden"></div>
+
+        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-extrabold transition shadow-md">
+          Guardar Metas
+        </button>
+      </form>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
