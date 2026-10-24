@@ -246,7 +246,6 @@
     function closeRegisterModal() { document.getElementById('registerModal').classList.add('hidden'); }
 
     async function handleRegister(e) {
-        async function handleRegister(e) {
       e.preventDefault();
       const email = document.getElementById('regEmail').value.trim();
       const pass = document.getElementById('regPassword').value.trim();
@@ -254,18 +253,18 @@
       errDiv.classList.add('hidden');
 
       try {
-        // 1. Cria a conta (neste momento o utilizador fica logado automaticamente)
+        // 1. Cria a conta no Firebase Auth (o utilizador fica autenticado temporariamente)
         const cred = await auth.createUserWithEmailAndPassword(email, pass);
         const uid = cred.user.uid;
 
-        // 2. Grava IMEDIATAMENTE no Firestore enquanto a sessão está ativa
+        // 2. Grava imediatamente no Firestore enquanto a sessão está ativa
         await db.collection('users').doc(uid).set({
           email: email,
           status: 'pending',
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // 3. AGORA sim, fazemos o signOut para tirar o utilizador do painel
+        // 3. Termina a sessão para que o utilizador não entre no painel sem aprovação
         await auth.signOut();
 
         alert("Solicitação enviada com sucesso! Aguarde a aprovação do administrador.");
@@ -273,18 +272,6 @@
         document.getElementById('registerForm').reset();
       } catch (err) {
         console.error("Erro no registo:", err);
-        errDiv.innerText = "Erro ao registrar: " + err.message;
-        errDiv.classList.remove('hidden');
-      }
-    }
-
-
-        await auth.signOut();
-
-        alert("Solicitação enviada com sucesso! Aguarde a aprovação do administrador.");
-        closeRegisterModal();
-        document.getElementById('registerForm').reset();
-      } catch (err) {
         errDiv.innerText = "Erro ao registrar: " + err.message;
         errDiv.classList.remove('hidden');
       }
