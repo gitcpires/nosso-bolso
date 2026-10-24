@@ -123,10 +123,11 @@
       ouvinteDadosAdmin();
     });
 
-    function ouvinteDadosAdmin() {
+        function ouvinteDadosAdmin() {
       const containerPendentes = document.getElementById('lista-solicitacoes');
       const containerUsuarios = document.getElementById('lista-usuarios');
 
+      // Usamos uma query ordenada para garantir estabilidade na listagem
       db.collection('users').onSnapshot((snapshot) => {
         if (snapshot.empty) {
           containerPendentes.innerHTML = `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs">Nenhuma solicitação pendente.</div>`;
@@ -145,6 +146,7 @@
           const dados = doc.data();
           const uid = doc.id;
 
+          // Ignora a conta do administrador principal
           if (dados.email === 'c.pirespm@gmail.com') return;
 
           totalContas++;
@@ -153,6 +155,7 @@
             workspacesSet.add(dados.workspaceCode);
           }
 
+          // Se o status for explicitamente 'approved'
           if (dados.status === 'approved') {
             qtdAtivos++;
             const grupoInfo = dados.workspaceCode ? `Código do Grupo: #${dados.workspaceCode}` : `A configurar grupo`;
@@ -171,6 +174,7 @@
               </div>
             `;
           } else {
+            // QUALQUER OUTRO ESTADO (pending, ou vazio/undefined) entra aqui como pendente
             qtdPendentes++;
             htmlPendentes += `
               <div class="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center justify-between shadow-2xs gap-2">
@@ -191,11 +195,13 @@
           }
         });
 
+        // Atualiza os contadores das KPIs no topo
         document.getElementById('statTotalUsers').innerText = totalContas;
         document.getElementById('statActiveUsers').innerText = qtdAtivos;
         document.getElementById('statPendingUsers').innerText = qtdPendentes;
         document.getElementById('statWorkspaces').innerText = workspacesSet.size;
 
+        // Renderiza as listas dinamicamente
         containerPendentes.innerHTML = qtdPendentes > 0 ? htmlPendentes : `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">Nenhuma solicitação pendente no momento.</div>`;
         containerUsuarios.innerHTML = qtdAtivos > 0 ? htmlUsuarios : `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">Nenhum utilizador com acesso ativo.</div>`;
 
@@ -204,6 +210,7 @@
         containerPendentes.innerHTML = `<div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl text-center text-rose-700 text-xs">Erro ao carregar dados do banco.</div>`;
       });
     }
+
 
     async function aprovarUsuario(uid) {
       try {
