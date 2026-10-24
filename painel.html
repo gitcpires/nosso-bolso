@@ -88,15 +88,19 @@
     </div>
   </div>
 
-  <!-- Cabeçalho Principal Unificado com o Seletor de Mês -->
+  <!-- Cabeçalho Principal Unificado com Status Online e Seletor de Mês -->
   <header class="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3">
     <div class="mx-auto max-w-md space-y-3">
       
-      <!-- Perfil e Definições -->
+      <!-- Perfil com Indicador Online e Definições -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-sm shadow-md">
-            <i class="fa-solid fa-wallet"></i>
+          <div class="relative">
+            <div class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-sm shadow-md">
+              <i class="fa-solid fa-wallet"></i>
+            </div>
+            <!-- Bolinha de Status Online (Verde) -->
+            <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
           </div>
           <div>
             <h1 id="headerUserName" class="text-xs font-extrabold text-slate-900 truncate">Utilizador</h1>
@@ -148,7 +152,8 @@
           <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Progresso de Metas</h3>
           <button onclick="openMetasModal()" class="text-[10px] text-blue-600 font-bold hover:underline"><i class="fa-solid fa-sliders mr-1"></i>Ajustar Metas</button>
         </div>
-        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2.5"></div>
+        <!-- Cards de categorias com design mais compacto e valores maiores -->
+        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2"></div>
       </div>
 
       <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
@@ -220,13 +225,12 @@
 
   </main>
 
-<!-- Botão Flutuante Redondo Original, Centralizado e Alinhado à Barra Inferior -->
-<div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
-  <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition text-xl border-2 border-white">
-    <i class="fa-solid fa-plus"></i>
-  </button>
-</div>
-
+  <!-- Botão Flutuante Redondo Original, Centralizado e Alinhado na Barra -->
+  <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
+    <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition text-xl border-2 border-white">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+  </div>
 
   <!-- Barra de Navegação Inferior -->
   <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2">
@@ -340,7 +344,7 @@
       </div>
       <p class="text-[11px] text-slate-500">Defina a percentagem ideal para cada categoria. A soma total deve ser exatamente 100%.</p>
       
-      <form onsubmit="salvarMetasGrupo(event)" class="space-y-3">
+      <div class="space-y-3">
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-1">Gastos Fixos (%)</label>
@@ -356,16 +360,16 @@
           </div>
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-1">Investimentos (%)</label>
-            <input type="number" id="metaInvest" required class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center" />
+            <input type="number" id="metaInvest" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-center" />
           </div>
         </div>
 
         <div id="metaErrorMsg" class="text-[11px] font-bold text-rose-600 bg-rose-50 p-2 rounded-xl text-center hidden"></div>
 
-        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-extrabold transition shadow-md">
+        <button type="submit" onclick="salvarMetasGrupo(event)" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-extrabold transition shadow-md">
           Guardar Metas
         </button>
-      </form>
+      </div>
     </div>
   </div>
 
