@@ -254,8 +254,13 @@
           status: 'pending',
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+
+        // Termina a sessão imediatamente para enviar o pedido pendente ao admin sem entrar no painel
+        await auth.signOut();
+
         alert("Conta solicitada com sucesso! Aguarde a aprovação do administrador.");
         closeRegisterModal();
+        document.getElementById('registerForm').reset();
       } catch (err) {
         errDiv.innerText = "Erro ao registrar: " + err.message;
         errDiv.classList.remove('hidden');
