@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Fonte Manuscrita para o Mural -->
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -24,6 +23,7 @@
       background-image: url('papel.jpg');
       background-size: cover;
       background-position: center;
+      background-repeat: no-repeat;
     }
   </style>
 </head>
@@ -35,7 +35,7 @@
     <p class="text-xs font-bold tracking-wider">A carregar o seu Nosso Bolso...</p>
   </div>
 
-  <!-- Ecrã de Pendente / Aguardando Aprovação -->
+  <!-- Ecrã de Pendente -->
   <div id="pendingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4 hidden">
     <div class="w-full max-w-sm bg-white p-8 rounded-[2.5rem] text-center space-y-4 shadow-2xl">
       <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mx-auto text-2xl">
@@ -61,7 +61,7 @@
       </div>
 
       <div class="space-y-3">
-        <button onclick="criarNovoWorkspace()" class="w-full p-4 rounded-2xl border-2 border-blue-500/30 hover:border-blue-600 bg-blue-50/40 hover:bg-blue-50 text-left transition space-y-1 group">
+        <button onclick="criarNovoWorkspace()" class="w-full p-4 rounded-2xl border-2 border-blue-500/35 hover:border-blue-600 bg-blue-50/40 hover:bg-blue-50 text-left transition space-y-1 group">
           <div class="flex items-center justify-between">
             <span class="text-xs font-extrabold text-blue-900">Criar um Novo Grupo</span>
             <i class="fa-solid fa-circle-plus text-blue-600"></i>
@@ -113,8 +113,6 @@
 
     <!-- ABAS: RESUMO -->
     <div id="tab-resumo" class="space-y-4">
-      
-      <!-- Seletor de Mês -->
       <div class="flex items-center justify-between bg-white p-2 rounded-2xl border border-slate-200 shadow-2xs">
         <span class="text-xs font-bold text-slate-500 pl-2">Mês:</span>
         <select id="selectMonth" onchange="changeActiveMonth(this.value)" class="bg-slate-100 border-none text-xs font-extrabold text-slate-800 rounded-xl px-3 py-1.5 focus:outline-none">
@@ -124,7 +122,6 @@
         </select>
       </div>
 
-      <!-- Cards de Resumo Financeiro -->
       <div class="grid grid-cols-3 gap-2">
         <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
           <span class="text-[9px] font-bold text-slate-400 uppercase block">Entradas</span>
@@ -140,18 +137,14 @@
         </div>
       </div>
 
-      <!-- Orçamento por Categorias (Metas) -->
       <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Progresso de Metas</h3>
           <button onclick="openMetasModal()" class="text-[10px] text-blue-600 font-bold hover:underline"><i class="fa-solid fa-sliders mr-1"></i>Ajustar Metas</button>
         </div>
-        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2.5">
-          <!-- Preenchido via JS -->
-        </div>
+        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2.5"></div>
       </div>
 
-      <!-- Gráficos -->
       <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
         <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Distribuição de Gastos</h3>
         <div class="grid grid-cols-2 gap-4 items-center">
@@ -159,7 +152,6 @@
           <div class="h-40 relative"><canvas id="categoryBarChart"></canvas></div>
         </div>
       </div>
-
     </div>
 
     <!-- ABAS: EXTRATO -->
@@ -179,9 +171,7 @@
           <option value="Investimentos">Investimentos</option>
         </select>
       </div>
-      <div id="txListContainer" class="space-y-2">
-        <!-- Preenchido via JS -->
-      </div>
+      <div id="txListContainer" class="space-y-2"></div>
     </div>
 
     <!-- ABAS: INVESTIMENTOS -->
@@ -190,9 +180,7 @@
         <span class="text-[10px] font-bold text-emerald-200 uppercase tracking-wider">Total Investido no Mês</span>
         <div id="monthInvestTotalHeader" class="text-xl font-black">R$ 0,00</div>
       </div>
-      <div id="monthInvestmentsList" class="space-y-2">
-        <!-- Preenchido via JS -->
-      </div>
+      <div id="monthInvestmentsList" class="space-y-2"></div>
     </div>
 
     <!-- ABAS: MURAL / LOUSA -->
@@ -200,7 +188,6 @@
       <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs space-y-4 text-center">
         <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-note-sticky text-amber-500 mr-1.5"></i>Mural do Grupo</h3>
         
-        <!-- Bloco do Bilhete com imagem de papel e letra manuscrita -->
         <div id="lousaConteudo" class="py-2">
           <p class="text-xs text-slate-400 italic">Mural limpo. Escreva um recado!</p>
         </div>
@@ -227,8 +214,8 @@
 
   </main>
 
-  <!-- Botão Flutuante Novo Lançamento -->
-  <div class="fixed bottom-20 right-4 z-30">
+  <!-- Botão Flutuante Novo Lançamento (Centralizado e Corrigido na direita inferior acima da nav) -->
+  <div class="fixed bottom-20 right-6 z-30">
     <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition text-xl">
       <i class="fa-solid fa-plus"></i>
     </button>
@@ -256,7 +243,7 @@
     </div>
   </nav>
 
-  <!-- Modal Novo Lançamento -->
+  <!-- Modais -->
   <div id="newTxModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-4 shadow-2xl">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -307,7 +294,6 @@
     </div>
   </div>
 
-  <!-- Modal de Perfil e Grupo -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-5 shadow-2xl max-h-[85vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -325,9 +311,7 @@
 
       <div class="space-y-2">
         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Membros do Grupo</span>
-        <div id="workspaceMembersList" class="space-y-1.5">
-          <!-- Preenchido via JS -->
-        </div>
+        <div id="workspaceMembersList" class="space-y-1.5"></div>
       </div>
 
       <div class="pt-2 border-t border-slate-100 space-y-2">
@@ -341,7 +325,6 @@
     </div>
   </div>
 
-  <!-- Modal de Ajuste de Metas -->
   <div id="metasModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-4 shadow-2xl">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
