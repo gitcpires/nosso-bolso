@@ -20,8 +20,6 @@ let categoryBarChartInstance = null;
 let lousaDocId = null;
 
 auth.onAuthStateChanged(async (userAuth) => {
-  const loadingScreen = document.getElementById('loadingScreen');
-
   if (!userAuth) {
     window.location.href = 'index.html';
     return;
@@ -44,13 +42,13 @@ auth.onAuthStateChanged(async (userAuth) => {
       const userData = userDoc.data();
       
       if (userData.status !== 'approved') {
-        if (loadingScreen) loadingScreen.classList.add('hidden');
+        document.getElementById('loadingScreen').classList.add('hidden');
         document.getElementById('pendingScreen').classList.remove('hidden');
         return;
       }
 
       if (!userData.workspaceId) {
-        if (loadingScreen) loadingScreen.classList.add('hidden');
+        document.getElementById('loadingScreen').classList.add('hidden');
         document.getElementById('setupWorkspaceModal').classList.remove('hidden');
         return;
       }
@@ -62,19 +60,17 @@ auth.onAuthStateChanged(async (userAuth) => {
         currentWorkspace.metas = userData.metas;
       }
     } else {
-      if (loadingScreen) loadingScreen.classList.add('hidden');
+      document.getElementById('loadingScreen').classList.add('hidden');
       document.getElementById('pendingScreen').classList.remove('hidden');
       return;
     }
 
-    if (loadingScreen) loadingScreen.classList.add('hidden');
+    document.getElementById('loadingScreen').classList.add('hidden');
     initUserSession();
 
   } catch (err) {
-    console.error("Erro no carregamento do utilizador:", err);
-    if (loadingScreen) {
-      loadingScreen.innerHTML = `<p class="text-xs text-rose-500 font-bold p-4 text-center">Erro ao carregar dados. Tente atualizar a página.</p>`;
-    }
+    console.error(err);
+    document.getElementById('loadingScreen').innerHTML = `<p class="text-xs text-rose-600 font-bold">Erro ao carregar dados. Tente atualizar a página.</p>`;
   }
 });
 
@@ -109,14 +105,6 @@ async function salvarMetasGrupo(e) {
 
   errorDiv.classList.add('hidden');
 
-  const btnMeta = document.querySelector('#metasModal button[type="submit"]');
-  const textoOriginal = btnMeta ? btnMeta.innerText : '';
-  if (btnMeta) {
-    btnMeta.disabled = true;
-    btnMeta.classList.add('opacity-50', 'cursor-not-allowed');
-    btnMeta.innerText = "A SALVAR...";
-  }
-
   try {
     const novasMetas = { fixos, gerais, lazer, invest };
     await db.collection('users').doc(currentUser.id).update({ metas: novasMetas });
@@ -127,12 +115,6 @@ async function salvarMetasGrupo(e) {
     alert("Metas atualizadas com sucesso!");
   } catch (err) {
     alert("Erro ao salvar metas.");
-  } finally {
-    if (btnMeta) {
-      btnMeta.disabled = false;
-      btnMeta.classList.remove('opacity-50', 'cursor-not-allowed');
-      btnMeta.innerText = textoOriginal;
-    }
   }
 }
 
@@ -159,8 +141,6 @@ async function criarNovoWorkspace() {
     const novoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
     const workspaceId = 'ws_' + currentUser.id;
     const metasPadrao = { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
-
-    mostrarSetupMsg("A criar novo grupo...", "info");
 
     await db.collection('users').doc(currentUser.id).update({
       workspaceId: workspaceId,
@@ -394,37 +374,18 @@ async function handleSaveTransaction(e) {
   const date = document.getElementById('txDate').value;
   const cat = document.getElementById('txCat').value;
 
-  const btnSubmit = document.querySelector('#newTxModal button[type="submit"]');
-  const textoOriginal = btnSubmit ? btnSubmit.innerText : '';
-  if (btnSubmit) {
-    btnSubmit.disabled = true;
-    btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
-    btnSubmit.innerText = "A GUARDAR...";
-  }
+  const newTx = {
+    desc, amount, type, cat,
+    userId: currentUser.id,
+    userEmail: currentUser.email,
+    workspaceId: currentWorkspace.id,
+    month: activeMonth,
+    date
+  };
 
-  try {
-    const newTx = {
-      desc, amount, type, cat,
-      userId: currentUser.id,
-      userEmail: currentUser.email,
-      workspaceId: currentWorkspace.id,
-      month: activeMonth,
-      date
-    };
-
-    await db.collection('transacoes').add(newTx);
-    closeNewTxModal();
-    document.getElementById('txForm').reset();
-  } catch (err) {
-    console.error("Erro ao guardar transação:", err);
-    alert("Erro ao guardar a transação. Tente novamente.");
-  } finally {
-    if (btnSubmit) {
-      btnSubmit.disabled = false;
-      btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
-      btnSubmit.innerText = textoOriginal;
-    }
-  }
+  await db.collection('transacoes').add(newTx);
+  closeNewTxModal();
+  document.getElementById('txForm').reset();
 }
 
 async function deleteTransaction(id) {
