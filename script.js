@@ -114,10 +114,10 @@ function carregarDadosMetasNoConfig() {
     document.getElementById(`labelUnidade${catKey}`).innerText = modoMetasAtual === 'perc' ? '%' : 'R$';
     
     if (modoMetasAtual === 'perc') {
-      document.getElementById(`cfgMeta${catKey}`).value = pct.toFixed(1);
+      document.getElementById(`cfgMeta${catKey}`).value = pct > 0 ? pct.toFixed(1) : '';
       document.getElementById(`subMeta${catKey}`).innerText = `= R$ ${valorDinheiro.toFixed(2)}`;
     } else {
-      document.getElementById(`cfgMeta${catKey}`).value = valorDinheiro.toFixed(2);
+      document.getElementById(`cfgMeta${catKey}`).value = valorDinheiro > 0 ? valorDinheiro.toFixed(2) : '';
       document.getElementById(`subMeta${catKey}`).innerText = `= ${pct.toFixed(1)}%`;
     }
   });
@@ -149,23 +149,38 @@ async function salvarMetasGrupoConfig(e) {
   const income = currentTx.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
   const baseEntradas = income > 0 ? income : 1;
 
-  let fixos = parseFloat(document.getElementById('cfgMetaFixos').value) || 0;
-  let gerais = parseFloat(document.getElementById('cfgMetaGerais').value) || 0;
-  let lazer = parseFloat(document.getElementById('cfgMetaLazer').value) || 0;
-  let invest = parseFloat(document.getElementById('cfgMetaInvest').value) || 0;
+  let fixosInput = document.getElementById('cfgMetaFixos').value;
+  let geraisInput = document.getElementById('cfgMetaGerais').value;
+  let lazerInput = document.getElementById('cfgMetaLazer').value;
+  let investInput = document.getElementById('cfgMetaInvest').value;
 
+  const errorDiv = document.getElementById('metaConfigErrorMsg');
+
+  if (fixosInput === '' || geraisInput === '' || lazerInput === '' || investInput === '') {
+    errorDiv.innerText = "Preencha obrigatoriamente todos os 4 campos de metas.";
+    errorDiv.classList.remove('hidden');
+    return;
+  }
+
+  let fixos = parseFloat(fixosInput);
+  let gerais = parseFloat(geraisInput);
+  let lazer = parseFloat(lazerInput);
+  let invest = parseFloat(investInput);
+
+  let somaCalculada = 0;
   if (modoMetasAtual === 'dinheiro') {
+    const somaDinheiro = fixos + gerais + lazer + invest;
+    somaCalculada = Math.round((somaDinheiro / baseEntradas) * 10000) / 100;
     fixos = (fixos / baseEntradas) * 100;
     gerais = (gerais / baseEntradas) * 100;
     lazer = (lazer / baseEntradas) * 100;
     invest = (invest / baseEntradas) * 100;
+  } else {
+    somaCalculada = Math.round((fixos + gerais + lazer + invest) * 100) / 100;
   }
 
-  const soma = Math.round((fixos + gerais + lazer + invest) * 100) / 100;
-  const errorDiv = document.getElementById('metaConfigErrorMsg');
-
-  if (Math.abs(soma - 100) > 0.8) {
-    errorDiv.innerText = `A soma total deve ser 100% (ou equivalente em R$). Atual: ${soma.toFixed(1)}%.`;
+  if (Math.abs(somaCalculada - 100) > 0.1) {
+    errorDiv.innerText = `A soma total das metas deve ser exatamente 100%. Atualmente está em ${somaCalculada.toFixed(1)}%.`;
     errorDiv.classList.remove('hidden');
     return;
   }
@@ -482,9 +497,16 @@ function changeActiveMonth(m) {
 function toggleTxTypeUI() {
   const type = document.querySelector('input[name="txType"]:checked').value;
   const catSelect = document.getElementById('txCat');
+  const labelEntrada = document.getElementById('labelTabEntrada');
+  const labelSaida = document.getElementById('labelTabSaida');
+
   if (type === 'INCOME') {
+    labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-emerald-600 shadow-2xs transition";
+    labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
     catSelect.innerHTML = `<option value="Salário">💼 Salário</option><option value="Renda Extra">✨ Renda Extra</option>`;
   } else {
+    labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition";
+    labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
     catSelect.innerHTML = `
       <option value="Gastos Fixos">🏠 Gastos Fixos</option>
       <option value="Gastos Gerais">🛒 Gastos Gerais</option>
