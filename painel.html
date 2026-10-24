@@ -206,33 +206,44 @@
     </div>
 
     <!-- ABAS: MURAL / LOUSA -->
+        <!-- ABAS: MURAL / LOUSA -->
     <div id="tab-mural" class="space-y-4 hidden">
-      <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-2xs space-y-4 text-center">
-        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-note-sticky text-amber-500 mr-1.5"></i>Mural do Grupo</h3>
+      <!-- Cartão principal com a imagem de fundo aplicada diretamente -->
+      <div class="p-6 rounded-[2.5rem] shadow-xl border border-slate-200/60 papel-mural space-y-4 text-center relative overflow-hidden">
         
-        <div id="lousaConteudo" class="py-2">
-          <p class="text-xs text-slate-400 italic">Mural limpo. Escreva um recado!</p>
+        <!-- Camada translúcida opcional para o texto ficar bem legível sobre a imagem -->
+        <div class="absolute inset-0 bg-white/70 backdrop-blur-[2px]"></div>
+
+        <!-- Conteúdo do Mural (Fica por cima da textura) -->
+        <div class="relative z-10 space-y-4">
+          <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-note-sticky text-amber-500 mr-1.5"></i>Mural do Grupo</h3>
+          
+          <div id="lousaConteudo" class="py-2">
+            <p class="text-xs text-slate-500 italic">Mural limpo. Escreva um recado!</p>
+          </div>
+
+          <div id="lousaAutorContainer" class="text-[10px] text-slate-500 font-semibold hidden">
+            Deixado por: <span id="lousaAutorNome" class="font-bold text-slate-800"></span>
+          </div>
+
+          <form onsubmit="escreverNaLousa(event)" class="space-y-2 pt-2 border-t border-slate-200/60">
+            <div class="relative">
+              <input type="text" id="inputLousaTexto" maxlength="25" oninput="atualizarContador(this)" placeholder="Deixe um recado (máx. 25 carac.)" class="w-full bg-white/90 border border-slate-300 rounded-2xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-blue-600 shadow-2xs" />
+            </div>
+            <div class="flex items-center justify-between px-1">
+              <span id="charCount" class="text-[9px] text-slate-500 font-semibold">25 restantes</span>
+              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-md">Fixar Recado</button>
+            </div>
+          </form>
+
+          <button id="btnLimparLousa" onclick="apagarLousa()" class="text-rose-600 hover:text-rose-800 text-[10px] font-bold hidden pt-1">
+            <i class="fa-solid fa-trash-can mr-1"></i>Limpar Mural
+          </button>
         </div>
 
-        <div id="lousaAutorContainer" class="text-[10px] text-slate-400 font-semibold hidden">
-          Deixado por: <span id="lousaAutorNome" class="font-bold text-slate-700"></span>
-        </div>
-
-        <form onsubmit="escreverNaLousa(event)" class="space-y-2 pt-2 border-t border-slate-100">
-          <div class="relative">
-            <input type="text" id="inputLousaTexto" maxlength="25" oninput="atualizarContador(this)" placeholder="Deixe um recado (máx. 25 carac.)" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-blue-600" />
-          </div>
-          <div class="flex items-center justify-between px-1">
-            <span id="charCount" class="text-[9px] text-slate-400 font-semibold">25 restantes</span>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-md">Fixar Recado</button>
-          </div>
-        </form>
-
-        <button id="btnLimparLousa" onclick="apagarLousa()" class="text-rose-500 hover:text-rose-700 text-[10px] font-bold hidden pt-1">
-          <i class="fa-solid fa-trash-can mr-1"></i>Limpar Mural
-        </button>
       </div>
     </div>
+
 
   </main>
 
