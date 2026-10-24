@@ -291,10 +291,10 @@ function ouvinteLousaGrupo() {
       const dados = docLousa.data();
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
-      // Aplica a imagem do papel (papel.jpg) e o estilo manuscrito
+      // Corrigido para garantir fundo nítido (papel.jpg) e cor de texto bem contrastante (slate-900 / escuro)
       lousaConteudo.innerHTML = `
-        <div class="p-6 sm:p-8 papel-mural rounded-3xl shadow-lg border border-slate-200/40 relative max-w-xs mx-auto rotate-1">
-          <p class="text-xl sm:text-2xl font-bold tracking-wide text-slate-800 fonte-manuscrita break-words drop-shadow-xs">"${dados.texto}"</p>
+        <div class="p-8 sm:p-10 papel-mural rounded-3xl shadow-xl border border-slate-200/60 relative max-w-xs mx-auto rotate-1 min-h-[140px] flex items-center justify-center">
+          <p class="text-2xl sm:text-3xl font-extrabold tracking-wide text-slate-900 fonte-manuscrita break-words drop-shadow-xs">"${dados.texto}"</p>
         </div>
       `;
       
