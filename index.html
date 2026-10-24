@@ -248,7 +248,10 @@
 
       try {
         const cred = await auth.createUserWithEmailAndPassword(email, pass);
-        await db.collection('users').doc(cred.user.uid).set({
+        const uid = cred.user.uid;
+
+        // Grava na coleção users do Firestore
+        await db.collection('users').doc(uid).set({
           email: email,
           status: 'pending',
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -256,11 +259,12 @@
 
         await auth.signOut();
 
-        alert("Conta solicitada com sucesso! Aguarde a aprovação do administrador.");
+        alert("Solicitação enviada com sucesso! Aguarde a aprovação do administrador.");
         closeRegisterModal();
         document.getElementById('registerForm').reset();
       } catch (err) {
-        errDiv.innerText = "Erro ao registrar: " + err.message;
+        console.error("Erro detalhado no registo:", err);
+        errDiv.innerText = "Erro ao registar: " + err.message;
         errDiv.classList.remove('hidden');
       }
     }
