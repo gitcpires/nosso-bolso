@@ -531,8 +531,13 @@ function renderCharts(fixed, general, leisure, invest) {
         },
         plugins: { 
           legend: { 
-            position: 'right', 
-            labels: { boxWidth: 8, font: { size: 9 }, padding: 6 } 
+            position: 'bottom', 
+            labels: { 
+              boxWidth: 8, 
+              font: { size: 9 }, 
+              padding: 8,
+              usePointStyle: true
+            } 
           } 
         }
       }
