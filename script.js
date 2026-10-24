@@ -494,6 +494,14 @@ function changeActiveMonth(m) {
   renderAll();
 }
 
+function selecionarTipoTx(tipo) {
+  const radio = document.querySelector(`input[name="txType"][value="${tipo}"]`);
+  if (radio) {
+    radio.checked = true;
+    toggleTxTypeUI();
+  }
+}
+
 function toggleTxTypeUI() {
   const type = document.querySelector('input[name="txType"]:checked').value;
   const catSelect = document.getElementById('txCat');
