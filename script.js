@@ -526,10 +526,13 @@ function renderCharts(fixed, general, leisure, invest) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: 2
+        },
         plugins: { 
           legend: { 
             position: 'right', 
-            labels: { boxWidth: 10, font: { size: 9 }, padding: 8 } 
+            labels: { boxWidth: 8, font: { size: 9 }, padding: 6 } 
           } 
         }
       }
