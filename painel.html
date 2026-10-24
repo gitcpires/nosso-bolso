@@ -92,7 +92,7 @@
   <header class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 shadow-2xs">
     <div class="mx-auto max-w-md space-y-2">
       
-      <!-- Perfil e Definições -->
+      <!-- Perfil com Indicador Online e Definições -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <div class="relative">
@@ -113,7 +113,7 @@
         </div>
       </div>
 
-      <!-- Seletor de Mês -->
+      <!-- Seletor de Mês (Completo até o fim do ano) -->
       <div class="flex items-center justify-between bg-gradient-to-r from-slate-100/90 to-blue-50/50 px-3 py-2 rounded-2xl border border-slate-200 shadow-inner">
         <span class="text-xs font-bold text-slate-600">Mês de Referência:</span>
         <select id="selectMonth" onchange="changeActiveMonth(this.value)" class="bg-white border border-slate-200 text-xs font-black text-blue-900 rounded-xl px-3 py-1.5 focus:outline-none shadow-2xs">
@@ -135,7 +135,7 @@
     </div>
   </header>
 
-  <!-- Conteúdo Principal por Abas com Espaçamento Reduzido (space-y-2.5) -->
+  <!-- Conteúdo Principal por Abas -->
   <main class="mx-auto max-w-md px-4 pt-3 space-y-2.5">
 
     <!-- ABAS: RESUMO -->
@@ -157,11 +157,11 @@
         </div>
       </div>
 
-      <!-- Card de Progresso de Metas Compacto -->
+      <!-- Card de Progresso de Metas Compacto (Sem o botão antigo) -->
       <div class="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Progresso de Metas</h3>
-          <button onclick="openMetasModal()" class="text-[10px] text-blue-600 font-bold hover:underline"><i class="fa-solid fa-sliders mr-1"></i>Ajustar Metas</button>
+          <span class="text-[10px] text-slate-400 font-bold"><i class="fa-solid fa-gear mr-1"></i>Ajustar em Configurações</span>
         </div>
         <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2"></div>
       </div>
@@ -243,7 +243,7 @@
     </button>
   </div>
 
-  <!-- Barra de Navegação Inferior com 5 Posições Uniformemente Distribuídas -->
+  <!-- Barra de Navegação Inferior -->
   <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2.5 shadow-lg">
     <div class="mx-auto max-w-md grid grid-cols-5 items-center">
       <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5">
@@ -254,7 +254,6 @@
         <i class="fa-solid fa-receipt text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Extrato</span>
       </button>
-      <!-- Espaço central reservado para o botão flutuante -->
       <div></div>
       <button onclick="switchTab('invest')" id="bottomNavInvest" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
         <i class="fa-solid fa-chart-line text-base"></i>
@@ -318,10 +317,11 @@
     </div>
   </div>
 
+  <!-- Modal de Perfil, Grupo e Ajuste de Metas Integrado -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
-    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-5 shadow-2xl max-h-[85vh] overflow-y-auto">
+    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <h3 class="text-xs font-extrabold text-slate-900 uppercase">Gestão do Grupo</h3>
+        <h3 class="text-xs font-extrabold text-slate-900 uppercase">Configurações e Grupo</h3>
         <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
@@ -331,6 +331,50 @@
         <button onclick="copyWorkspaceCountCode()" class="w-full py-2 bg-blue-600 text-white rounded-xl text-xs font-bold transition shadow-xs">
           <i class="fa-solid fa-copy mr-1.5"></i>Copiar Código
         </button>
+      </div>
+
+      <!-- Secção de Ajuste de Metas (Com escolha entre Dinheiro R$ ou Percentagem %) -->
+      <div class="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 space-y-3">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-extrabold text-blue-900 uppercase">Ajustar Metas do Mês</h4>
+          <!-- Alternador de Modo -->
+          <div class="flex bg-white p-0.5 rounded-lg border border-slate-200">
+            <button type="button" onclick="mudarModoMetas('perc')" id="btnModoPerc" class="px-2 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition"> % </button>
+            <button type="button" onclick="mudarModoMetas('dinheiro')" id="btnModoDinheiro" class="px-2 py-1 text-[10px] font-bold rounded-md text-slate-600 transition"> R$ </button>
+          </div>
+        </div>
+        <p class="text-[10px] text-slate-500">Insira os valores em percentagem (%) ou diretamente em dinheiro (R$). O sistema converte automaticamente!</p>
+
+        <form onsubmit="salvarMetasGrupoConfig(event)" class="space-y-2.5">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[9px] font-bold text-slate-500 mb-0.5">Gastos Fixos</label>
+              <input type="number" step="0.01" id="cfgMetaFixos" required oninput="calcularConversaoMetas('fixos')" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center bg-white" />
+              <span id="subMetaFixos" class="text-[9px] text-slate-400 block text-center mt-0.5">--</span>
+            </div>
+            <div>
+              <label class="block text-[9px] font-bold text-slate-500 mb-0.5">Gastos Gerais</label>
+              <input type="number" step="0.01" id="cfgMetaGerais" required oninput="calcularConversaoMetas('gerais')" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center bg-white" />
+              <span id="subMetaGerais" class="text-[9px] text-slate-400 block text-center mt-0.5">--</span>
+            </div>
+            <div>
+              <label class="block text-[9px] font-bold text-slate-500 mb-0.5">Lazer</label>
+              <input type="number" step="0.01" id="cfgMetaLazer" required oninput="calcularConversaoMetas('lazer')" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center bg-white" />
+              <span id="subMetaLazer" class="text-[9px] text-slate-400 block text-center mt-0.5">--</span>
+            </div>
+            <div>
+              <label class="block text-[9px] font-bold text-slate-500 mb-0.5">Investimentos</label>
+              <input type="number" step="0.01" id="cfgMetaInvest" required oninput="calcularConversaoMetas('invest')" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center bg-white" />
+              <span id="subMetaInvest" class="text-[9px] text-slate-400 block text-center mt-0.5">--</span>
+            </div>
+          </div>
+
+          <div id="metaConfigErrorMsg" class="text-[10px] font-bold text-rose-600 bg-rose-50 p-2 rounded-xl text-center hidden"></div>
+
+          <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold transition shadow-sm">
+            Guardar Novas Metas
+          </button>
+        </form>
       </div>
 
       <div class="space-y-2">
@@ -346,43 +390,6 @@
           <i class="fa-solid fa-power-off mr-1.5"></i>Terminar Sessão
         </button>
       </div>
-    </div>
-  </div>
-
-  <div id="metasModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
-    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-4 shadow-2xl">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <h3 class="text-xs font-extrabold text-slate-900 uppercase">Ajustar Metas (%)</h3>
-        <button onclick="closeMetasModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <p class="text-[11px] text-slate-500">Defina a percentagem ideal para cada categoria. A soma total deve ser exatamente 100%.</p>
-      
-      <form onsubmit="salvarMetasGrupo(event)" class="space-y-3">
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">Gastos Fixos (%)</label>
-            <input type="number" id="metaFixos" required class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center" />
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">Gastos Gerais (%)</label>
-            <input type="number" id="metaGerais" required class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center" />
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">Lazer (%)</label>
-            <input type="number" id="metaLazer" required class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-center" />
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1">Investimentos (%)</label>
-            <input type="number" id="metaInvest" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-center" />
-          </div>
-        </div>
-
-        <div id="metaErrorMsg" class="text-[11px] font-bold text-rose-600 bg-rose-50 p-2 rounded-xl text-center hidden"></div>
-
-        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-extrabold transition shadow-md">
-          Guardar Metas
-        </button>
-      </form>
     </div>
   </div>
 
