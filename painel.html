@@ -16,13 +16,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <style>
-    * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .glass-nav { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(16px); }
-    .fab-center { position: absolute; left: 50%; top: -22px; transform: translateX(-50%); }
-    .lousa-board { background: #1e293b; color: #f8fafc; border: 3px solid #334155; font-family: 'Courier New', Courier, monospace; }
-  </style>
+  <!-- Ficheiro CSS Externo Separado -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body class="bg-slate-100/70 text-slate-900 pb-36 antialiased selection:bg-blue-600 selection:text-white">
 
@@ -167,7 +162,7 @@
       <button onclick="switchTab('mural')" id="tabBtn-mural" class="pb-2 text-xs sm:text-sm font-bold text-slate-400 border-b-2 border-transparent whitespace-nowrap"><i class="fa-solid fa-chalkboard mr-1"></i> Mural</button>
     </div>
 
-    <!-- ABA 1: RESUMO (Cartões e Gráficos compactos lado a lado/embaixo) -->
+    <!-- ABA 1: RESUMO -->
     <div id="tab-resumo" class="space-y-2.5">
       <!-- Cartões de Categorias Compactos em Grelha 2x2 -->
       <div class="grid grid-cols-2 gap-2" id="cardsCategoryContainer"></div>
@@ -193,7 +188,7 @@
       </div>
     </div>
 
-    <!-- ABA 2: EXTRATO (Com filtros avançados por Membro e Categoria) -->
+    <!-- ABA 2: EXTRATO -->
     <div id="tab-extrato" class="hidden space-y-3">
       <div class="flex flex-col sm:flex-row gap-2">
         <input type="text" id="searchExpense" placeholder="Buscar lançamento..." oninput="renderTransactionsList(transactions)" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold w-full focus:outline-none" />
@@ -261,7 +256,7 @@
     </div>
   </main>
 
-  <!-- BARRA INFERIOR MOBILE COM 4 BOTÕES + PORTA-CARACTERÍSTICO CENTRAL (+) -->
+  <!-- BARRA INFERIOR MOBILE -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 backdrop-blur-md shadow-lg">
     <div class="relative max-w-md mx-auto grid grid-cols-4 items-center h-16 px-2">
       <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 transition active:scale-95">
@@ -918,7 +913,6 @@
     }
 
     function renderCharts(fixed, general, leisure, invest) {
-      // Gráfico de Pizza Compacto com Legenda ao Lado
       const ctxPie = document.getElementById('categoryPieChart');
       if (ctxPie) {
         if (categoryPieChartInstance) categoryPieChartInstance.destroy();
@@ -945,7 +939,6 @@
         });
       }
 
-      // Gráfico de Colunas Compacto
       const ctxBar = document.getElementById('categoryBarChart');
       if (ctxBar) {
         if (categoryBarChartInstance) categoryBarChartInstance.destroy();
