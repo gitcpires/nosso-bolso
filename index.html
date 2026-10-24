@@ -18,18 +18,18 @@
   <style>
     * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     
-    /* Fundo escuro com degradê refinado */
-    .bg-custom-dark {
-      background: linear-gradient(135deg, #090d16 0%, #121829 50%, #05070b 100%);
+    /* Fundo escuro imersivo com gradiente */
+    .bg-immersive {
+      background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0f172a 50%, #020617 100%);
     }
 
     /* Efeito de Vidro Fosco (Glassmorphism) */
     .glass-card {
-      background: rgba(255, 255, 255, 0.04);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
     }
 
     .glass-input {
@@ -39,64 +39,75 @@
     }
 
     .glass-input::placeholder {
-      color: rgba(255, 255, 255, 0.35);
+      color: rgba(255, 255, 255, 0.3);
     }
 
     .glass-input:focus {
-      background: rgba(255, 255, 255, 0.09);
-      border-color: rgba(217, 119, 6, 0.7);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(245, 158, 11, 0.6);
     }
 
-    /* Botão com degradê dourado/champanhe */
+    /* Botão com degradê dourado elegante */
     .btn-gold {
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
       color: #ffffff;
-      box-shadow: 0 8px 20px -4px rgba(217, 119, 6, 0.4);
+      box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.4);
     }
 
     .btn-gold:hover {
       background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
     }
+
+    /* Animação suave para os brilhos de fundo */
+    @keyframes pulse-slow {
+      0%, 100% { transform: scale(1); opacity: 0.4; }
+      50% { transform: scale(1.15); opacity: 0.7; }
+    }
+    .animate-glow {
+      animation: pulse-slow 8s ease-in-out infinite;
+    }
   </style>
 </head>
-<body class="bg-custom-dark text-slate-100 min-h-screen flex items-center justify-center p-4 antialiased">
+<body class="bg-immersive text-slate-100 min-h-screen flex items-center justify-center p-4 overflow-hidden relative antialiased">
 
-  <div class="w-full max-w-sm glass-card p-8 rounded-[2.5rem] space-y-7 relative overflow-hidden">
+  <!-- Elementos de luz de fundo para simular fumaça/profundidade -->
+  <div class="absolute -top-32 -left-32 w-80 h-80 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none animate-glow"></div>
+  <div class="absolute -bottom-32 -right-32 w-80 h-80 bg-amber-500/15 rounded-full blur-[100px] pointer-events-none animate-glow" style="animation-delay: 4s;"></div>
+
+  <div class="w-full max-w-sm glass-card p-8 rounded-[2.5rem] space-y-7 relative z-10">
     
-    <!-- Brilho subtil decorativo -->
-    <div class="absolute -top-20 -right-20 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
     <!-- Logótipo Dourado Minimalista -->
-    <div class="text-center space-y-4 pt-2">
+    <div class="text-center space-y-3 pt-1">
       <div class="w-16 h-16 bg-gradient-to-tr from-amber-500/20 to-amber-300/10 border border-amber-500/30 text-amber-400 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner">
         <i class="fa-solid fa-wallet"></i>
       </div>
+      <h1 class="text-lg font-black tracking-tight text-white">Nosso Bolso</h1>
     </div>
 
     <!-- Formulário de Login -->
     <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
       
-      <!-- Campo E-mail com Ícone -->
+      <!-- Campo E-mail -->
       <div class="relative">
         <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 text-xs">
           <i class="fa-regular fa-envelope"></i>
         </span>
-        <input type="email" id="loginEmail" required placeholder="E-mail" class="w-full rounded-2xl glass-input pl-11 pr-4 py-3.5 text-xs font-semibold focus:outline-none transition" />
+        <input type="email" id="loginEmail" required placeholder="Email" class="w-full rounded-2xl glass-input pl-11 pr-4 py-3.5 text-xs font-semibold focus:outline-none transition" />
       </div>
 
-      <!-- Campo Senha com Ícone e Botão Olho (Mostrar/Esconder) -->
+      <!-- Campo Senha -->
       <div class="space-y-1">
         <div class="relative">
           <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 text-xs">
             <i class="fa-solid fa-lock"></i>
           </span>
-          <input type="password" id="loginPassword" required placeholder="Senha" class="w-full rounded-2xl glass-input pl-11 pr-11 py-3.5 text-xs font-semibold focus:outline-none transition" />
+          <input type="password" id="loginPassword" required placeholder="Password" class="w-full rounded-2xl glass-input pl-11 pr-11 py-3.5 text-xs font-semibold focus:outline-none transition" />
           <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-white text-xs">
             <i id="eyeIcon" class="fa-solid fa-eye-slash"></i>
           </button>
         </div>
         <div class="text-right pt-1">
-          <a href="#" onclick="alert('Funcionalidade de recuperar senha em breve.')" class="text-[10px] text-slate-400 hover:text-amber-400 transition font-medium">Esqueceu a senha?</a>
+          <a href="#" onclick="alert('Funcionalidade de recuperar senha em breve.')" class="text-[10px] text-slate-400 hover:text-amber-400 transition font-medium">Forgot Password?</a>
         </div>
       </div>
 
@@ -104,14 +115,14 @@
 
       <!-- Botão LOGIN -->
       <button type="submit" id="loginBtn" class="w-full py-3.5 btn-gold rounded-2xl text-xs font-extrabold tracking-widest transition active:scale-95">
-        ENTRAR
+        LOGIN
       </button>
     </form>
 
-    <!-- Criar Conta / Registo -->
-    <div class="text-center pt-2">
-      <button onclick="openRegisterModal()" class="text-xs text-slate-400 hover:text-white font-medium transition">
-        Criar Conta / Solicitar Acesso
+    <!-- Criar Conta -->
+    <div class="text-center pt-1">
+      <button onclick="openRegisterModal()" class="text-xs text-slate-400 hover:text-amber-400 font-medium transition">
+        Create Account
       </button>
     </div>
   </div>
@@ -120,25 +131,25 @@
   <div id="registerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-sm glass-card p-6 rounded-[2.5rem] space-y-4 border border-white/10">
       <div class="flex items-center justify-between pb-2 border-b border-white/10">
-        <h3 class="text-sm font-extrabold text-white">Solicitar Acesso</h3>
+        <h3 class="text-sm font-extrabold text-white">Create Account</h3>
         <button onclick="closeRegisterModal()" class="text-slate-400 text-base hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <p class="text-xs text-slate-400 leading-relaxed">Insira o seu e-mail e crie uma senha. O acesso precisará de aprovação do administrador.</p>
       
       <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-3">
         <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">E-mail</label>
+          <label class="block text-xs font-bold text-slate-300 mb-1">Email</label>
           <input type="email" id="regEmail" required placeholder="seu@email.com" class="w-full rounded-xl glass-input px-3.5 py-3 text-xs font-bold focus:outline-none" />
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Senha (mín. 6 caracteres)</label>
+          <label class="block text-xs font-bold text-slate-300 mb-1">Password</label>
           <input type="password" id="regPassword" required placeholder="••••••••" class="w-full rounded-xl glass-input px-3.5 py-3 text-xs font-bold focus:outline-none" />
         </div>
 
         <div id="regErrorMsg" class="text-xs font-bold text-rose-300 text-center bg-rose-950/60 p-2 rounded-xl border border-rose-800/40 hidden"></div>
 
         <button type="submit" class="w-full py-3.5 btn-gold rounded-2xl text-xs font-extrabold tracking-wider transition shadow-md">
-          ENVIAR SOLICITAÇÃO
+          SUBMIT REQUEST
         </button>
       </form>
     </div>
@@ -161,7 +172,6 @@
     let tentativasFalhadas = 0;
     let bloqueadoAte = 0;
 
-    // Função para mostrar/esconder a senha ao clicar no olho
     function togglePassword() {
       const passInput = document.getElementById('loginPassword');
       const eyeIcon = document.getElementById('eyeIcon');
@@ -186,12 +196,11 @@
 
     async function handleLogin(e) {
       e.preventDefault();
-      
       const agora = Date.now();
       if (agora < bloqueadoAte) {
         const segundosRestantes = Math.ceil((bloqueadoAte - agora) / 1000);
         const errDiv = document.getElementById('loginErrorMsg');
-        errDiv.innerText = `Muitas tentativas incorretas. Aguarde ${segundosRestantes}s para tentar novamente.`;
+        errDiv.innerText = `Aguarde ${segundosRestantes}s para tentar novamente.`;
         errDiv.classList.remove('hidden');
         return;
       }
@@ -207,12 +216,10 @@
         tentativasFalhadas = 0; 
       } catch (err) {
         tentativasFalhadas++;
-        
         if (tentativasFalhadas >= 3) {
           bloqueadoAte = Date.now() + 30000; 
-          errDiv.innerText = "3 tentativas incorretas. Conta bloqueada por 30 segundos.";
+          errDiv.innerText = "Conta bloqueada por 30 segundos devido a várias tentativas.";
           errDiv.classList.remove('hidden');
-          
           btn.disabled = true;
           btn.classList.add('opacity-50', 'cursor-not-allowed');
 
@@ -222,7 +229,7 @@
               clearInterval(intervalo);
               btn.disabled = false;
               btn.classList.remove('opacity-50', 'cursor-not-allowed');
-              btn.innerText = "ENTRAR";
+              btn.innerText = "LOGIN";
               errDiv.classList.add('hidden');
               tentativasFalhadas = 0;
             } else {
@@ -230,8 +237,7 @@
             }
           }, 1000);
         } else {
-          const restam = 3 - tentativasFalhadas;
-          errDiv.innerText = `E-mail ou senha incorretos. Tem mais ${restam} tentativa(s).`;
+          errDiv.innerText = `Dados incorretos. Tentativa ${tentativasFalhadas}/3.`;
           errDiv.classList.remove('hidden');
         }
       }
@@ -254,11 +260,8 @@
           status: 'pending',
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-
-        // Termina a sessão imediatamente para enviar o pedido pendente ao admin sem entrar no painel
         await auth.signOut();
-
-        alert("Conta solicitada com sucesso! Aguarde a aprovação do administrador.");
+        alert("Solicitação enviada com sucesso! Aguarde a aprovação.");
         closeRegisterModal();
         document.getElementById('registerForm').reset();
       } catch (err) {
