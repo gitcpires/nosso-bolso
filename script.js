@@ -142,11 +142,15 @@ async function criarNovoWorkspace() {
     const workspaceId = 'ws_' + currentUser.id;
     const metasPadrao = { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
-    await db.collection('users').doc(currentUser.id).update({
+    mostrarSetupMsg("A criar novo grupo...", "info");
+
+    await db.collection('users').doc(currentUser.id).set({
       workspaceId: workspaceId,
       workspaceCode: novoCodigo,
-      metas: metasPadrao
-    });
+      metas: metasPadrao,
+      email: currentUser.email,
+      status: 'approved'
+    }, { merge: true });
 
     currentWorkspace.id = workspaceId;
     currentWorkspace.code = novoCodigo;
@@ -155,6 +159,7 @@ async function criarNovoWorkspace() {
     document.getElementById('setupWorkspaceModal').classList.add('hidden');
     initUserSession();
   } catch (err) {
+    console.error("Erro ao criar grupo:", err);
     mostrarSetupMsg("Erro ao criar grupo. Tente novamente.", "erro");
   }
 }
@@ -179,11 +184,13 @@ async function entrarGrupoExistente() {
     const targetWorkspaceId = wsData.workspaceId;
     const metasGrupo = wsData.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
-    await db.collection('users').doc(currentUser.id).update({
+    await db.collection('users').doc(currentUser.id).set({
       workspaceId: targetWorkspaceId,
       workspaceCode: codigoInput,
-      metas: metasGrupo
-    });
+      metas: metasGrupo,
+      email: currentUser.email,
+      status: 'approved'
+    }, { merge: true });
 
     currentWorkspace.id = targetWorkspaceId;
     currentWorkspace.code = codigoInput;
@@ -192,6 +199,7 @@ async function entrarGrupoExistente() {
     document.getElementById('setupWorkspaceModal').classList.add('hidden');
     initUserSession();
   } catch (err) {
+    console.error("Erro ao entrar no grupo:", err);
     mostrarSetupMsg("Erro ao entrar no grupo.", "erro");
   }
 }
