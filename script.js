@@ -18,7 +18,7 @@ let activeMonth = 'Outubro 2026';
 let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
 let lousaDocId = null;
-let modoMetasAtual = 'perc';
+let modoMetasAtual = 'perc'; // 'perc' ou 'dinheiro'
 
 auth.onAuthStateChanged(async (userAuth) => {
   if (!userAuth) {
@@ -41,7 +41,6 @@ auth.onAuthStateChanged(async (userAuth) => {
     const userDocRef = db.collection('users').doc(uid);
     let userDoc = await userDocRef.get();
     
-    // REDE DE SEGURANÇA: Se o documento não existir no Firestore, cria agora automaticamente como pendente
     if (!userDoc.exists) {
       await userDocRef.set({
         email: email,
@@ -207,30 +206,65 @@ async function salvarMetasGrupoConfig(e) {
 }
 
 async function deixarGrupo() {
-  const confirmacao = confirm("Tem certeza absoluta que deseja deixar este grupo?\n\nVocê perderá o acesso imediato a estas finanças e precisará de criar um novo grupo ou inserir um novo código de convite.");
-  if (!confirmacao) return;
-
   try {
-    await db.collection('users').doc(currentUser.id).update({
+    const wsIdAtual = currentWorkspace.id;
+    const uidAtual = currentUser.id;
+
+    const membrosSnapshot = await db.collection('users').where('workspaceId', '==', wsIdAtual).get();
+    const éOUltimo = membrosSnapshot.size <= 1;
+
+    if (éOUltimo) {
+      const confirmacao = confirm("Atenção: Você é o último utilizador deste grupo. Se sair, todos os dados financeiros e recados do mural serão apagados permanentemente. Deseja continuar?");
+      if (!confirmacao) return;
+    } else {
+      const confirmacao = confirm("Tem certeza que deseja sair deste grupo?");
+      if (!confirmacao) return;
+    }
+
+    await db.collection('users').doc(uidAtual).update({
       workspaceId: firebase.firestore.FieldValue.delete(),
       workspaceCode: firebase.firestore.FieldValue.delete(),
       metas: firebase.firestore.FieldValue.delete()
     });
 
+    if (éOUltimo) {
+      const batch = db.batch();
+
+      const txsQuery = await db.collection('transacoes').where('workspaceId', '==', wsIdAtual).get();
+      txsQuery.forEach(doc => batch.delete(doc.ref));
+
+      const lousaQuery = await db.collection('lousa').where('workspaceId', '==', wsIdAtual).get();
+      lousaQuery.forEach(doc => batch.delete(doc.ref));
+
+      await batch.commit();
+    }
+
     alert("Você saiu do grupo com sucesso.");
     window.location.reload();
   } catch (err) {
+    console.error(err);
     alert("Erro ao tentar deixar o grupo. Tente novamente.");
   }
 }
 
 async function criarNovoWorkspace() {
   try {
-    const novoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
+    mostrarSetupMsg("A gerar novo grupo...", "info");
+    let novoCodigo = '';
+    let codigoExiste = true;
+    let tentativas = 0;
+
+    while (codigoExiste && tentativas < 10) {
+      novoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
+      const checkQuery = await db.collection('users').where('workspaceCode', '==', novoCodigo).get();
+      if (checkQuery.empty) {
+        codigoExiste = false;
+      }
+      tentativas++;
+    }
+
     const workspaceId = 'ws_' + currentUser.id;
     const metasPadrao = { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
-
-    mostrarSetupMsg("A criar novo grupo...", "info");
 
     await db.collection('users').doc(currentUser.id).set({
       workspaceId: workspaceId,
