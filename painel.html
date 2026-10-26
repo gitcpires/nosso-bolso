@@ -11,7 +11,6 @@
   <link rel="icon" type="image/png" sizes="16x16" href="icone-app.png">
   <meta name="theme-color" content="#090d16">
 
-  
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -99,7 +98,7 @@
   <header class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 shadow-2xs">
     <div class="mx-auto max-w-md space-y-2">
       
-            <!-- Perfil com Indicador Online e Definições -->
+      <!-- Perfil com Indicador Online e Definições -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <div class="relative">
@@ -119,7 +118,6 @@
           </button>
         </div>
       </div>
-
 
       <!-- Seletor de Mês -->
       <div class="flex items-center justify-between bg-gradient-to-r from-slate-100/90 to-blue-50/50 px-3 py-2 rounded-2xl border border-slate-200 shadow-inner">
@@ -206,8 +204,6 @@
 
     <!-- ABAS: INVESTIMENTOS -->
     <div id="tab-invest" class="space-y-3 hidden">
-      
-      <!-- Dois Cartões: Mês Atual e Total Acumulado do Ano -->
       <div class="grid grid-cols-2 gap-2">
         <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-4 rounded-3xl text-white shadow-lg space-y-1">
           <span class="text-[9px] font-bold text-indigo-300 uppercase tracking-wider block">Investido no Mês</span>
@@ -218,20 +214,13 @@
           <div id="yearInvestTotalHeader" class="text-base sm:text-xl font-black text-white truncate">R$ 0,00</div>
         </div>
       </div>
-
       <div id="monthInvestmentsList" class="space-y-2"></div>
     </div>
 
-
-        <!-- ABAS: MURAL / LOUSA -->
+    <!-- ABAS: MURAL / LOUSA -->
     <div id="tab-mural" class="space-y-4 hidden">
-      <!-- Cartão principal que agora recebe a imagem de fundo a cobrir tudo -->
       <div class="p-6 rounded-[2.5rem] shadow-xl border border-slate-200/60 papel-mural space-y-4 text-center relative overflow-hidden">
-        
-        <!-- Camada translúcida suave por cima para manter os textos legíveis -->
         <div class="absolute inset-0 bg-white/60 backdrop-blur-[1px]"></div>
-
-        <!-- Conteúdo do Mural (Fica em cima da imagem de fundo) -->
         <div class="relative z-10 space-y-4">
           <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-note-sticky text-amber-500 mr-1.5"></i>Mural do Grupo</h3>
           
@@ -257,14 +246,12 @@
             <i class="fa-solid fa-trash-can mr-1"></i>Limpar Mural
           </button>
         </div>
-
       </div>
     </div>
 
-
   </main>
 
-  <!-- Botão Flutuante Redondo Original, Centralizado no Meio -->
+  <!-- Botão Flutuante Redondo -->
   <div class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-40">
     <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition text-xl border-2 border-white">
       <i class="fa-solid fa-plus"></i>
@@ -345,7 +332,7 @@
     </div>
   </div>
 
-  <!-- Modal de Configurações Compacto -->
+  <!-- Modal de Configurações -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-sm bg-white p-5 rounded-[2rem] space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto">
       
@@ -364,7 +351,9 @@
 
       <div class="bg-blue-50/40 p-3 rounded-2xl border border-blue-100 space-y-2.5">
         <div class="flex items-center justify-between">
-          <h4 class="text-xs font-extrabold text-blue-900 uppercase">Definir Metas</h4>
+          <h4 class="text-xs font-extrabold text-blue-900 uppercase">
+            Definir Metas <span id="metaTotalRestante" class="text-[10px] font-bold text-slate-500 normal-case ml-1">(Total: 0%)</span>
+          </h4>
           <div class="flex bg-white p-0.5 rounded-lg border border-slate-200 shadow-2xs">
             <button type="button" onclick="mudarModoMetas('perc')" id="btnModoPerc" class="px-2.5 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition">%</button>
             <button type="button" onclick="mudarModoMetas('dinheiro')" id="btnModoDinheiro" class="px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 transition">R$</button>
