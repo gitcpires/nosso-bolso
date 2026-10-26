@@ -449,7 +449,6 @@ function ouvinteLousaGrupo() {
         lousaAutorContainer.classList.add('hidden');
         btnLimparLousa.classList.add('hidden');
         
-        // Esconder bolinha do mural se estiver limpo
         const dotMural = document.getElementById('dotMural');
         if (dotMural) dotMural.classList.add('hidden');
         return;
@@ -470,11 +469,11 @@ function ouvinteLousaGrupo() {
       lousaAutorContainer.classList.remove('hidden');
       btnLimparLousa.classList.remove('hidden');
 
-      // Gestão da bolinha vermelha do Mural
+      // Bolinha vermelha do Mural: Aparece APENAS se o recado foi escrito por OUTRO utilizador e ainda não foi visto
       const vistoMuralId = localStorage.getItem('visto_mural_id');
       const dotMural = document.getElementById('dotMural');
       if (dotMural) {
-        if (lousaDocId !== vistoMuralId) {
+        if (dados.userId !== currentUser.id && lousaDocId !== vistoMuralId) {
           dotMural.classList.remove('hidden');
         } else {
           dotMural.classList.add('hidden');
@@ -508,12 +507,14 @@ async function escreverNaLousa(e) {
     if (lousaDocId) {
       await db.collection('lousa').doc(lousaDocId).update({
         texto: texto,
+        userId: currentUser.id,
         userEmail: currentUser.email,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     } else {
       await db.collection('lousa').add({
         workspaceId: currentWorkspace.id,
+        userId: currentUser.id,
         userEmail: currentUser.email,
         texto: texto,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -637,11 +638,11 @@ function toggleTxTypeUI() {
 function renderAll() {
   const currentTx = transactions.filter(t => t.month === activeMonth);
   
-  // Controlo da bolinha vermelha do Extrato (se houver transações pendentes no geral)
-  const temPendentes = transactions.some(t => t.confirmado === false);
+  // Bolinha vermelha do Extrato: Aparece APENAS se houver transações pendentes criadas por OUTRO utilizador
+  const temPendentesOutro = transactions.some(t => t.confirmado === false && t.userId !== currentUser.id);
   const dotExtrato = document.getElementById('dotExtrato');
   if (dotExtrato) {
-    if (temPendentes) {
+    if (temPendentesOutro) {
       dotExtrato.classList.remove('hidden');
     } else {
       dotExtrato.classList.add('hidden');
@@ -922,7 +923,7 @@ function switchTab(tab) {
     }
   });
 
-  // Se entrar no Mural, limpa a bolinha vermelha guardando o ID atual visto
+  // Se entrar no Mural, limpa a bolinha vermelha para ti
   if (tab === 'mural' && lousaDocId) {
     localStorage.setItem('visto_mural_id', lousaDocId);
     const dotMural = document.getElementById('dotMural');
