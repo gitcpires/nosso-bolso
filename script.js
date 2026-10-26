@@ -760,8 +760,21 @@ function renderTransactionsList(currentTx) {
   });
 }
 
-function renderInvestments(currentTx, totalInvested) {
-  document.getElementById('monthInvestTotalHeader').innerText = `R$ ${totalInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+function renderInvestments(currentTx, totalInvestedThisMonth) {
+  // 1. Atualiza o valor do mês atual
+  document.getElementById('monthInvestTotalHeader').innerText = `R$ ${totalInvestedThisMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+  // 2. Calcula o Investimento Total do Ano (soma todos os aportes do grupo cujo ano seja 2026)
+  const totalYearInvested = transactions
+    .filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE' && (t.month.includes('2026') || (t.date && t.date.startsWith('2026'))))
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const yearHeader = document.getElementById('yearInvestTotalHeader');
+  if (yearHeader) {
+    yearHeader.innerText = `R$ ${totalYearInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  }
+
+  // 3. Renderiza a lista do mês atual
   const investList = document.getElementById('monthInvestmentsList');
   const invests = currentTx.filter(t => t.cat === 'Investimentos');
 
