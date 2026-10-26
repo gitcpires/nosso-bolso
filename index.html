@@ -1,220 +1,263 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Nosso Bolso - Entrar</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nosso Bolso - Login</title>
+    
+    <!-- Ícone e Configuração para Telemóvel -->
+    <link rel="apple-touch-icon" sizes="180x180" href="icone-app.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icone-app.png">
+    
+    <!-- Importação de ícones FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <!-- Ícone e Configuração de Atalho para Telemóvel -->
-  <link rel="apple-touch-icon" sizes="180x180" href="icone-app.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="icone-app.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="icone-app.png">
-  <meta name="theme-color" content="#090d16">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        body {
+            background-color: #0f1117;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+        .login-card {
+            background: #0f1117;
+            width: 380px;
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 14px 14px 28px #08090d, -14px -14px 28px #161921;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-  <style>
-    * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-    .bg-custom-dark { background: linear-gradient(135deg, #090d16 0%, #121829 50%, #05070b 100%); }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.04);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    }
-    .glass-input {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #f8fafc;
-    }
-    .glass-input::placeholder { color: rgba(255, 255, 255, 0.35); }
-    .glass-input:focus {
-      background: rgba(255, 255, 255, 0.09);
-      border-color: rgba(217, 119, 6, 0.7);
-    }
-    .btn-gold {
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      color: #ffffff;
-      box-shadow: 0 8px 20px -4px rgba(217, 119, 6, 0.4);
-    }
-    .btn-gold:hover { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); }
-  </style>
+        .logo-container {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            background: #0f1117;
+            box-shadow: 6px 6px 12px #08090d, -6px -6px 12px #161921;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 35px;
+        }
+
+        .logo-container img {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+        }
+
+        .input-group {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .input-group i {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 18px;
+            color: #7b849c;
+            font-size: 16px;
+        }
+
+        .input-group .toggle-password {
+            left: auto;
+            right: 18px;
+            cursor: pointer;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            background: #0f1117;
+            border: none;
+            outline: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 14px;
+            box-shadow: inset 4px 4px 8px #08090d, inset -4px -4px 8px #161921;
+        }
+
+        .input-group input::placeholder {
+            color: #5a637a;
+        }
+
+        .btn-entrar {
+            width: 100%;
+            padding: 15px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: #fff;
+            font-weight: bold;
+            font-size: 15px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 4px 4px 10px #08090d, -4px -4px 10px #161921;
+            transition: 0.2s ease;
+        }
+
+        .btn-entrar:active {
+            box-shadow: inset 3px 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .footer-link {
+            margin-top: 30px;
+            font-size: 13px;
+            color: #7b849c;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: #f39c12;
+        }
+
+        #errorMsg {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
 </head>
-<body class="bg-custom-dark text-slate-100 min-h-screen flex items-center justify-center p-4 antialiased">
+<body>
 
-  <div class="w-full max-w-sm glass-card p-8 rounded-[2.5rem] space-y-7 relative overflow-hidden">
-    <div class="absolute -top-20 -right-20 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="login-card">
+        <!-- Logo / Ícone Superior -->
+        <div class="logo-container">
+            <i class="fa-solid fa-chart-pie" style="font-size: 28px; color: #00f2fe;"></i>
+        </div>
 
-    <div class="text-center space-y-4 pt-2">
-      <div class="w-16 h-16 rounded-2xl overflow-hidden border border-amber-500/30 flex items-center justify-center mx-auto shadow-inner bg-slate-900">
-        <img src="icone-app.png" alt="Nosso Bolso" class="h-full w-full object-cover">
-      </div>
-    </div>
+        <!-- Campo E-mail -->
+        <div class="input-group">
+            <i class="fa-regular fa-envelope"></i>
+            <input type="email" id="loginEmail" placeholder="E-mail" required>
+        </div>
 
-
-    <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 text-xs">
-          <i class="fa-regular fa-envelope"></i>
-        </span>
-        <input type="email" id="loginEmail" required placeholder="E-mail" class="w-full rounded-2xl glass-input pl-11 pr-4 py-3.5 text-xs font-semibold focus:outline-none transition" />
-      </div>
-
-      <div class="space-y-1">
-        <div class="relative">
-          <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400 text-xs">
+        <!-- Campo Senha -->
+        <div class="input-group">
             <i class="fa-solid fa-lock"></i>
-          </span>
-          <input type="password" id="loginPassword" required placeholder="Senha" class="w-full rounded-2xl glass-input pl-11 pr-11 py-3.5 text-xs font-semibold focus:outline-none transition" />
-          <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-white text-xs">
-            <i id="eyeIcon" class="fa-solid fa-eye-slash"></i>
-          </button>
+            <input type="password" id="loginPassword" placeholder="Senha" required>
+            <i class="fa-regular fa-eye-slash toggle-password" id="toggleEye" onclick="togglePasswordVisibility()"></i>
         </div>
-      </div>
 
-      <div id="loginErrorMsg" class="text-xs font-bold text-rose-300 text-center bg-rose-950/60 p-2.5 rounded-xl border border-rose-800/40 hidden"></div>
+        <!-- Mensagem de Erro -->
+        <div id="errorMsg"></div>
 
-      <button type="submit" id="loginBtn" class="w-full py-3.5 btn-gold rounded-2xl text-xs font-extrabold tracking-widest transition active:scale-95">
-        ENTRAR
-      </button>
-    </form>
+        <!-- Botão Entrar -->
+        <button class="btn-entrar" onclick="fazerLogin()">ENTRAR</button>
 
-    <div class="text-center pt-2">
-      <button onclick="openRegisterModal()" class="text-xs text-slate-400 hover:text-white font-medium transition">
-        Criar Conta / Solicitar Acesso
-      </button>
+        <!-- Link Criar Conta -->
+        <a href="#" onclick="criarConta(event)" class="footer-link">Criar Conta / Solicitar Acesso</a>
     </div>
-  </div>
 
-  <div id="registerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
-    <div class="w-full max-w-sm glass-card p-6 rounded-[2.5rem] space-y-4 border border-white/10">
-      <div class="flex items-center justify-between pb-2 border-b border-white/10">
-        <h3 class="text-sm font-extrabold text-white">Solicitar Acesso</h3>
-        <button onclick="closeRegisterModal()" class="text-slate-400 text-base hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <p class="text-xs text-slate-400 leading-relaxed">Insira o seu e-mail e crie uma senha. O acesso precisará de aprovação do administrador.</p>
-      
-      <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-3">
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">E-mail</label>
-          <input type="email" id="regEmail" required placeholder="seu@email.com" class="w-full rounded-xl glass-input px-3.5 py-3 text-xs font-bold focus:outline-none" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">Senha (mín. 6 caracteres)</label>
-          <input type="password" id="regPassword" required placeholder="••••••••" class="w-full rounded-xl glass-input px-3.5 py-3 text-xs font-bold focus:outline-none" />
-        </div>
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+          apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
+          authDomain: "nosso-bolso-c8d29.firebaseapp.com",
+          projectId: "nosso-bolso-c8d29",
+          storageBucket: "nosso-bolso-c8d29.firebasestorage.app",
+          messagingSenderId: "812166717623",
+          appId: "1:812166717623:web:ba3a4c0db18484be47ad32"
+        };
 
-        <div id="regErrorMsg" class="text-xs font-bold text-rose-300 text-center bg-rose-950/60 p-2 rounded-xl border border-rose-800/40 hidden"></div>
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        <button type="submit" class="w-full py-3.5 btn-gold rounded-2xl text-xs font-extrabold tracking-wider transition shadow-md">
-          ENVIAR SOLICITAÇÃO
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
-      authDomain: "nosso-bolso-c8d29.firebaseapp.com",
-      projectId: "nosso-bolso-c8d29",
-      storageBucket: "nosso-bolso-c8d29.firebasestorage.app",
-      messagingSenderId: "812166717623",
-      appId: "1:812166717623:web:ba3a4c0db18484be47ad32"
-    };
-
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    function togglePassword() {
-      const passInput = document.getElementById('loginPassword');
-      const eyeIcon = document.getElementById('eyeIcon');
-      if (passInput.type === 'password') {
-        passInput.type = 'text';
-        eyeIcon.className = 'fa-solid fa-eye';
-      } else {
-        passInput.type = 'password';
-        eyeIcon.className = 'fa-solid fa-eye-slash';
-      }
-    }
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        if (user.email === 'c.pirespm@gmail.com') {
-          window.location.replace("admin.html");
-        } else {
-          window.location.replace("painel.html");
+        // Função para alternar visibilidade da senha
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('loginPassword');
+            const eyeIcon = document.getElementById('toggleEye');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeIcon.className = 'fa-regular fa-eye toggle-password';
+            } else {
+                passInput.type = 'password';
+                eyeIcon.className = 'fa-regular fa-eye-slash toggle-password';
+            }
         }
-      }
-    });
 
-    async function handleLogin(e) {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value.trim();
-      const pass = document.getElementById('loginPassword').value.trim();
-      const errDiv = document.getElementById('loginErrorMsg');
-      errDiv.classList.add('hidden');
+        // Função de Login
+        async function fazerLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.innerText = '';
 
-      try {
-        await auth.signInWithEmailAndPassword(email, pass);
-      } catch (err) {
-        errDiv.innerText = "E-mail ou senha incorretos.";
-        errDiv.classList.remove('hidden');
-      }
-    }
+            if (!email || !password) {
+                errorDiv.innerText = 'Preencha o e-mail e a senha.';
+                return;
+            }
 
-    function openRegisterModal() { document.getElementById('registerModal').classList.remove('hidden'); }
-    function closeRegisterModal() { document.getElementById('registerModal').classList.add('hidden'); }
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
 
-    async function handleRegister(e) {
-      e.preventDefault();
-      const email = document.getElementById('regEmail').value.trim();
-      const pass = document.getElementById('regPassword').value.trim();
-      const errDiv = document.getElementById('regErrorMsg');
-      const btnReg = document.querySelector('#registerForm button[type="submit"]');
-      errDiv.classList.add('hidden');
-
-      if (btnReg) {
-        btnReg.disabled = true;
-        btnReg.innerText = "A ENVIAR...";
-      }
-
-      try {
-        const cred = await auth.createUserWithEmailAndPassword(email, pass);
-        const uid = cred.user.uid;
-
-        await db.collection('users').doc(uid).set({
-          email: email,
-          status: 'pending',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        await auth.signOut();
-
-        alert("Solicitação enviada com sucesso! Aguarde a aprovação do administrador.");
-        closeRegisterModal();
-        document.getElementById('registerForm').reset();
-      } catch (err) {
-        console.error("Erro detalhado no registo:", err);
-        errDiv.innerText = "Erro ao registar: " + (err.message || "Tente novamente.");
-        errDiv.classList.remove('hidden');
-      } finally {
-        if (btnReg) {
-          btnReg.disabled = false;
-          btnReg.innerText = "ENVIAR SOLICITAÇÃO";
+                // Redirecionar dependendo se é admin ou utilizador normal
+                if (user.email === 'c.pirespm@gmail.com') {
+                    window.location.replace('admin.html');
+                } else {
+                    window.location.replace('painel.html');
+                }
+            } catch (err) {
+                console.error(err);
+                errorDiv.innerText = 'Erro ao entrar: Verifique o seu e-mail e senha.';
+            }
         }
-      }
-    }
-  </script>
+
+        // Função para criar conta (registar novo utilizador pendente)
+        async function criarConta(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.innerText = '';
+
+            if (!email || !password) {
+                errorDiv.innerText = 'Digite um e-mail e uma senha para se registar.';
+                return;
+            }
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                // Criar registo na coleção de utilizadores como pendente
+                await db.collection('users').doc(user.uid).set({
+                    email: user.email,
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert('Conta criada com sucesso! O seu acesso está pendente de aprovação pelo administrador.');
+                window.location.replace('painel.html');
+            } catch (err) {
+                console.error(err);
+                errorDiv.innerText = 'Erro ao criar conta: ' + err.message;
+            }
+        }
+    </script>
 </body>
 </html>
