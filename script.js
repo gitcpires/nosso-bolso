@@ -320,6 +320,33 @@ async function criarNovoWorkspace() {
   }
 }
 
+function alternarModoEscuro() {
+  const htmlEl = document.documentElement;
+  const themeIcon = document.getElementById('themeIcon');
+  
+  if (htmlEl.classList.contains('dark')) {
+    htmlEl.classList.remove('dark');
+    localStorage.setItem('nosso_bolso_theme', 'light');
+    if (themeIcon) themeIcon.className = "fa-solid fa-moon text-xs";
+  } else {
+    htmlEl.classList.add('dark');
+    localStorage.setItem('nosso_bolso_theme', 'dark');
+    if (themeIcon) themeIcon.className = "fa-solid fa-sun text-xs text-amber-400";
+  }
+}
+
+// Inicializar o tema guardado ao carregar a página
+window.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('nosso_bolso_theme');
+  const themeIcon = document.getElementById('themeIcon');
+  if (savedTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+    if (themeIcon) themeIcon.className = "fa-solid fa-sun text-xs text-amber-400";
+  }
+});
+
+
+
 async function entrarGrupoExistente() {
   const codigoInput = document.getElementById('inputWorkspaceCode').value.trim();
   if (!codigoInput || codigoInput.length < 4) {
