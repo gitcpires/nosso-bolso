@@ -84,7 +84,7 @@ function openProfileModal() {
   document.getElementById('profileModal').classList.remove('hidden');
   carregarMembrosDoGrupo();
   carregarDadosMetasNoConfig();
-  calcularConversaoMetas('fixos'); // Atualiza o somatório restante ao abrir o modal
+  calcularConversaoMetas('fixos');
 }
 
 function closeProfileModal() {
@@ -98,13 +98,13 @@ function mudarModoMetas(modo) {
   
   if (modo === 'perc') {
     btnPerc.className = "px-2.5 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
-    btnDinheiro.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 transition";
+    btnDinheiro.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-400 transition";
   } else {
     btnDinheiro.className = "px-2.5 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
-    btnPerc.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 transition";
+    btnPerc.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-400 transition";
   }
   carregarDadosMetasNoConfig();
-  calcularConversaoMetas('fixos'); // Atualiza instantaneamente ao trocar entre % e R$
+  calcularConversaoMetas('fixos');
 }
 
 function carregarDadosMetasNoConfig() {
@@ -118,18 +118,25 @@ function carregarDadosMetasNoConfig() {
     const pct = metas[keyLower] || 0;
     const valorDinheiro = baseEntradas * (pct / 100);
 
-    document.getElementById(`labelUnidade${catKey}`).innerText = modoMetasAtual === 'perc' ? '%' : 'R$';
+    const labelEl = document.getElementById(`labelUnidade${catKey}`);
+    if (labelEl) labelEl.innerText = modoMetasAtual === 'perc' ? '%' : 'R$';
     
-    if (modoMetasAtual === 'perc') {
-      document.getElementById(`cfgMeta${catKey}`).value = pct > 0 ? pct.toFixed(1) : '';
-      document.getElementById(`subMeta${catKey}`).innerText = `= R$ ${valorDinheiro.toFixed(2)}`;
-    } else {
-      document.getElementById(`cfgMeta${catKey}`).value = valorDinheiro > 0 ? valorDinheiro.toFixed(2) : '';
-      document.getElementById(`subMeta${catKey}`).innerText = `= ${pct.toFixed(1)}%`;
+    const inputEl = document.getElementById(`cfgMeta${catKey}`);
+    const subEl = document.getElementById(`subMeta${catKey}`);
+
+    if (inputEl && subEl) {
+      if (modoMetasAtual === 'perc') {
+        inputEl.value = pct > 0 ? pct.toFixed(1) : '';
+        subEl.innerText = `= R$ ${valorDinheiro.toFixed(2)}`;
+      } else {
+        inputEl.value = valorDinheiro > 0 ? valorDinheiro.toFixed(2) : '';
+        subEl.innerText = `= ${pct.toFixed(1)}%`;
+      }
     }
   });
 
-  document.getElementById('metaConfigErrorMsg').classList.add('hidden');
+  const errEl = document.getElementById('metaConfigErrorMsg');
+  if (errEl) errEl.classList.add('hidden');
 }
 
 function calcularConversaoMetas(catKey) {
@@ -139,6 +146,8 @@ function calcularConversaoMetas(catKey) {
 
   const inputEl = document.getElementById(`cfgMeta${catKey.charAt(0).toUpperCase() + catKey.slice(1)}`);
   const subEl = document.getElementById(`subMeta${catKey.charAt(0).toUpperCase() + catKey.slice(1)}`);
+  if (!inputEl || !subEl) return;
+
   const val = parseFloat(inputEl.value) || 0;
 
   if (modoMetasAtual === 'perc') {
@@ -149,10 +158,10 @@ function calcularConversaoMetas(catKey) {
     subEl.innerText = `= ${emPerc.toFixed(1)}%`;
   }
 
-  const fixosVal = parseFloat(document.getElementById('cfgMetaFixos').value) || 0;
-  const geraisVal = parseFloat(document.getElementById('cfgMetaGerais').value) || 0;
-  const lazerVal = parseFloat(document.getElementById('cfgMetaLazer').value) || 0;
-  const investVal = parseFloat(document.getElementById('cfgMetaInvest').value) || 0;
+  const fixosVal = parseFloat(document.getElementById('cfgMetaFixos')?.value) || 0;
+  const geraisVal = parseFloat(document.getElementById('cfgMetaGerais')?.value) || 0;
+  const lazerVal = parseFloat(document.getElementById('cfgMetaLazer')?.value) || 0;
+  const investVal = parseFloat(document.getElementById('cfgMetaInvest')?.value) || 0;
 
   const spanRestante = document.getElementById('metaTotalRestante');
   if (spanRestante) {
@@ -320,33 +329,6 @@ async function criarNovoWorkspace() {
   }
 }
 
-function alternarModoEscuro() {
-  const htmlEl = document.documentElement;
-  const themeIcon = document.getElementById('themeIcon');
-  
-  if (htmlEl.classList.contains('dark')) {
-    htmlEl.classList.remove('dark');
-    localStorage.setItem('nosso_bolso_theme', 'light');
-    if (themeIcon) themeIcon.className = "fa-solid fa-moon text-xs";
-  } else {
-    htmlEl.classList.add('dark');
-    localStorage.setItem('nosso_bolso_theme', 'dark');
-    if (themeIcon) themeIcon.className = "fa-solid fa-sun text-xs text-amber-400";
-  }
-}
-
-// Inicializar o tema guardado ao carregar a página
-window.addEventListener('DOMContentLoaded', () => {
-  const savedTheme = localStorage.getItem('nosso_bolso_theme');
-  const themeIcon = document.getElementById('themeIcon');
-  if (savedTheme === 'dark') {
-    document.documentElement.classList.add('dark');
-    if (themeIcon) themeIcon.className = "fa-solid fa-sun text-xs text-amber-400";
-  }
-});
-
-
-
 async function entrarGrupoExistente() {
   const codigoInput = document.getElementById('inputWorkspaceCode').value.trim();
   if (!codigoInput || codigoInput.length < 4) {
@@ -431,9 +413,9 @@ async function carregarMembrosDoGrupo() {
       const ehVoce = emailMembro === currentUser.email ? ' (Você)' : '';
 
       containerMembros.innerHTML += `
-        <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100 shadow-2xs">
-          <span class="font-bold text-slate-700 truncate text-[11px]"><i class="fa-solid fa-user-circle text-blue-500 mr-1.5"></i>${emailMembro}${ehVoce}</span>
-          <span class="text-[9px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
+        <div class="flex items-center justify-between p-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-2xs">
+          <span class="font-bold text-slate-700 dark:text-slate-200 truncate text-[11px]"><i class="fa-solid fa-user-circle text-blue-500 mr-1.5"></i>${emailMembro}${ehVoce}</span>
+          <span class="text-[9px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
         </div>
       `;
 
@@ -475,8 +457,8 @@ function ouvinteLousaGrupo() {
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
       lousaConteudo.innerHTML = `
-        <div class="py-4 bg-white/80 backdrop-blur-xs rounded-2xl p-4 shadow-sm border border-white/60 inline-block max-w-full">
-          <p class="text-xl sm:text-2xl font-extrabold tracking-wide text-slate-900 fonte-manuscrita break-words">"${dados.texto}"</p>
+        <div class="py-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xs rounded-2xl p-4 shadow-sm border border-white/60 dark:border-slate-800 inline-block max-w-full">
+          <p class="text-xl sm:text-2xl font-extrabold tracking-wide text-slate-900 dark:text-white fonte-manuscrita break-words">"${dados.texto}"</p>
         </div>
       `;
       
@@ -644,9 +626,13 @@ function renderAll() {
   const expense = txConfirmadas.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
   const balance = income - expense;
 
-  document.getElementById('statIncome').innerText = `R$ ${income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-  document.getElementById('statExpense').innerText = `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-  document.getElementById('statBalance').innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  const statIncome = document.getElementById('statIncome');
+  const statExpense = document.getElementById('statExpense');
+  const statBalance = document.getElementById('statBalance');
+
+  if (statIncome) statIncome.innerText = `R$ ${income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  if (statExpense) statExpense.innerText = `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  if (statBalance) statBalance.innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
   const fixed = txConfirmadas.filter(t => t.cat === 'Gastos Fixos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
   const general = txConfirmadas.filter(t => t.cat === 'Gastos Gerais' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
@@ -662,7 +648,7 @@ function renderAll() {
   const metaInvestVal = baseEntradas * (metas.invest / 100);
 
   const gerarBarraProgressoEStatus = (gasto, meta) => {
-    if (meta <= 0) return { html: `<div class="w-full bg-slate-100 h-1.5 rounded-full mt-1"></div>`, texto: `<span class="text-[9px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
+    if (meta <= 0) return { html: `<div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-1"></div>`, texto: `<span class="text-[9px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
     
     const pctGasto = (gasto / meta) * 100;
     const larguraVerde = Math.min(pctGasto, 100);
@@ -674,13 +660,13 @@ function renderAll() {
     const diferenca = meta - gasto;
     let textoStatus = '';
     if (diferenca >= 0) {
-      textoStatus = `<span class="text-[9px] text-emerald-600 font-bold">Faltam R$ ${diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
+      textoStatus = `<span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">Faltam R$ ${diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
     } else {
-      textoStatus = `<span class="text-[9px] text-rose-600 font-bold">Passou R$ ${Math.abs(diferenca).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
+      textoStatus = `<span class="text-[9px] text-rose-600 dark:text-rose-400 font-bold">Passou R$ ${Math.abs(diferenca).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
     }
 
     const htmlBarra = `
-      <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1 relative overflow-hidden flex">
+      <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-1 relative overflow-hidden flex">
         <div class="bg-emerald-500 h-full transition-all duration-300" style="width: ${larguraVerde}%"></div>
         <div class="bg-rose-600 h-full transition-all duration-300" style="width: ${larguraVermelha}%"></div>
       </div>
@@ -697,31 +683,31 @@ function renderAll() {
   const containerCat = document.getElementById('cardsCategoryContainer');
   if (containerCat) {
     containerCat.innerHTML = `
-      <div class="rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs space-y-0.5">
+      <div class="rounded-2xl bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
         <span class="text-[9px] font-bold text-slate-400 uppercase block">Gastos Fixos</span>
-        <div class="text-xs sm:text-sm font-black text-slate-900">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 font-semibold">Meta (${metas.fixos.toFixed(1)}%): R$ ${metaFixosVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold">Meta (${metas.fixos.toFixed(1)}%): R$ ${metaFixosVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div>${resFixos.texto}</div>
         ${resFixos.html}
       </div>
-      <div class="rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs space-y-0.5">
+      <div class="rounded-2xl bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
         <span class="text-[9px] font-bold text-slate-400 uppercase block">Gastos Gerais</span>
-        <div class="text-xs sm:text-sm font-black text-slate-900">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 font-semibold">Meta (${metas.gerais.toFixed(1)}%): R$ ${metaGeraisVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold">Meta (${metas.gerais.toFixed(1)}%): R$ ${metaGeraisVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div>${resGerais.texto}</div>
         ${resGerais.html}
       </div>
-      <div class="rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs space-y-0.5">
+      <div class="rounded-2xl bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
         <span class="text-[9px] font-bold text-slate-400 uppercase block">Lazer</span>
-        <div class="text-xs sm:text-sm font-black text-slate-900">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 font-semibold">Meta (${metas.lazer.toFixed(1)}%): R$ ${metaLazerVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold">Meta (${metas.lazer.toFixed(1)}%): R$ ${metaLazerVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div>${resLazer.texto}</div>
         ${resLazer.html}
       </div>
-      <div class="rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs space-y-0.5">
+      <div class="rounded-2xl bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
         <span class="text-[9px] font-bold text-slate-400 uppercase block">Investimentos</span>
-        <div class="text-xs sm:text-sm font-black text-emerald-600">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 font-semibold">Meta (${metas.invest.toFixed(1)}%): R$ ${metaInvestVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div class="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold">Meta (${metas.invest.toFixed(1)}%): R$ ${metaInvestVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div>${resInvest.texto}</div>
         ${resInvest.html}
       </div>
@@ -743,7 +729,7 @@ function renderCharts(fixed, general, leisure, invest) {
         labels: ['Fixos', 'Gerais', 'Lazer', 'Invest'],
         datasets: [{
           data: [fixed, general, leisure, invest],
-          backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
+          backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'],
           borderWidth: 0
         }]
       },
@@ -771,7 +757,7 @@ function renderCharts(fixed, general, leisure, invest) {
         datasets: [{
           label: 'Gasto (R$)',
           data: [fixed, general, leisure, invest],
-          backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
+          backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'],
           borderRadius: 4
         }]
       },
@@ -806,7 +792,7 @@ function renderTransactionsList(currentTx) {
   });
 
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl">Nenhuma movimentação encontrada com estes filtros.</div>`;
+    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl">Nenhuma movimentação encontrada com estes filtros.</div>`;
     return;
   }
 
@@ -816,19 +802,19 @@ function renderTransactionsList(currentTx) {
     const isConfirmed = t.confirmado === true;
 
     container.innerHTML += `
-      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-100' : 'border-amber-300 bg-amber-50/30'} shadow-2xs">
+      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-100 dark:border-slate-800' : 'border-amber-300 bg-amber-50/30 dark:bg-amber-950/20'} shadow-2xs">
         <div>
-          <div class="text-xs font-extrabold text-slate-800">${t.desc} 
-            <span class="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
-            <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
+          <div class="text-xs font-extrabold text-slate-800 dark:text-white">${t.desc} 
+            <span class="text-[9px] bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
+            <span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
           </div>
           <div class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
             <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
-            ${!isConfirmed ? '<span class="text-[9px] text-amber-600 font-extrabold bg-amber-100 px-1.5 py-0.2 rounded">Pendente</span>' : '<span class="text-[9px] text-emerald-600 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">Confirmado</span>'}
+            ${!isConfirmed ? '<span class="text-[9px] text-amber-600 font-extrabold bg-amber-100 dark:bg-amber-950 px-1.5 py-0.2 rounded">Pendente</span>' : '<span class="text-[9px] text-emerald-600 font-extrabold bg-emerald-100 dark:bg-emerald-950 px-1.5 py-0.2 rounded">Confirmado</span>'}
           </div>
         </div>
         <div class="flex items-center gap-2.5">
-          <span class="text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-slate-900'}">
+          <span class="text-xs font-black ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}">
             ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
           </span>
           
@@ -838,7 +824,7 @@ function renderTransactionsList(currentTx) {
             </button>
           ` : ''}
 
-          <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 dark:text-slate-600 hover:text-rose-500 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
     `;
@@ -849,7 +835,8 @@ function renderInvestments(currentTx, totalInvestedThisMonth) {
   const investConfirmadosMes = currentTx.filter(t => t.cat === 'Investimentos' && t.confirmado === true);
   const totalMes = investConfirmadosMes.reduce((s, t) => s + t.amount, 0);
 
-  document.getElementById('monthInvestTotalHeader').innerText = `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  const monthInvestEl = document.getElementById('monthInvestTotalHeader');
+  if (monthInvestEl) monthInvestEl.innerText = `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
   const totalYearInvested = transactions
     .filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE' && t.confirmado === true && (t.month.includes('2026') || (t.date && t.date.startsWith('2026'))))
@@ -861,10 +848,12 @@ function renderInvestments(currentTx, totalInvestedThisMonth) {
   }
 
   const investList = document.getElementById('monthInvestmentsList');
+  if (!investList) return;
+
   const invests = currentTx.filter(t => t.cat === 'Investimentos');
 
   if (invests.length === 0) {
-    investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl">Nenhum aporte registrado neste mês.</div>`;
+    investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-2xl">Nenhum aporte registrado neste mês.</div>`;
     return;
   }
 
@@ -872,17 +861,17 @@ function renderInvestments(currentTx, totalInvestedThisMonth) {
   invests.forEach(t => {
     const isConfirmed = t.confirmado === true;
     investList.innerHTML += `
-      <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border ${isConfirmed ? 'border-slate-100' : 'border-amber-300 bg-amber-50/30'}">
+      <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border ${isConfirmed ? 'border-slate-100 dark:border-slate-800' : 'border-amber-300 bg-amber-50/30 dark:bg-amber-950/20'}">
         <div>
-          <div class="text-xs font-extrabold text-slate-800">${t.desc}</div>
+          <div class="text-xs font-extrabold text-slate-800 dark:text-white">${t.desc}</div>
           <div class="text-[10px] text-slate-400">${t.date} ${!isConfirmed ? '• <span class="text-amber-600 font-bold">Pendente</span>' : ''}</div>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-xs font-black text-emerald-600">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
+          <span class="text-xs font-black text-emerald-600 dark:text-emerald-400">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
           ${!isConfirmed ? `
             <button onclick="alternarConfirmacaoTx('${t.id}', false)" class="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-500 text-white animate-pulse">Confirmar</button>
           ` : ''}
-          <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 dark:text-slate-600 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
     `;
@@ -901,7 +890,7 @@ function switchTab(tab) {
   ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     if (btn) {
-      btn.className = name === tab ? 'flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
+      btn.className = name === tab ? 'flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 transition active:scale-95 py-0.5' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
     }
   });
 
@@ -910,10 +899,37 @@ function switchTab(tab) {
 }
 
 function openNewTxModal() { 
-  document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+  const txDate = document.getElementById('txDate');
+  if (txDate) txDate.value = new Date().toISOString().split('T')[0];
   toggleTxTypeUI();
   document.getElementById('newTxModal').classList.remove('hidden'); 
 }
 function closeNewTxModal() { document.getElementById('newTxModal').classList.add('hidden'); }
 function copyWorkspaceCountCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
 function logout() { auth.signOut().then(() => window.location.href = 'index.html'); }
+
+// Função do Modo Escuro / Claro
+function alternarModoEscuro() {
+  const htmlEl = document.documentElement;
+  const themeIcon = document.getElementById('themeIcon');
+  
+  if (htmlEl.classList.contains('dark')) {
+    htmlEl.classList.remove('dark');
+    localStorage.setItem('nosso_bolso_theme', 'light');
+    if (themeIcon) themeIcon.className = "fa-solid fa-moon text-xs";
+  } else {
+    htmlEl.classList.add('dark');
+    localStorage.setItem('nosso_bolso_theme', 'dark');
+    if (themeIcon) themeIcon.className = "fa-solid fa-sun text-xs text-amber-400";
+  }
+}
+
+// Inicializar o tema guardado ao carregar a página
+window.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('nosso_bolso_theme');
+  const themeIcon = document.getElementById('themeIcon');
+  if (savedTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+    if (themeIcon) themeIcon.className = "fa-solid fa-sun text-xs text-amber-400";
+  }
+});
