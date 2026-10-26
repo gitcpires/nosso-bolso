@@ -84,6 +84,7 @@ function openProfileModal() {
   document.getElementById('profileModal').classList.remove('hidden');
   carregarMembrosDoGrupo();
   carregarDadosMetasNoConfig();
+  calcularConversaoMetas('fixos'); // Atualiza o somatório restante ao abrir o modal
 }
 
 function closeProfileModal() {
@@ -103,6 +104,7 @@ function mudarModoMetas(modo) {
     btnPerc.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 transition";
   }
   carregarDadosMetasNoConfig();
+  calcularConversaoMetas('fixos'); // Atualiza instantaneamente ao trocar entre % e R$
 }
 
 function carregarDadosMetasNoConfig() {
@@ -127,7 +129,6 @@ function carregarDadosMetasNoConfig() {
     }
   });
 
-  calcularConversaoMetas('fixos');
   document.getElementById('metaConfigErrorMsg').classList.add('hidden');
 }
 
