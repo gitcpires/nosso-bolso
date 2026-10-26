@@ -170,22 +170,22 @@ function calcularConversaoMetas(catKey) {
       const diferencaPerc = 100 - somaPerc;
       
       if (Math.abs(diferencaPerc) < 0.01) {
-        spanRestante.innerHTML = `<span class="text-emerald-600 font-extrabold">✓ Total: 100%</span>`;
+        spanRestante.innerHTML = `<span class="text-emerald-400 font-extrabold">✓ Total: 100%</span>`;
       } else if (diferencaPerc > 0) {
-        spanRestante.innerHTML = `<span class="text-amber-600 font-bold">Faltam ${diferencaPerc.toFixed(1)}%</span>`;
+        spanRestante.innerHTML = `<span class="text-amber-400 font-bold">Faltam ${diferencaPerc.toFixed(1)}%</span>`;
       } else {
-        spanRestante.innerHTML = `<span class="text-rose-600 font-bold">Passou ${Math.abs(diferencaPerc).toFixed(1)}%</span>`;
+        spanRestante.innerHTML = `<span class="text-rose-400 font-bold">Passou ${Math.abs(diferencaPerc).toFixed(1)}%</span>`;
       }
     } else {
       const somaDinheiro = fixosVal + geraisVal + lazerVal + investVal;
       const diferencaDinheiro = baseEntradas - somaDinheiro;
 
       if (Math.abs(diferencaDinheiro) < 0.01) {
-        spanRestante.innerHTML = `<span class="text-emerald-600 font-extrabold">✓ Total: R$ ${baseEntradas.toFixed(2)}</span>`;
+        spanRestante.innerHTML = `<span class="text-emerald-400 font-extrabold">✓ Total: R$ ${baseEntradas.toFixed(2)}</span>`;
       } else if (diferencaDinheiro > 0) {
-        spanRestante.innerHTML = `<span class="text-amber-600 font-bold">Faltam R$ ${diferencaDinheiro.toFixed(2)}</span>`;
+        spanRestante.innerHTML = `<span class="text-amber-400 font-bold">Faltam R$ ${diferencaDinheiro.toFixed(2)}</span>`;
       } else {
-        spanRestante.innerHTML = `<span class="text-rose-600 font-bold">Passou R$ ${Math.abs(diferencaDinheiro).toFixed(2)}</span>`;
+        spanRestante.innerHTML = `<span class="text-rose-400 font-bold">Passou R$ ${Math.abs(diferencaDinheiro).toFixed(2)}</span>`;
       }
     }
   }
@@ -413,7 +413,7 @@ async function carregarMembrosDoGrupo() {
       const ehVoce = emailMembro === currentUser.email ? ' (Você)' : '';
 
       containerMembros.innerHTML += `
-        <div class="flex items-center justify-between p-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-2xs">
+        <div class="flex items-center justify-between p-2 bg-white dark:bg-[#0b132b] rounded-xl border border-slate-100 dark:border-slate-800 shadow-2xs">
           <span class="font-bold text-slate-700 dark:text-slate-200 truncate text-[11px]"><i class="fa-solid fa-user-circle text-blue-500 mr-1.5"></i>${emailMembro}${ehVoce}</span>
           <span class="text-[9px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
         </div>
@@ -448,6 +448,10 @@ function ouvinteLousaGrupo() {
         lousaConteudo.innerHTML = `<p class="text-xs text-slate-500 italic">Mural limpo. Escreva um recado!</p>`;
         lousaAutorContainer.classList.add('hidden');
         btnLimparLousa.classList.add('hidden');
+        
+        // Esconder bolinha do mural se estiver limpo
+        const dotMural = document.getElementById('dotMural');
+        if (dotMural) dotMural.classList.add('hidden');
         return;
       }
 
@@ -465,6 +469,17 @@ function ouvinteLousaGrupo() {
       lousaAutorNome.innerText = autor;
       lousaAutorContainer.classList.remove('hidden');
       btnLimparLousa.classList.remove('hidden');
+
+      // Gestão da bolinha vermelha do Mural
+      const vistoMuralId = localStorage.getItem('visto_mural_id');
+      const dotMural = document.getElementById('dotMural');
+      if (dotMural) {
+        if (lousaDocId !== vistoMuralId) {
+          dotMural.classList.remove('hidden');
+        } else {
+          dotMural.classList.add('hidden');
+        }
+      }
     });
 }
 
@@ -526,6 +541,7 @@ async function apagarLousa() {
 
     await db.collection('lousa').doc(lousaDocId).delete();
     lousaDocId = null;
+    localStorage.removeItem('visto_mural_id');
   } catch (err) {
     alert("Erro ao limpar a lousa.");
   }
@@ -603,11 +619,11 @@ function toggleTxTypeUI() {
   const labelSaida = document.getElementById('labelTabSaida');
 
   if (type === 'INCOME') {
-    labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-emerald-600 shadow-2xs transition";
+    labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-[#121c38] text-emerald-600 shadow-2xs transition";
     labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
     catSelect.innerHTML = `<option value="Salário">💼 Salário</option><option value="Renda Extra">✨ Renda Extra</option>`;
   } else {
-    labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition";
+    labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-[#121c38] text-rose-600 shadow-2xs transition";
     labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
     catSelect.innerHTML = `
       <option value="Gastos Fixos">🏠 Gastos Fixos</option>
@@ -620,6 +636,18 @@ function toggleTxTypeUI() {
 
 function renderAll() {
   const currentTx = transactions.filter(t => t.month === activeMonth);
+  
+  // Controlo da bolinha vermelha do Extrato (se houver transações pendentes no geral)
+  const temPendentes = transactions.some(t => t.confirmado === false);
+  const dotExtrato = document.getElementById('dotExtrato');
+  if (dotExtrato) {
+    if (temPendentes) {
+      dotExtrato.classList.remove('hidden');
+    } else {
+      dotExtrato.classList.add('hidden');
+    }
+  }
+
   const txConfirmadas = currentTx.filter(t => t.confirmado === true);
 
   const income = txConfirmadas.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
@@ -683,28 +711,28 @@ function renderAll() {
   const containerCat = document.getElementById('cardsCategoryContainer');
   if (containerCat) {
     containerCat.innerHTML = `
-      <div class="rounded-2xl bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
+      <div class="rounded-2xl bg-white dark:bg-[#121c38] p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
         <span class="text-[9px] font-bold text-slate-400 uppercase block">Gastos Fixos</span>
         <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold">Meta (${metas.fixos.toFixed(1)}%): R$ ${metaFixosVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div>${resFixos.texto}</div>
         ${resFixos.html}
       </div>
-      <div class="rounded-2xl bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
+      <div class="rounded-2xl bg-white dark:bg-[#121c38] p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
         <span class="text-[9px] font-bold text-slate-400 uppercase block">Gastos Gerais</span>
         <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold">Meta (${metas.gerais.toFixed(1)}%): R$ ${metaGeraisVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div>${resGerais.texto}</div>
         ${resGerais.html}
       </div>
-      <div class="rounded-2xl bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
+      <div class="rounded-2xl bg-white dark:bg-[#121c38] p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
         <span class="text-[9px] font-bold text-slate-400 uppercase block">Lazer</span>
         <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold">Meta (${metas.lazer.toFixed(1)}%): R$ ${metaLazerVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div>${resLazer.texto}</div>
         ${resLazer.html}
       </div>
-      <div class="rounded-2xl bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
+      <div class="rounded-2xl bg-white dark:bg-[#121c38] p-2.5 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
         <span class="text-[9px] font-bold text-slate-400 uppercase block">Investimentos</span>
         <div class="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold">Meta (${metas.invest.toFixed(1)}%): R$ ${metaInvestVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
@@ -792,7 +820,7 @@ function renderTransactionsList(currentTx) {
   });
 
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl">Nenhuma movimentação encontrada com estes filtros.</div>`;
+    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white dark:bg-[#121c38] rounded-2xl">Nenhuma movimentação encontrada com estes filtros.</div>`;
     return;
   }
 
@@ -802,11 +830,11 @@ function renderTransactionsList(currentTx) {
     const isConfirmed = t.confirmado === true;
 
     container.innerHTML += `
-      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-100 dark:border-slate-800' : 'border-amber-300 bg-amber-50/30 dark:bg-amber-950/20'} shadow-2xs">
+      <div class="flex items-center justify-between bg-white dark:bg-[#121c38] p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-100 dark:border-slate-800' : 'border-amber-300 bg-amber-50/30 dark:bg-amber-950/20'} shadow-2xs">
         <div>
           <div class="text-xs font-extrabold text-slate-800 dark:text-white">${t.desc} 
             <span class="text-[9px] bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
-            <span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
+            <span class="text-[9px] bg-slate-100 dark:bg-[#0b132b] text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
           </div>
           <div class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
             <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
@@ -853,7 +881,7 @@ function renderInvestments(currentTx, totalInvestedThisMonth) {
   const invests = currentTx.filter(t => t.cat === 'Investimentos');
 
   if (invests.length === 0) {
-    investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-2xl">Nenhum aporte registrado neste mês.</div>`;
+    investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-slate-50 dark:bg-[#121c38] rounded-2xl">Nenhum aporte registrado neste mês.</div>`;
     return;
   }
 
@@ -861,7 +889,7 @@ function renderInvestments(currentTx, totalInvestedThisMonth) {
   invests.forEach(t => {
     const isConfirmed = t.confirmado === true;
     investList.innerHTML += `
-      <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border ${isConfirmed ? 'border-slate-100 dark:border-slate-800' : 'border-amber-300 bg-amber-50/30 dark:bg-amber-950/20'}">
+      <div class="flex items-center justify-between bg-slate-50 dark:bg-[#121c38] p-3 rounded-2xl border ${isConfirmed ? 'border-slate-100 dark:border-slate-800' : 'border-amber-300 bg-amber-50/30 dark:bg-amber-950/20'}">
         <div>
           <div class="text-xs font-extrabold text-slate-800 dark:text-white">${t.desc}</div>
           <div class="text-[10px] text-slate-400">${t.date} ${!isConfirmed ? '• <span class="text-amber-600 font-bold">Pendente</span>' : ''}</div>
@@ -890,9 +918,16 @@ function switchTab(tab) {
   ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     if (btn) {
-      btn.className = name === tab ? 'flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 transition active:scale-95 py-0.5' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
+      btn.className = name === tab ? 'relative flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 transition active:scale-95 py-0.5' : 'relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
     }
   });
+
+  // Se entrar no Mural, limpa a bolinha vermelha guardando o ID atual visto
+  if (tab === 'mural' && lousaDocId) {
+    localStorage.setItem('visto_mural_id', lousaDocId);
+    const dotMural = document.getElementById('dotMural');
+    if (dotMural) dotMural.classList.add('hidden');
+  }
 
   if (tab === 'extrato') renderTransactionsList(transactions);
   if (tab === 'resumo') renderAll();
