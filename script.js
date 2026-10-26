@@ -18,7 +18,7 @@ let activeMonth = 'Outubro 2026';
 let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
 let lousaDocId = null;
-let modoMetasAtual = 'perc'; // 'perc' ou 'dinheiro'
+let modoMetasAtual = 'perc';
 
 auth.onAuthStateChanged(async (userAuth) => {
   if (!userAuth) {
@@ -469,7 +469,7 @@ function ouvinteLousaGrupo() {
       lousaAutorContainer.classList.remove('hidden');
       btnLimparLousa.classList.remove('hidden');
 
-      // Bolinha vermelha do Mural: Aparece APENAS se o recado foi escrito por OUTRO utilizador e ainda não foi visto
+      // Bolinha vermelha do Mural: Aparece APENAS se o recado foi escrito por OUTRO utilizador e ainda não foi visto por ti
       const vistoMuralId = localStorage.getItem('visto_mural_id');
       const dotMural = document.getElementById('dotMural');
       if (dotMural) {
@@ -923,7 +923,6 @@ function switchTab(tab) {
     }
   });
 
-  // Se entrar no Mural, limpa a bolinha vermelha para ti
   if (tab === 'mural' && lousaDocId) {
     localStorage.setItem('visto_mural_id', lousaDocId);
     const dotMural = document.getElementById('dotMural');
@@ -944,7 +943,6 @@ function closeNewTxModal() { document.getElementById('newTxModal').classList.add
 function copyWorkspaceCountCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
 function logout() { auth.signOut().then(() => window.location.href = 'index.html'); }
 
-// Função do Modo Escuro / Claro
 function alternarModoEscuro() {
   const htmlEl = document.documentElement;
   const themeIcon = document.getElementById('themeIcon');
@@ -960,7 +958,6 @@ function alternarModoEscuro() {
   }
 }
 
-// Inicializar o tema guardado ao carregar a página
 window.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('nosso_bolso_theme');
   const themeIcon = document.getElementById('themeIcon');
