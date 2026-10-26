@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nosso Bolso - Login</title>
+    <title>Nosso Bolso - Acesso</title>
     
     <!-- Ícone e Configuração para Telemóvel -->
     <link rel="apple-touch-icon" sizes="180x180" href="icone-app.png">
@@ -54,7 +54,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 35px;
+            margin-bottom: 25px;
             overflow: hidden;
         }
 
@@ -65,10 +65,17 @@
             border-radius: 10px;
         }
 
+        h2 {
+            font-size: 16px;
+            color: #a0aec0;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+
         .input-group {
             position: relative;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .input-group i {
@@ -102,7 +109,7 @@
             color: #5a637a;
         }
 
-        .btn-entrar {
+        .btn-acao {
             width: 100%;
             padding: 15px;
             margin-top: 10px;
@@ -118,26 +125,27 @@
             transition: 0.2s ease;
         }
 
-        .btn-entrar:active {
+        .btn-acao:active {
             box-shadow: inset 3px 3px 6px rgba(0,0,0,0.4);
         }
 
         .footer-link {
-            margin-top: 30px;
+            margin-top: 25px;
             font-size: 13px;
             color: #7b849c;
             text-decoration: none;
             transition: color 0.2s;
+            cursor: pointer;
+            text-align: center;
         }
 
         .footer-link:hover {
             color: #f39c12;
         }
 
-        #errorMsg {
-            color: #e74c3c;
+        #msgFeedback {
             font-size: 12px;
-            margin-top: 15px;
+            margin-top: 12px;
             text-align: center;
         }
     </style>
@@ -150,27 +158,44 @@
             <img src="icone-app.png" alt="Nosso Bolso">
         </div>
 
-        <!-- Campo E-mail -->
-        <div class="input-group">
-            <i class="fa-regular fa-envelope"></i>
-            <input type="email" id="loginEmail" placeholder="E-mail" required>
+        <h2 id="formTitle">ENTRAR NO SISTEMA</h2>
+
+        <!-- FORMULÁRIO DE LOGIN -->
+        <div id="loginFormSection" style="width: 100%;">
+            <div class="input-group">
+                <i class="fa-regular fa-envelope"></i>
+                <input type="email" id="loginEmail" placeholder="E-mail">
+            </div>
+
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="loginPassword" placeholder="Senha">
+                <i class="fa-regular fa-eye-slash toggle-password" id="toggleEyeLogin" onclick="togglePass('loginPassword', 'toggleEyeLogin')"></i>
+            </div>
+
+            <button class="btn-acao" onclick="fazerLogin()">ENTRAR</button>
+            <a onclick="alternarFormulario('register')" class="footer-link" style="display: block;">Criar Conta / Solicitar Acesso</a>
         </div>
 
-        <!-- Campo Senha -->
-        <div class="input-group">
-            <i class="fa-solid fa-lock"></i>
-            <input type="password" id="loginPassword" placeholder="Senha" required>
-            <i class="fa-regular fa-eye-slash toggle-password" id="toggleEye" onclick="togglePasswordVisibility()"></i>
+        <!-- FORMULÁRIO DE REGISTO (Inicialmente oculto) -->
+        <div id="registerFormSection" style="width: 100%; display: none;">
+            <div class="input-group">
+                <i class="fa-regular fa-envelope"></i>
+                <input type="email" id="regEmail" placeholder="Seu E-mail">
+            </div>
+
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="regPassword" placeholder="Criar Senha">
+                <i class="fa-regular fa-eye-slash toggle-password" id="toggleEyeReg" onclick="togglePass('regPassword', 'toggleEyeReg')"></i>
+            </div>
+
+            <button class="btn-acao" onclick="registarConta()">REGISTAR CONTA</button>
+            <a onclick="alternarFormulario('login')" class="footer-link" style="display: block;">Já tens conta? Entrar</a>
         </div>
 
-        <!-- Mensagem de Erro -->
-        <div id="errorMsg"></div>
-
-        <!-- Botão Entrar -->
-        <button class="btn-entrar" onclick="fazerLogin()">ENTRAR</button>
-
-        <!-- Link Criar Conta -->
-        <a href="#" onclick="criarConta(event)" class="footer-link">Criar Conta / Solicitar Acesso</a>
+        <!-- Mensagens de Erro ou Sucesso -->
+        <div id="msgFeedback"></div>
     </div>
 
     <script>
@@ -188,10 +213,28 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        // Alternar entre formulários de Login e Registo
+        function alternarFormulario(tipo) {
+            const loginSec = document.getElementById('loginFormSection');
+            const regSec = document.getElementById('registerFormSection');
+            const title = document.getElementById('formTitle');
+            document.getElementById('msgFeedback').innerText = '';
+
+            if (tipo === 'register') {
+                loginSec.style.display = 'none';
+                regSec.style.display = 'block';
+                title.innerText = 'CRIAR NOVA CONTA';
+            } else {
+                regSec.style.display = 'none';
+                loginSec.style.display = 'block';
+                title.innerText = 'ENTRAR NO SISTEMA';
+            }
+        }
+
         // Função para alternar visibilidade da senha
-        function togglePasswordVisibility() {
-            const passInput = document.getElementById('loginPassword');
-            const eyeIcon = document.getElementById('toggleEye');
+        function togglePass(inputId, iconId) {
+            const passInput = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(iconId);
             if (passInput.type === 'password') {
                 passInput.type = 'text';
                 eyeIcon.className = 'fa-regular fa-eye toggle-password';
@@ -205,11 +248,12 @@
         async function fazerLogin() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
-            const errorDiv = document.getElementById('errorMsg');
-            errorDiv.innerText = '';
+            const feedback = document.getElementById('msgFeedback');
+            feedback.style.color = '#e74c3c';
+            feedback.innerText = '';
 
             if (!email || !password) {
-                errorDiv.innerText = 'Preencha o e-mail e a senha.';
+                feedback.innerText = 'Preencha o e-mail e a senha.';
                 return;
             }
 
@@ -224,20 +268,20 @@
                 }
             } catch (err) {
                 console.error(err);
-                errorDiv.innerText = 'Erro ao entrar: Verifique o seu e-mail e senha.';
+                feedback.innerText = 'Erro ao entrar: Verifique o seu e-mail e senha.';
             }
         }
 
-        // Função para criar conta (registar novo utilizador pendente)
-        async function criarConta(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
-            const errorDiv = document.getElementById('errorMsg');
-            errorDiv.innerText = '';
+        // Função para Criar Conta
+        async function registarConta() {
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+            const feedback = document.getElementById('msgFeedback');
+            feedback.innerText = '';
 
             if (!email || !password) {
-                errorDiv.innerText = 'Digite um e-mail e uma senha para se registar.';
+                feedback.style.color = '#e74c3c';
+                feedback.innerText = 'Preencha todos os campos para se registar.';
                 return;
             }
 
@@ -245,17 +289,24 @@
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
 
+                // Registar na base de dados com o status pendente para aprovação do admin
                 await db.collection('users').doc(user.uid).set({
                     email: user.email,
                     status: 'pending',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                alert('Conta criada com sucesso! O seu acesso está pendente de aprovação pelo administrador.');
-                window.location.replace('painel.html');
+                feedback.style.color = '#2ecc71';
+                feedback.innerText = 'Conta criada com sucesso! Redirecionando...';
+                
+                setTimeout(() => {
+                    window.location.replace('painel.html');
+                }, 1500);
+
             } catch (err) {
                 console.error(err);
-                errorDiv.innerText = 'Erro ao criar conta: ' + err.message;
+                feedback.style.color = '#e74c3c';
+                feedback.innerText = 'Erro ao registar: ' + err.message;
             }
         }
     </script>
