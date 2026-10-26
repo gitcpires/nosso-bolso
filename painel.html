@@ -206,12 +206,22 @@
 
     <!-- ABAS: INVESTIMENTOS -->
     <div id="tab-invest" class="space-y-3 hidden">
-      <div class="bg-gradient-to-tr from-emerald-600 to-teal-700 p-5 rounded-3xl text-white shadow-lg space-y-1">
-        <span class="text-[10px] font-bold text-emerald-200 uppercase tracking-wider">Total Investido no Mês</span>
-        <div id="monthInvestTotalHeader" class="text-xl font-black">R$ 0,00</div>
+      
+      <!-- Dois Cartões: Mês Atual e Total Acumulado do Ano -->
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-4 rounded-3xl text-white shadow-lg space-y-1">
+          <span class="text-[9px] font-bold text-indigo-300 uppercase tracking-wider block">Investido no Mês</span>
+          <div id="monthInvestTotalHeader" class="text-base sm:text-xl font-black text-emerald-400 truncate">R$ 0,00</div>
+        </div>
+        <div class="bg-gradient-to-br from-emerald-900 to-teal-950 p-4 rounded-3xl text-white shadow-lg space-y-1">
+          <span class="text-[9px] font-bold text-emerald-300 uppercase tracking-wider block">Total Acumulado (Ano)</span>
+          <div id="yearInvestTotalHeader" class="text-base sm:text-xl font-black text-white truncate">R$ 0,00</div>
+        </div>
       </div>
+
       <div id="monthInvestmentsList" class="space-y-2"></div>
     </div>
+
 
         <!-- ABAS: MURAL / LOUSA -->
     <div id="tab-mural" class="space-y-4 hidden">
