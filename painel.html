@@ -268,28 +268,42 @@
     </button>
   </div>
 
-  <!-- Barra de Navegação Inferior com Bolinhas Vermelhas -->
+  <!-- Barra de Navegação Inferior com Bolinha Vermelha Exata em cima dos ícones -->
   <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#121c38]/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-3 py-2.5 shadow-lg transition-colors">
     <div class="mx-auto max-w-md grid grid-cols-5 items-center">
+      
+      <!-- Resumo -->
       <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 transition active:scale-95 py-0.5">
         <i class="fa-solid fa-chart-pie text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Resumo</span>
       </button>
-      <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
-        <i class="fa-solid fa-receipt text-base"></i>
+
+      <!-- Extrato (Bolinha no canto superior direito exato do ícone) -->
+      <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+        <div class="relative inline-block">
+          <i class="fa-solid fa-receipt text-base"></i>
+          <span id="dotExtrato" class="absolute -top-1 -right-1.5 w-2.5 h-2.5 bg-rose-500 border-2 border-white dark:border-[#121c38] rounded-full hidden"></span>
+        </div>
         <span class="text-[10px] font-extrabold mt-1">Extrato</span>
-        <span id="dotExtrato" class="absolute top-0.5 right-3 w-2 h-2 bg-rose-500 rounded-full hidden"></span>
       </button>
+
       <div></div>
+
+      <!-- Invest -->
       <button onclick="switchTab('invest')" id="bottomNavInvest" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
         <i class="fa-solid fa-chart-line text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Invest</span>
       </button>
-      <button onclick="switchTab('mural')" id="bottomNavMural" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
-        <i class="fa-solid fa-note-sticky text-base"></i>
+
+      <!-- Mural (Bolinha no canto superior direito exato do ícone) -->
+      <button onclick="switchTab('mural')" id="bottomNavMural" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+        <div class="relative inline-block">
+          <i class="fa-solid fa-note-sticky text-base"></i>
+          <span id="dotMural" class="absolute -top-1 -right-1.5 w-2.5 h-2.5 bg-rose-500 border-2 border-white dark:border-[#121c38] rounded-full hidden"></span>
+        </div>
         <span class="text-[10px] font-extrabold mt-1">Mural</span>
-        <span id="dotMural" class="absolute top-0.5 right-3 w-2 h-2 bg-rose-500 rounded-full hidden"></span>
       </button>
+
     </div>
   </nav>
 
@@ -344,7 +358,7 @@
     </div>
   </div>
 
-  <!-- Modal de Configurações Compacto (Estilo Escuro Profundo) -->
+  <!-- Modal de Configurações Compacto -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-3 hidden backdrop-blur-md">
     <div id="modalContainerTheme" class="w-full max-w-sm bg-white dark:bg-[#121c38] p-4 rounded-[2rem] space-y-3 shadow-2xl border border-slate-800 max-h-[90vh] flex flex-col transition-colors">
       
