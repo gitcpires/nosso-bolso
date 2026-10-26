@@ -1,892 +1,413 @@
-const firebaseConfig = {
-  apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
-  authDomain: "nosso-bolso-c8d29.firebaseapp.com",
-  projectId: "nosso-bolso-c8d29",
-  storageBucket: "nosso-bolso-c8d29.firebasestorage.app",
-  messagingSenderId: "812166717623",
-  appId: "1:812166717623:web:ba3a4c0db18484be47ad32"
-};
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Nosso Bolso - Painel Financeiro</title>
 
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+  <!-- Ícone e Configuração de Atalho para Telemóvel -->
+  <link rel="apple-touch-icon" sizes="180x180" href="icone-app.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icone-app.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icone-app.png">
+  <meta name="theme-color" content="#090d16">
 
-let currentWorkspace = { id: '', code: '', metas: { fixos: 50, gerais: 30, lazer: 10, invest: 10 } };
-let currentUser = { id: '', name: '', email: '' };
-let transactions = [];
-let activeMonth = 'Outubro 2026';
-let categoryPieChartInstance = null;
-let categoryBarChartInstance = null;
-let lousaDocId = null;
-let modoMetasAtual = 'perc'; // 'perc' ou 'dinheiro'
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 
-auth.onAuthStateChanged(async (userAuth) => {
-  if (!userAuth) {
-    window.location.href = 'index.html';
-    return;
-  }
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  const uid = userAuth.uid;
-  const email = userAuth.email;
-  currentUser.id = uid;
-  currentUser.email = email;
-  currentUser.name = email.split('@')[0];
-
-  if (email === 'c.pirespm@gmail.com') {
-    window.location.replace("admin.html");
-    return;
-  }
-
-  try {
-    const userDocRef = db.collection('users').doc(uid);
-    let userDoc = await userDocRef.get();
-    
-    if (!userDoc.exists) {
-      await userDocRef.set({
-        email: email,
-        status: 'pending',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      userDoc = await userDocRef.get();
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    .fonte-manuscrita { font-family: 'Caveat', cursive; }
+    .papel-mural {
+      background-image: url('papel.jpg?v=2');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
     }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 pb-28 antialiased selection:bg-blue-600 selection:text-white">
 
-    const userData = userDoc.data();
-    
-    if (userData.status !== 'approved') {
-      document.getElementById('loadingScreen').classList.add('hidden');
-      document.getElementById('pendingScreen').classList.remove('hidden');
-      return;
-    }
+  <!-- Ecrã de Carregamento -->
+  <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-white space-y-4">
+    <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-xs font-bold tracking-wider">A carregar o seu Nosso Bolso...</p>
+  </div>
 
-    if (!userData.workspaceId) {
-      document.getElementById('loadingScreen').classList.add('hidden');
-      document.getElementById('setupWorkspaceModal').classList.remove('hidden');
-      return;
-    }
+  <!-- Ecrã de Pendente -->
+  <div id="pendingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4 hidden">
+    <div class="w-full max-w-sm bg-white p-8 rounded-[2.5rem] text-center space-y-4 shadow-2xl">
+      <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mx-auto text-2xl">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+      </div>
+      <h3 class="text-base font-extrabold text-slate-900">Acesso Pendente</h3>
+      <p class="text-xs text-slate-500 leading-relaxed">A sua conta foi criada mas ainda precisa de ser aprovada pelo administrador do sistema.</p>
+      <button onclick="logout()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition">
+        Sair / Voltar ao Login
+      </button>
+    </div>
+  </div>
 
-    currentWorkspace.id = userData.workspaceId;
-    currentWorkspace.code = userData.workspaceCode || '----';
-
-    if (userData.metas) {
-      currentWorkspace.metas = userData.metas;
-    }
-
-    document.getElementById('loadingScreen').classList.add('hidden');
-    initUserSession();
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById('loadingScreen').innerHTML = `<p class="text-xs text-rose-600 font-bold">Erro ao carregar dados. Tente atualizar a página.</p>`;
-  }
-});
-
-function openProfileModal() {
-  document.getElementById('profileModal').classList.remove('hidden');
-  carregarMembrosDoGrupo();
-  carregarDadosMetasNoConfig();
-  calcularConversaoMetas('fixos'); // Atualiza o somatório restante ao abrir o modal
-}
-
-function closeProfileModal() {
-  document.getElementById('profileModal').classList.add('hidden');
-}
-
-function mudarModoMetas(modo) {
-  modoMetasAtual = modo;
-  const btnPerc = document.getElementById('btnModoPerc');
-  const btnDinheiro = document.getElementById('btnModoDinheiro');
-  
-  if (modo === 'perc') {
-    btnPerc.className = "px-2.5 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
-    btnDinheiro.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 transition";
-  } else {
-    btnDinheiro.className = "px-2.5 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
-    btnPerc.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 transition";
-  }
-  carregarDadosMetasNoConfig();
-  calcularConversaoMetas('fixos'); // Atualiza instantaneamente ao trocar entre % e R$
-}
-
-function carregarDadosMetasNoConfig() {
-  const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
-  const currentTx = transactions.filter(t => t.month === activeMonth);
-  const income = currentTx.filter(t => t.type === 'INCOME' && t.confirmado === true).reduce((s, t) => s + t.amount, 0);
-  const baseEntradas = income > 0 ? income : 1;
-
-  ['Fixos', 'Gerais', 'Lazer', 'Invest'].forEach(catKey => {
-    const keyLower = catKey.toLowerCase();
-    const pct = metas[keyLower] || 0;
-    const valorDinheiro = baseEntradas * (pct / 100);
-
-    document.getElementById(`labelUnidade${catKey}`).innerText = modoMetasAtual === 'perc' ? '%' : 'R$';
-    
-    if (modoMetasAtual === 'perc') {
-      document.getElementById(`cfgMeta${catKey}`).value = pct > 0 ? pct.toFixed(1) : '';
-      document.getElementById(`subMeta${catKey}`).innerText = `= R$ ${valorDinheiro.toFixed(2)}`;
-    } else {
-      document.getElementById(`cfgMeta${catKey}`).value = valorDinheiro > 0 ? valorDinheiro.toFixed(2) : '';
-      document.getElementById(`subMeta${catKey}`).innerText = `= ${pct.toFixed(1)}%`;
-    }
-  });
-
-  document.getElementById('metaConfigErrorMsg').classList.add('hidden');
-}
-
-function calcularConversaoMetas(catKey) {
-  const currentTx = transactions.filter(t => t.month === activeMonth);
-  const income = currentTx.filter(t => t.type === 'INCOME' && t.confirmado === true).reduce((s, t) => s + t.amount, 0);
-  const baseEntradas = income > 0 ? income : 1;
-
-  const inputEl = document.getElementById(`cfgMeta${catKey.charAt(0).toUpperCase() + catKey.slice(1)}`);
-  const subEl = document.getElementById(`subMeta${catKey.charAt(0).toUpperCase() + catKey.slice(1)}`);
-  const val = parseFloat(inputEl.value) || 0;
-
-  if (modoMetasAtual === 'perc') {
-    const emDinheiro = baseEntradas * (val / 100);
-    subEl.innerText = `= R$ ${emDinheiro.toFixed(2)}`;
-  } else {
-    const emPerc = (val / baseEntradas) * 100;
-    subEl.innerText = `= ${emPerc.toFixed(1)}%`;
-  }
-
-  const fixosVal = parseFloat(document.getElementById('cfgMetaFixos').value) || 0;
-  const geraisVal = parseFloat(document.getElementById('cfgMetaGerais').value) || 0;
-  const lazerVal = parseFloat(document.getElementById('cfgMetaLazer').value) || 0;
-  const investVal = parseFloat(document.getElementById('cfgMetaInvest').value) || 0;
-
-  const spanRestante = document.getElementById('metaTotalRestante');
-  if (spanRestante) {
-    if (modoMetasAtual === 'perc') {
-      const somaPerc = fixosVal + geraisVal + lazerVal + investVal;
-      const diferencaPerc = 100 - somaPerc;
-      
-      if (Math.abs(diferencaPerc) < 0.01) {
-        spanRestante.innerHTML = `<span class="text-emerald-600 font-extrabold">✓ Total: 100%</span>`;
-      } else if (diferencaPerc > 0) {
-        spanRestante.innerHTML = `<span class="text-amber-600 font-bold">Faltam ${diferencaPerc.toFixed(1)}%</span>`;
-      } else {
-        spanRestante.innerHTML = `<span class="text-rose-600 font-bold">Passou ${Math.abs(diferencaPerc).toFixed(1)}%</span>`;
-      }
-    } else {
-      const somaDinheiro = fixosVal + geraisVal + lazerVal + investVal;
-      const diferencaDinheiro = baseEntradas - somaDinheiro;
-
-      if (Math.abs(diferencaDinheiro) < 0.01) {
-        spanRestante.innerHTML = `<span class="text-emerald-600 font-extrabold">✓ Total: R$ ${baseEntradas.toFixed(2)}</span>`;
-      } else if (diferencaDinheiro > 0) {
-        spanRestante.innerHTML = `<span class="text-amber-600 font-bold">Faltam R$ ${diferencaDinheiro.toFixed(2)}</span>`;
-      } else {
-        spanRestante.innerHTML = `<span class="text-rose-600 font-bold">Passou R$ ${Math.abs(diferencaDinheiro).toFixed(2)}</span>`;
-      }
-    }
-  }
-}
-
-async function salvarMetasGrupoConfig(e) {
-  e.preventDefault();
-  const currentTx = transactions.filter(t => t.month === activeMonth);
-  const income = currentTx.filter(t => t.type === 'INCOME' && t.confirmado === true).reduce((s, t) => s + t.amount, 0);
-  const baseEntradas = income > 0 ? income : 1;
-
-  let fixosInput = document.getElementById('cfgMetaFixos').value;
-  let geraisInput = document.getElementById('cfgMetaGerais').value;
-  let lazerInput = document.getElementById('cfgMetaLazer').value;
-  let investInput = document.getElementById('cfgMetaInvest').value;
-
-  const errorDiv = document.getElementById('metaConfigErrorMsg');
-
-  if (fixosInput === '' || geraisInput === '' || lazerInput === '' || investInput === '') {
-    errorDiv.innerText = "Preencha obrigatoriamente todos os 4 campos de metas.";
-    errorDiv.classList.remove('hidden');
-    return;
-  }
-
-  let fixos = parseFloat(fixosInput);
-  let gerais = parseFloat(geraisInput);
-  let lazer = parseFloat(lazerInput);
-  let invest = parseFloat(investInput);
-
-  let somaCalculada = 0;
-  if (modoMetasAtual === 'dinheiro') {
-    const somaDinheiro = fixos + gerais + lazer + invest;
-    somaCalculada = Math.round((somaDinheiro / baseEntradas) * 10000) / 100;
-    fixos = (fixos / baseEntradas) * 100;
-    gerais = (gerais / baseEntradas) * 100;
-    lazer = (lazer / baseEntradas) * 100;
-    invest = (invest / baseEntradas) * 100;
-  } else {
-    somaCalculada = Math.round((fixos + gerais + lazer + invest) * 100) / 100;
-  }
-
-  if (Math.abs(somaCalculada - 100) > 0.1) {
-    errorDiv.innerText = `A soma total das metas deve ser exatamente 100%. Atualmente está em ${somaCalculada.toFixed(1)}%.`;
-    errorDiv.classList.remove('hidden');
-    return;
-  }
-
-  errorDiv.classList.add('hidden');
-
-  try {
-    const novasMetas = { fixos, gerais, lazer, invest };
-    await db.collection('users').doc(currentUser.id).update({ metas: novasMetas });
-    currentWorkspace.metas = novasMetas;
-
-    closeProfileModal();
-    renderAll();
-    alert("Metas atualizadas com sucesso!");
-  } catch (err) {
-    alert("Erro ao salvar metas.");
-  }
-}
-
-async function deixarGrupo() {
-  try {
-    const wsIdAtual = currentWorkspace.id;
-    const uidAtual = currentUser.id;
-
-    const membrosSnapshot = await db.collection('users').where('workspaceId', '==', wsIdAtual).get();
-    const éOUltimo = membrosSnapshot.size <= 1;
-
-    if (éOUltimo) {
-      const confirmacao = confirm("Atenção: Você é o último utilizador deste grupo. Se sair, todos os dados financeiros e recados do mural serão apagados permanentemente. Deseja continuar?");
-      if (!confirmacao) return;
-    } else {
-      const confirmacao = confirm("Tem certeza que deseja sair deste grupo?");
-      if (!confirmacao) return;
-    }
-
-    await db.collection('users').doc(uidAtual).update({
-      workspaceId: firebase.firestore.FieldValue.delete(),
-      workspaceCode: firebase.firestore.FieldValue.delete(),
-      metas: firebase.firestore.FieldValue.delete()
-    });
-
-    if (éOUltimo) {
-      const batch = db.batch();
-
-      const txsQuery = await db.collection('transacoes').where('workspaceId', '==', wsIdAtual).get();
-      txsQuery.forEach(doc => batch.delete(doc.ref));
-
-      const lousaQuery = await db.collection('lousa').where('workspaceId', '==', wsIdAtual).get();
-      lousaQuery.forEach(doc => batch.delete(doc.ref));
-
-      await batch.commit();
-    }
-
-    alert("Você saiu do grupo com sucesso.");
-    window.location.reload();
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao tentar deixar o grupo. Tente novamente.");
-  }
-}
-
-async function criarNovoWorkspace() {
-  try {
-    mostrarSetupMsg("A gerar novo grupo...", "info");
-    let novoCodigo = '';
-    let codigoExiste = true;
-    let tentativas = 0;
-
-    while (codigoExiste && tentativas < 10) {
-      novoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
-      const checkQuery = await db.collection('users').where('workspaceCode', '==', novoCodigo).get();
-      if (checkQuery.empty) {
-        codigoExiste = false;
-      }
-      tentativas++;
-    }
-
-    const workspaceId = 'ws_' + currentUser.id;
-    const metasPadrao = { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
-
-    await db.collection('users').doc(currentUser.id).set({
-      workspaceId: workspaceId,
-      workspaceCode: novoCodigo,
-      metas: metasPadrao,
-      email: currentUser.email,
-      status: 'approved'
-    }, { merge: true });
-
-    currentWorkspace.id = workspaceId;
-    currentWorkspace.code = novoCodigo;
-    currentWorkspace.metas = metasPadrao;
-
-    document.getElementById('setupWorkspaceModal').classList.add('hidden');
-    initUserSession();
-  } catch (err) {
-    console.error("Erro detalhado ao criar grupo:", err);
-    mostrarSetupMsg("Erro: " + (err.message || "Tente novamente."), "erro");
-  }
-}
-
-async function entrarGrupoExistente() {
-  const codigoInput = document.getElementById('inputWorkspaceCode').value.trim();
-  if (!codigoInput || codigoInput.length < 4) {
-    mostrarSetupMsg("Digite um código válido de 4 dígitos.", "erro");
-    return;
-  }
-
-  try {
-    mostrarSetupMsg("A procurar grupo...", "info");
-    const wsQuery = await db.collection('users').where('workspaceCode', '==', codigoInput).get();
-
-    if (wsQuery.empty) {
-      mostrarSetupMsg("Código de grupo não encontrado. Verifique com o seu familiar/sócio.", "erro");
-      return;
-    }
-
-    const wsData = wsQuery.docs[0].data();
-    const targetWorkspaceId = wsData.workspaceId;
-    const metasGrupo = wsData.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
-
-    await db.collection('users').doc(currentUser.id).set({
-      workspaceId: targetWorkspaceId,
-      workspaceCode: codigoInput,
-      metas: metasGrupo,
-      email: currentUser.email,
-      status: 'approved'
-    }, { merge: true });
-
-    currentWorkspace.id = targetWorkspaceId;
-    currentWorkspace.code = codigoInput;
-    currentWorkspace.metas = metasGrupo;
-
-    document.getElementById('setupWorkspaceModal').classList.add('hidden');
-    initUserSession();
-  } catch (err) {
-    console.error("Erro detalhado ao entrar no grupo:", err);
-    mostrarSetupMsg("Erro: " + (err.message || "Tente novamente."), "erro");
-  }
-}
-
-function mostrarSetupMsg(texto, tipo) {
-  const div = document.getElementById('setupMsg');
-  div.className = `text-xs font-semibold text-center p-2 rounded-xl block mt-2 ${
-    tipo === 'erro' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
-  }`;
-  div.innerText = texto;
-  div.classList.remove('hidden');
-}
-
-function initUserSession() {
-  document.getElementById('headerUserName').innerText = currentUser.name;
-  document.getElementById('headerWelcomeMsg').innerText = `Grupo: ${currentWorkspace.code}`;
-  document.getElementById('profileWorkspaceCodeDisplay').innerText = currentWorkspace.code;
-
-  renderAll();
-  carregarDadosDoBanco();
-  carregarMembrosDoGrupo();
-  ouvinteLousaGrupo();
-}
-
-async function carregarMembrosDoGrupo() {
-  const containerMembros = document.getElementById('workspaceMembersList');
-  const selectFiltroMembro = document.getElementById('filterMember');
-  if (!containerMembros || !currentWorkspace.id) return;
-
-  try {
-    const membrosSnapshot = await db.collection('users').where('workspaceId', '==', currentWorkspace.id).get();
-    containerMembros.innerHTML = '';
-    if (selectFiltroMembro) {
-      selectFiltroMembro.innerHTML = `<option value="">👤 Todos os Membros</option>`;
-    }
-
-    if (membrosSnapshot.empty) {
-      containerMembros.innerHTML = `<div class="text-slate-400 text-center py-1">Nenhum membro encontrado.</div>`;
-      return;
-    }
-
-    membrosSnapshot.forEach(doc => {
-      const dadosMembro = doc.data();
-      const emailMembro = dadosMembro.email || 'Utilizador';
-      const nomeMembro = emailMembro.split('@')[0];
-      const ehVoce = emailMembro === currentUser.email ? ' (Você)' : '';
-
-      containerMembros.innerHTML += `
-        <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100 shadow-2xs">
-          <span class="font-bold text-slate-700 truncate text-[11px]"><i class="fa-solid fa-user-circle text-blue-500 mr-1.5"></i>${emailMembro}${ehVoce}</span>
-          <span class="text-[9px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
+  <!-- Modal de Configuração / Criação de Grupo -->
+  <div id="setupWorkspaceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-6 shadow-2xl">
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
+          <i class="fa-solid fa-house-user"></i>
         </div>
-      `;
-
-      if (selectFiltroMembro) {
-        selectFiltroMembro.innerHTML += `<option value="${emailMembro}">${nomeMembro}</option>`;
-      }
-    });
-  } catch (err) {
-    containerMembros.innerHTML = `<div class="text-rose-500 text-center py-1">Erro ao carregar membros.</div>`;
-  }
-}
-
-function atualizarContador(input) {
-  const restantes = 25 - input.value.length;
-  document.getElementById('charCount').innerText = `${restantes} restantes`;
-}
-
-function ouvinteLousaGrupo() {
-  if (!currentWorkspace.id) return;
-  db.collection('lousa')
-    .where('workspaceId', '==', currentWorkspace.id)
-    .onSnapshot((snapshot) => {
-      const lousaConteudo = document.getElementById('lousaConteudo');
-      const lousaAutorContainer = document.getElementById('lousaAutorContainer');
-      const lousaAutorNome = document.getElementById('lousaAutorNome');
-      const btnLimparLousa = document.getElementById('btnLimparLousa');
-
-      if (snapshot.empty) {
-        lousaDocId = null;
-        lousaConteudo.innerHTML = `<p class="text-xs text-slate-500 italic">Mural limpo. Escreva um recado!</p>`;
-        lousaAutorContainer.classList.add('hidden');
-        btnLimparLousa.classList.add('hidden');
-        return;
-      }
-
-      const docLousa = snapshot.docs[0];
-      lousaDocId = docLousa.id;
-      const dados = docLousa.data();
-      const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
-
-      lousaConteudo.innerHTML = `
-        <div class="py-4 bg-white/80 backdrop-blur-xs rounded-2xl p-4 shadow-sm border border-white/60 inline-block max-w-full">
-          <p class="text-xl sm:text-2xl font-extrabold tracking-wide text-slate-900 fonte-manuscrita break-words">"${dados.texto}"</p>
-        </div>
-      `;
-      
-      lousaAutorNome.innerText = autor;
-      lousaAutorContainer.classList.remove('hidden');
-      btnLimparLousa.classList.remove('hidden');
-    });
-}
-
-async function escreverNaLousa(e) {
-  e.preventDefault();
-  const input = document.getElementById('inputLousaTexto');
-  const texto = input.value.trim();
-
-  if (!texto || texto.length > 25) {
-    alert("O recado deve ter no máximo 25 caracteres.");
-    return;
-  }
-
-  if (!currentWorkspace.id) {
-    alert("Erro de segurança: Utilizador sem grupo válido.");
-    return;
-  }
-
-  try {
-    const userCheck = await db.collection('users').doc(currentUser.id).get();
-    if (!userCheck.exists || userCheck.data().workspaceId !== currentWorkspace.id) {
-      alert("Acesso negado: você não pertence a este grupo.");
-      return;
-    }
-
-    if (lousaDocId) {
-      await db.collection('lousa').doc(lousaDocId).update({
-        texto: texto,
-        userEmail: currentUser.email,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    } else {
-      await db.collection('lousa').add({
-        workspaceId: currentWorkspace.id,
-        userEmail: currentUser.email,
-        texto: texto,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
-
-    input.value = '';
-    document.getElementById('charCount').innerText = '25 restantes';
-  } catch (err) {
-    alert("Erro ao escrever na lousa.");
-  }
-}
-
-async function apagarLousa() {
-  if (!lousaDocId) return;
-  const confirmacao = confirm("Deseja limpar o mural para que outro membro possa escrever?");
-  if (!confirmacao) return;
-
-  try {
-    const userCheck = await db.collection('users').doc(currentUser.id).get();
-    if (!userCheck.exists || userCheck.data().workspaceId !== currentWorkspace.id) {
-      alert("Acesso negado.");
-      return;
-    }
-
-    await db.collection('lousa').doc(lousaDocId).delete();
-    lousaDocId = null;
-  } catch (err) {
-    alert("Erro ao limpar a lousa.");
-  }
-}
-
-function carregarDadosDoBanco() {
-  if (!currentWorkspace.id) return;
-  db.collection('transacoes')
-    .where('workspaceId', '==', currentWorkspace.id)
-    .onSnapshot((snapshot) => {
-      transactions = [];
-      snapshot.forEach((doc) => {
-        transactions.push({ id: doc.id, ...doc.data() });
-      });
-      renderAll();
-    });
-}
-
-async function handleSaveTransaction(e) {
-  e.preventDefault();
-  const type = document.querySelector('input[name="txType"]:checked').value;
-  const desc = document.getElementById('txDesc').value.trim();
-  const amount = parseFloat(document.getElementById('txAmount').value);
-  const date = document.getElementById('txDate').value;
-  const cat = document.getElementById('txCat').value;
-
-  const newTx = {
-    desc, amount, type, cat,
-    userId: currentUser.id,
-    userEmail: currentUser.email,
-    workspaceId: currentWorkspace.id,
-    month: activeMonth,
-    date,
-    confirmado: false
-  };
-
-  await db.collection('transacoes').add(newTx);
-  closeNewTxModal();
-  document.getElementById('txForm').reset();
-}
-
-async function alternarConfirmacaoTx(id, estadoAtual) {
-  try {
-    await db.collection('transacoes').doc(id).update({
-      confirmado: !estadoAtual
-    });
-  } catch (err) {
-    alert("Erro ao alterar o estado de confirmação.");
-  }
-}
-
-async function deleteTransaction(id) {
-  if (confirm("Deseja remover este lançamento?")) {
-    await db.collection('transacoes').doc(id).delete();
-  }
-}
-
-function changeActiveMonth(m) {
-  activeMonth = m;
-  renderAll();
-}
-
-function selecionarTipoTx(tipo) {
-  const radio = document.querySelector(`input[name="txType"][value="${tipo}"]`);
-  if (radio) {
-    radio.checked = true;
-    toggleTxTypeUI();
-  }
-}
-
-function toggleTxTypeUI() {
-  const type = document.querySelector('input[name="txType"]:checked').value;
-  const catSelect = document.getElementById('txCat');
-  const labelEntrada = document.getElementById('labelTabEntrada');
-  const labelSaida = document.getElementById('labelTabSaida');
-
-  if (type === 'INCOME') {
-    labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-emerald-600 shadow-2xs transition";
-    labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
-    catSelect.innerHTML = `<option value="Salário">💼 Salário</option><option value="Renda Extra">✨ Renda Extra</option>`;
-  } else {
-    labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition";
-    labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
-    catSelect.innerHTML = `
-      <option value="Gastos Fixos">🏠 Gastos Fixos</option>
-      <option value="Gastos Gerais">🛒 Gastos Gerais</option>
-      <option value="Lazer">🎉 Lazer</option>
-      <option value="Investimentos">📈 Investimentos</option>
-    `;
-  }
-}
-
-function renderAll() {
-  const currentTx = transactions.filter(t => t.month === activeMonth);
-  const txConfirmadas = currentTx.filter(t => t.confirmado === true);
-
-  const income = txConfirmadas.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
-  const expense = txConfirmadas.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
-  const balance = income - expense;
-
-  document.getElementById('statIncome').innerText = `R$ ${income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-  document.getElementById('statExpense').innerText = `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-  document.getElementById('statBalance').innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-
-  const fixed = txConfirmadas.filter(t => t.cat === 'Gastos Fixos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
-  const general = txConfirmadas.filter(t => t.cat === 'Gastos Gerais' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
-  const leisure = txConfirmadas.filter(t => t.cat === 'Lazer' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
-  const invest = txConfirmadas.filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
-
-  const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
-
-  const baseEntradas = income > 0 ? income : 1; 
-  const metaFixosVal = baseEntradas * (metas.fixos / 100);
-  const metaGeraisVal = baseEntradas * (metas.gerais / 100);
-  const metaLazerVal = baseEntradas * (metas.lazer / 100);
-  const metaInvestVal = baseEntradas * (metas.invest / 100);
-
-  const gerarBarraProgressoEStatus = (gasto, meta) => {
-    if (meta <= 0) return { html: `<div class="w-full bg-slate-100 h-1.5 rounded-full mt-1"></div>`, texto: `<span class="text-[9px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
-    
-    const pctGasto = (gasto / meta) * 100;
-    const larguraVerde = Math.min(pctGasto, 100);
-    let larguraVermelha = 0;
-    if (pctGasto > 100) {
-      larguraVermelha = Math.min(pctGasto - 100, 100);
-    }
-
-    const diferenca = meta - gasto;
-    let textoStatus = '';
-    if (diferenca >= 0) {
-      textoStatus = `<span class="text-[9px] text-emerald-600 font-bold">Faltam R$ ${diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
-    } else {
-      textoStatus = `<span class="text-[9px] text-rose-600 font-bold">Passou R$ ${Math.abs(diferenca).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
-    }
-
-    const htmlBarra = `
-      <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1 relative overflow-hidden flex">
-        <div class="bg-emerald-500 h-full transition-all duration-300" style="width: ${larguraVerde}%"></div>
-        <div class="bg-rose-600 h-full transition-all duration-300" style="width: ${larguraVermelha}%"></div>
+        <h3 class="text-base font-extrabold text-slate-900">Configure o seu Espaço</h3>
+        <p class="text-xs text-slate-500">Como deseja iniciar o seu controle financeiro?</p>
       </div>
-    `;
 
-    return { html: htmlBarra, texto: textoStatus };
-  };
-
-  const resFixos = gerarBarraProgressoEStatus(fixed, metaFixosVal);
-  const resGerais = gerarBarraProgressoEStatus(general, metaGeraisVal);
-  const resLazer = gerarBarraProgressoEStatus(leisure, metaLazerVal);
-  const resInvest = gerarBarraProgressoEStatus(invest, metaInvestVal);
-
-  const containerCat = document.getElementById('cardsCategoryContainer');
-  if (containerCat) {
-    containerCat.innerHTML = `
-      <div class="rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs space-y-0.5">
-        <span class="text-[9px] font-bold text-slate-400 uppercase block">Gastos Fixos</span>
-        <div class="text-xs sm:text-sm font-black text-slate-900">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 font-semibold">Meta (${metas.fixos.toFixed(1)}%): R$ ${metaFixosVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div>${resFixos.texto}</div>
-        ${resFixos.html}
-      </div>
-      <div class="rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs space-y-0.5">
-        <span class="text-[9px] font-bold text-slate-400 uppercase block">Gastos Gerais</span>
-        <div class="text-xs sm:text-sm font-black text-slate-900">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 font-semibold">Meta (${metas.gerais.toFixed(1)}%): R$ ${metaGeraisVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div>${resGerais.texto}</div>
-        ${resGerais.html}
-      </div>
-      <div class="rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs space-y-0.5">
-        <span class="text-[9px] font-bold text-slate-400 uppercase block">Lazer</span>
-        <div class="text-xs sm:text-sm font-black text-slate-900">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 font-semibold">Meta (${metas.lazer.toFixed(1)}%): R$ ${metaLazerVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div>${resLazer.texto}</div>
-        ${resLazer.html}
-      </div>
-      <div class="rounded-2xl bg-white p-2.5 border border-slate-200 shadow-2xs space-y-0.5">
-        <span class="text-[9px] font-bold text-slate-400 uppercase block">Investimentos</span>
-        <div class="text-xs sm:text-sm font-black text-emerald-600">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 font-semibold">Meta (${metas.invest.toFixed(1)}%): R$ ${metaInvestVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div>${resInvest.texto}</div>
-        ${resInvest.html}
-      </div>
-    `;
-  }
-
-  renderTransactionsList(currentTx);
-  renderInvestments(currentTx, invest);
-  renderCharts(fixed, general, leisure, invest);
-}
-
-function renderCharts(fixed, general, leisure, invest) {
-  const ctxPie = document.getElementById('categoryPieChart');
-  if (ctxPie) {
-    if (categoryPieChartInstance) categoryPieChartInstance.destroy();
-    categoryPieChartInstance = new Chart(ctxPie, {
-      type: 'doughnut',
-      data: {
-        labels: ['Fixos', 'Gerais', 'Lazer', 'Invest'],
-        datasets: [{
-          data: [fixed, general, leisure, invest],
-          backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
-          borderWidth: 0
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: 2 },
-        plugins: { 
-          legend: { 
-            position: 'bottom', 
-            labels: { boxWidth: 8, font: { size: 9 }, padding: 8, usePointStyle: true } 
-          } 
-        }
-      }
-    });
-  }
-
-  const ctxBar = document.getElementById('categoryBarChart');
-  if (ctxBar) {
-    if (categoryBarChartInstance) categoryBarChartInstance.destroy();
-    categoryBarChartInstance = new Chart(ctxBar, {
-      type: 'bar',
-      data: {
-        labels: ['Fixos', 'Gerais', 'Lazer', 'Invest'],
-        datasets: [{
-          label: 'Gasto (R$)',
-          data: [fixed, general, leisure, invest],
-          backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981'],
-          borderRadius: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, ticks: { font: { size: 9 }, callback: val => 'R$ ' + val } },
-          x: { grid: { display: false }, ticks: { font: { size: 9 } } }
-        }
-      }
-    });
-  }
-}
-
-function renderTransactionsList(currentTx) {
-  const container = document.getElementById('txListContainer');
-  if (!container) return;
-
-  const search = (document.getElementById('searchExpense')?.value || '').toLowerCase();
-  const filtroMembro = document.getElementById('filterMember')?.value || '';
-  const filtroCat = document.getElementById('filterCategory')?.value || '';
-
-  container.innerHTML = '';
-  
-  const filtered = currentTx.filter(t => {
-    const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search);
-    const matchMembro = filtroMembro === '' || t.userEmail === filtroMembro;
-    const matchCat = filtroCat === '' || t.cat === filtroCat;
-    return matchSearch && matchMembro && matchCat;
-  });
-
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl">Nenhuma movimentação encontrada com estes filtros.</div>`;
-    return;
-  }
-
-  filtered.forEach(t => {
-    const isIncome = t.type === 'INCOME';
-    const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
-    const isConfirmed = t.confirmado === true;
-
-    container.innerHTML += `
-      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-100' : 'border-amber-300 bg-amber-50/30'} shadow-2xs">
-        <div>
-          <div class="text-xs font-extrabold text-slate-800">${t.desc} 
-            <span class="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
-            <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
+      <div class="space-y-3">
+        <button onclick="criarNovoWorkspace()" class="w-full p-4 rounded-2xl border-2 border-blue-500/35 hover:border-blue-600 bg-blue-50/40 hover:bg-blue-50 text-left transition space-y-1 group">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-blue-900">Criar um Novo Grupo</span>
+            <i class="fa-solid fa-circle-plus text-blue-600"></i>
           </div>
-          <div class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
-            <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
-            ${!isConfirmed ? '<span class="text-[9px] text-amber-600 font-extrabold bg-amber-100 px-1.5 py-0.2 rounded">Pendente</span>' : '<span class="text-[9px] text-emerald-600 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">Confirmado</span>'}
+          <p class="text-[10px] text-slate-500">Gerar um novo espaço exclusivo e código próprio.</p>
+        </button>
+
+        <div class="relative flex py-1 items-center">
+          <div class="flex-grow border-t border-slate-200"></div>
+          <span class="flex-shrink mx-4 text-[10px] text-slate-400 font-bold uppercase">ou</span>
+          <div class="flex-grow border-t border-slate-200"></div>
+        </div>
+
+        <div class="p-4 rounded-2xl border border-slate-200 space-y-3 bg-slate-50/50">
+          <span class="text-xs font-extrabold text-slate-800 block">Entrar com Código de Convite</span>
+          <div class="flex gap-2">
+            <input type="text" id="inputWorkspaceCode" maxlength="4" placeholder="Ex: 8660" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-bold tracking-widest text-center focus:outline-none focus:border-blue-600" />
+            <button onclick="entrarGrupoExistente()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition">Entrar</button>
           </div>
         </div>
+      </div>
+
+      <div id="setupMsg" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- Cabeçalho Principal Unificado -->
+  <header class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 shadow-2xs">
+    <div class="mx-auto max-w-md space-y-2">
+      
+      <!-- Perfil com Indicador Online e Definições -->
+      <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <span class="text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-slate-900'}">
-            ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
-          </span>
-          
-          ${!isConfirmed ? `
-            <button onclick="alternarConfirmacaoTx('${t.id}', false)" title="Confirmar lançamento" class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-amber-500 text-white hover:bg-amber-600 animate-pulse transition shadow-2xs">
-              Confirmar
-            </button>
-          ` : ''}
-
-          <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
-        </div>
-      </div>
-    `;
-  });
-}
-
-function renderInvestments(currentTx, totalInvestedThisMonth) {
-  const investConfirmadosMes = currentTx.filter(t => t.cat === 'Investimentos' && t.confirmado === true);
-  const totalMes = investConfirmadosMes.reduce((s, t) => s + t.amount, 0);
-
-  document.getElementById('monthInvestTotalHeader').innerText = `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-
-  const totalYearInvested = transactions
-    .filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE' && t.confirmado === true && (t.month.includes('2026') || (t.date && t.date.startsWith('2026'))))
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const yearHeader = document.getElementById('yearInvestTotalHeader');
-  if (yearHeader) {
-    yearHeader.innerText = `R$ ${totalYearInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-  }
-
-  const investList = document.getElementById('monthInvestmentsList');
-  const invests = currentTx.filter(t => t.cat === 'Investimentos');
-
-  if (invests.length === 0) {
-    investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl">Nenhum aporte registrado neste mês.</div>`;
-    return;
-  }
-
-  investList.innerHTML = '';
-  invests.forEach(t => {
-    const isConfirmed = t.confirmado === true;
-    investList.innerHTML += `
-      <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border ${isConfirmed ? 'border-slate-100' : 'border-amber-300 bg-amber-50/30'}">
-        <div>
-          <div class="text-xs font-extrabold text-slate-800">${t.desc}</div>
-          <div class="text-[10px] text-slate-400">${t.date} ${!isConfirmed ? '• <span class="text-amber-600 font-bold">Pendente</span>' : ''}</div>
+          <div class="relative">
+            <div class="w-9 h-9 rounded-xl overflow-hidden shadow-md bg-slate-900 flex items-center justify-center">
+              <img src="icone-app.png" alt="Nosso Bolso" class="h-full w-full object-cover">
+            </div>
+            <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+          </div>
+          <div>
+            <h1 id="headerUserName" class="text-xs font-extrabold text-slate-900 truncate">Utilizador</h1>
+            <p id="headerWelcomeMsg" class="text-[10px] text-slate-500 font-bold">Grupo: ----</p>
+          </div>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-xs font-black text-emerald-600">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
-          ${!isConfirmed ? `
-            <button onclick="alternarConfirmacaoTx('${t.id}', false)" class="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-500 text-white animate-pulse">Confirmar</button>
-          ` : ''}
-          <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          <button onclick="openProfileModal()" class="w-9 h-9 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 flex items-center justify-center hover:bg-slate-100 transition">
+            <i class="fa-solid fa-gear text-xs"></i>
+          </button>
         </div>
       </div>
-    `;
-  });
-}
 
-function switchTab(tab) {
-  ['resumo', 'extrato', 'invest', 'mural'].forEach(t => {
-    const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.add('hidden');
-  });
+      <!-- Seletor de Mês -->
+      <div class="flex items-center justify-between bg-gradient-to-r from-slate-100/90 to-blue-50/50 px-3 py-2 rounded-2xl border border-slate-200 shadow-inner">
+        <span class="text-xs font-bold text-slate-600">Mês de Referência:</span>
+        <select id="selectMonth" onchange="changeActiveMonth(this.value)" class="bg-white border border-slate-200 text-xs font-black text-blue-900 rounded-xl px-3 py-1.5 focus:outline-none shadow-2xs">
+          <option value="Janeiro 2026">Janeiro 2026</option>
+          <option value="Fevereiro 2026">Fevereiro 2026</option>
+          <option value="Março 2026">Março 2026</option>
+          <option value="Abril 2026">Abril 2026</option>
+          <option value="Maio 2026">Maio 2026</option>
+          <option value="Junho 2026">Junho 2026</option>
+          <option value="Julho 2026">Julho 2026</option>
+          <option value="Agosto 2026">Agosto 2026</option>
+          <option value="Setembro 2026">Setembro 2026</option>
+          <option value="Outubro 2026" selected>Outubro 2026</option>
+          <option value="Novembro 2026">Novembro 2026</option>
+          <option value="Dezembro 2026">Dezembro 2026</option>
+        </select>
+      </div>
 
-  const activeEl = document.getElementById(`tab-${tab}`);
-  if (activeEl) activeEl.classList.remove('hidden');
+    </div>
+  </header>
 
-  ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
-    const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
-    if (btn) {
-      btn.className = name === tab ? 'flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
-    }
-  });
+  <!-- Conteúdo Principal por Abas -->
+  <main class="mx-auto max-w-md px-4 pt-3 space-y-2.5">
 
-  if (tab === 'extrato') renderTransactionsList(transactions);
-  if (tab === 'resumo') renderAll();
-}
+    <!-- ABAS: RESUMO -->
+    <div id="tab-resumo" class="space-y-2.5">
+      
+      <!-- Cartões de Resumo Compactos -->
+      <div class="grid grid-cols-3 gap-1.5">
+        <div class="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-2xs space-y-0.5">
+          <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-tight block">Entradas</span>
+          <div id="statIncome" class="text-xs sm:text-base font-black text-emerald-600 tracking-tight truncate">R$ 0,00</div>
+        </div>
+        <div class="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-2xs space-y-0.5">
+          <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-tight block">Saídas</span>
+          <div id="statExpense" class="text-xs sm:text-base font-black text-rose-600 tracking-tight truncate">R$ 0,00</div>
+        </div>
+        <div class="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-2xs space-y-0.5">
+          <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-tight block">Saldo</span>
+          <div id="statBalance" class="text-xs sm:text-base font-black text-slate-900 tracking-tight truncate">R$ 0,00</div>
+        </div>
+      </div>
 
-function openNewTxModal() { 
-  document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
-  toggleTxTypeUI();
-  document.getElementById('newTxModal').classList.remove('hidden'); 
-}
-function closeNewTxModal() { document.getElementById('newTxModal').classList.add('hidden'); }
-function copyWorkspaceCountCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
-function logout() { auth.signOut().then(() => window.location.href = 'index.html'); }
+      <!-- Card de Progresso de Metas -->
+      <div class="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Progresso de Metas</h3>
+          <span class="text-[10px] text-slate-400 font-semibold"><i class="fa-solid fa-gear mr-1"></i>Gerir nas Configurações</span>
+        </div>
+        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2"></div>
+      </div>
+
+      <!-- Card de Distribuição de Gastos Compacto -->
+      <div class="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5">
+        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Distribuição de Gastos</h3>
+        <div class="grid grid-cols-2 gap-3 items-center">
+          <div class="h-36 relative"><canvas id="categoryPieChart"></canvas></div>
+          <div class="h-36 relative"><canvas id="categoryBarChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABAS: EXTRATO -->
+    <div id="tab-extrato" class="space-y-3 hidden">
+      <div class="flex gap-2">
+        <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
+      </div>
+      <div class="flex gap-2">
+        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
+          <option value="">👤 Todos os Membros</option>
+        </select>
+        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
+          <option value="">🏷️ Todas Categorias</option>
+          <option value="Gastos Fixos">Gastos Fixos</option>
+          <option value="Gastos Gerais">Gastos Gerais</option>
+          <option value="Lazer">Lazer</option>
+          <option value="Investimentos">Investimentos</option>
+        </select>
+      </div>
+      <div id="txListContainer" class="space-y-2"></div>
+    </div>
+
+    <!-- ABAS: INVESTIMENTOS -->
+    <div id="tab-invest" class="space-y-3 hidden">
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-4 rounded-3xl text-white shadow-lg space-y-1">
+          <span class="text-[9px] font-bold text-indigo-300 uppercase tracking-wider block">Investido no Mês</span>
+          <div id="monthInvestTotalHeader" class="text-base sm:text-xl font-black text-emerald-400 truncate">R$ 0,00</div>
+        </div>
+        <div class="bg-gradient-to-br from-emerald-900 to-teal-950 p-4 rounded-3xl text-white shadow-lg space-y-1">
+          <span class="text-[9px] font-bold text-emerald-300 uppercase tracking-wider block">Total Acumulado (Ano)</span>
+          <div id="yearInvestTotalHeader" class="text-base sm:text-xl font-black text-white truncate">R$ 0,00</div>
+        </div>
+      </div>
+      <div id="monthInvestmentsList" class="space-y-2"></div>
+    </div>
+
+    <!-- ABAS: MURAL / LOUSA -->
+    <div id="tab-mural" class="space-y-4 hidden">
+      <div class="p-6 rounded-[2.5rem] shadow-xl border border-slate-200/60 papel-mural space-y-4 text-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-white/60 backdrop-blur-[1px]"></div>
+        <div class="relative z-10 space-y-4">
+          <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-note-sticky text-amber-500 mr-1.5"></i>Mural do Grupo</h3>
+          
+          <div id="lousaConteudo" class="py-2">
+            <p class="text-xs text-slate-500 italic">Mural limpo. Escreva um recado!</p>
+          </div>
+
+          <div id="lousaAutorContainer" class="text-[10px] text-slate-600 font-semibold hidden">
+            Deixado por: <span id="lousaAutorNome" class="font-bold text-slate-900"></span>
+          </div>
+
+          <form onsubmit="escreverNaLousa(event)" class="space-y-2 pt-2 border-t border-slate-300/60">
+            <div class="relative">
+              <input type="text" id="inputLousaTexto" maxlength="25" oninput="atualizarContador(this)" placeholder="Deixe um recado (máx. 25 carac.)" class="w-full bg-white/90 border border-slate-300 rounded-2xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-blue-600 shadow-2xs" />
+            </div>
+            <div class="flex items-center justify-between px-1">
+              <span id="charCount" class="text-[9px] text-slate-600 font-semibold">25 restantes</span>
+              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-md">Fixar Recado</button>
+            </div>
+          </form>
+
+          <button id="btnLimparLousa" onclick="apagarLousa()" class="text-rose-600 hover:text-rose-800 text-[10px] font-bold hidden pt-1">
+            <i class="fa-solid fa-trash-can mr-1"></i>Limpar Mural
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Botão Flutuante Redondo -->
+  <div class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-40">
+    <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition text-xl border-2 border-white">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+  </div>
+
+  <!-- Barra de Navegação Inferior -->
+  <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2.5 shadow-lg">
+    <div class="mx-auto max-w-md grid grid-cols-5 items-center">
+      <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5">
+        <i class="fa-solid fa-chart-pie text-base"></i>
+        <span class="text-[10px] font-extrabold mt-1">Resumo</span>
+      </button>
+      <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+        <i class="fa-solid fa-receipt text-base"></i>
+        <span class="text-[10px] font-extrabold mt-1">Extrato</span>
+      </button>
+      <div></div>
+      <button onclick="switchTab('invest')" id="bottomNavInvest" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+        <i class="fa-solid fa-chart-line text-base"></i>
+        <span class="text-[10px] font-extrabold mt-1">Invest</span>
+      </button>
+      <button onclick="switchTab('mural')" id="bottomNavMural" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+        <i class="fa-solid fa-note-sticky text-base"></i>
+        <span class="text-[10px] font-extrabold mt-1">Mural</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Modais -->
+  <div id="newTxModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="text-xs font-extrabold text-slate-900 uppercase">Novo Lançamento</h3>
+        <button onclick="closeNewTxModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="txForm" onsubmit="handleSaveTransaction(event)" class="space-y-3">
+        <div class="flex bg-slate-100 p-1 rounded-xl">
+          <label id="labelTabEntrada" onclick="selecionarTipoTx('INCOME')" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition">
+            <input type="radio" name="txType" value="INCOME" onchange="toggleTxTypeUI()" class="hidden" /> Entrada
+          </label>
+          <label id="labelTabSaida" onclick="selecionarTipoTx('EXPENSE')" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition">
+            <input type="radio" name="txType" value="EXPENSE" checked onchange="toggleTxTypeUI()" class="hidden" /> Saída
+          </label>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1">Descrição</label>
+          <input type="text" id="txDesc" required placeholder="Ex: Supermercado" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Valor (R$)</label>
+            <input type="number" step="0.01" id="txAmount" required placeholder="0,00" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Data</label>
+            <input type="date" id="txDate" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1">Categoria</label>
+          <select id="txCat" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white">
+            <option value="Gastos Fixos">Gastos Fixos</option>
+            <option value="Gastos Gerais">Gastos Gerais</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Investimentos">Investimentos</option>
+          </select>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-extrabold transition shadow-md">
+          Guardar Lançamento
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Configurações -->
+  <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm bg-white p-5 rounded-[2rem] space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="text-xs font-extrabold text-slate-900 uppercase">Configurações do Grupo</h3>
+        <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-center space-y-1.5">
+        <span class="text-[9px] font-bold text-slate-400 uppercase block">Código de Convite</span>
+        <div id="profileWorkspaceCodeDisplay" class="text-lg font-black text-blue-600 tracking-wider">----</div>
+        <button onclick="copyWorkspaceCountCode()" class="w-full py-1.5 bg-blue-600 text-white rounded-xl text-[11px] font-bold transition shadow-xs">
+          <i class="fa-solid fa-copy mr-1"></i>Copiar Código
+        </button>
+      </div>
+
+      <div class="bg-blue-50/40 p-3 rounded-2xl border border-blue-100 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-extrabold text-blue-900 uppercase">
+            Definir Metas <span id="metaTotalRestante" class="text-[10px] font-bold text-slate-500 normal-case ml-1">(Total: 0%)</span>
+          </h4>
+          <div class="flex bg-white p-0.5 rounded-lg border border-slate-200 shadow-2xs">
+            <button type="button" onclick="mudarModoMetas('perc')" id="btnModoPerc" class="px-2.5 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition">%</button>
+            <button type="button" onclick="mudarModoMetas('dinheiro')" id="btnModoDinheiro" class="px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 transition">R$</button>
+          </div>
+        </div>
+
+        <form onsubmit="salvarMetasGrupoConfig(event)" class="space-y-2">
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-white p-2 rounded-xl border border-slate-200 shadow-2xs">
+              <label class="block text-[9px] font-bold text-slate-500">Fixos (<span id="labelUnidadeFixos">%</span>)</label>
+              <input type="number" step="0.01" id="cfgMetaFixos" required oninput="calcularConversaoMetas('fixos')" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-2 py-1 text-xs font-extrabold text-center mt-1" />
+              <span id="subMetaFixos" class="text-[9px] text-slate-400 block text-center mt-0.5">--</span>
+            </div>
+            <div class="bg-white p-2 rounded-xl border border-slate-200 shadow-2xs">
+              <label class="block text-[9px] font-bold text-slate-500">Gerais (<span id="labelUnidadeGerais">%</span>)</label>
+              <input type="number" step="0.01" id="cfgMetaGerais" required oninput="calcularConversaoMetas('gerais')" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-2 py-1 text-xs font-extrabold text-center mt-1" />
+              <span id="subMetaGerais" class="text-[9px] text-slate-400 block text-center mt-0.5">--</span>
+            </div>
+            <div class="bg-white p-2 rounded-xl border border-slate-200 shadow-2xs">
+              <label class="block text-[9px] font-bold text-slate-500">Lazer (<span id="labelUnidadeLazer">%</span>)</label>
+              <input type="number" step="0.01" id="cfgMetaLazer" required oninput="calcularConversaoMetas('lazer')" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-2 py-1 text-xs font-extrabold text-center mt-1" />
+              <span id="subMetaLazer" class="text-[9px] text-slate-400 block text-center mt-0.5">--</span>
+            </div>
+            <div class="bg-white p-2 rounded-xl border border-slate-200 shadow-2xs">
+              <label class="block text-[9px] font-bold text-slate-500">Invest. (<span id="labelUnidadeInvest">%</span>)</label>
+              <input type="number" step="0.01" id="cfgMetaInvest" required oninput="calcularConversaoMetas('invest')" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-2 py-1 text-xs font-extrabold text-center mt-1" />
+              <span id="subMetaInvest" class="text-[9px] text-slate-400 block text-center mt-0.5">--</span>
+            </div>
+          </div>
+
+          <div id="metaConfigErrorMsg" class="text-[10px] font-bold text-rose-600 bg-rose-50 p-1.5 rounded-xl text-center hidden"></div>
+
+          <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold transition shadow-sm">
+            Guardar Novas Metas
+          </button>
+        </form>
+      </div>
+
+      <div class="space-y-1.5">
+        <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Membros</span>
+        <div id="workspaceMembersList" class="space-y-1 max-h-24 overflow-y-auto"></div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-100 flex gap-2">
+        <button onclick="deixarGrupo()" class="w-1/2 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition">
+          Sair do Grupo
+        </button>
+        <button onclick="logout()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+          Terminar Sessão
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
