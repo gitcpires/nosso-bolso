@@ -28,11 +28,16 @@
       </button>
     </div>
 
+    <!-- Caixa de Diagnóstico Visual -->
+    <div id="boxStatus" class="bg-amber-500/20 border border-amber-500 p-4 rounded-2xl text-xs text-amber-200">
+      A iniciar verificação de segurança...
+    </div>
+
     <!-- Lista de Utilizadores -->
     <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-md space-y-4">
       <h2 class="text-sm font-extrabold text-white">Utilizadores Registados</h2>
       <div id="usersListContainer" class="space-y-2">
-        <div class="text-xs text-slate-400 text-center py-4">A carregar utilizadores...</div>
+        <div class="text-xs text-slate-400 text-center py-4">A aguardar autorização...</div>
       </div>
     </div>
   </div>
@@ -43,6 +48,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
+    const statusBox = document.getElementById('boxStatus');
+
     const firebaseConfig = {
       apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
       authDomain: "nosso-bolso-c8d29.firebaseapp.com",
@@ -52,48 +59,57 @@
       appId: "1:812166717623:web:ba3a4c0db18484be47ad32"
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      statusBox.innerText = "Firebase inicializado com sucesso. A verificar sessão...";
+    } catch (e) {
+      statusBox.innerText = "Erro ao inicializar Firebase: " + e.message;
+    }
+
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let verificado = false;
+    let rodou = false;
 
     auth.onAuthStateChanged(async (user) => {
+      if (rodou) return;
+      rodou = true;
+
       if (!user) {
-        console.log("Nenhum utilizador logado. A redirecionar para index.html");
-        window.location.replace("index.html");
+        statusBox.innerText = "Nenhum utilizador autenticado. A redirecionar para o login...";
+        setTimeout(() => window.location.replace("index.html"), 1500);
         return;
       }
 
-      if (verificado) return;
-      verificado = true;
+      statusBox.innerText = "Utilizador detetado (UID: " + user.uid + "). A verificar permissões de admin...";
 
-      console.log("Utilizador autenticado:", user.uid);
-      
       try {
         const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
 
         if (!adminDoc.exists) {
-          console.warn("UID não encontrado na coleção ADMIN_UID. A redirecionar para painel.html");
-          window.location.replace("painel.html");
+          statusBox.innerText = "Atenção: Este UID não está registado na coleção ADMIN_UID! A redirecionar...";
+          setTimeout(() => window.location.replace("painel.html"), 2000);
           return;
         }
 
-        console.log("Admin verificado com sucesso. A iniciar painel...");
-        iniciarPainelAdmin();
+        statusBox.innerText = "Acesso de Administrador confirmado! A carregar painel...";
+        carregarUtilizadores();
+
       } catch (err) {
-        console.error("Erro crítico ao validar admin:", err);
+        statusBox.innerText = "Erro ao consultar Firestore: " + err.message;
       }
     });
 
-    function iniciarPainelAdmin() {
+    function carregarUtilizadores() {
       db.collection('users').onSnapshot((snapshot) => {
         const container = document.getElementById('usersListContainer');
         if (!container) return;
         
         container.innerHTML = '';
         if (snapshot.empty) {
-          container.innerHTML = `<div class="text-xs text-slate-400 text-center py-4">Nenhum utilizador encontrado na base de dados.</div>`;
+          container.innerHTML = `<div class="text-xs text-slate-400 text-center py-4">Nenhum utilizador encontrado.</div>`;
           return;
         }
 
@@ -105,19 +121,18 @@
           container.innerHTML += `
             <div class="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
               <div>
-                <div class="text-xs font-bold text-white">${u.email || 'E-mail não disponível'}</div>
+                <div class="text-xs font-bold text-white">${u.email || 'E-mail indisponível'}</div>
                 <div class="text-[10px] text-slate-400">Estado: <span class="${isPending ? 'text-amber-400' : 'text-emerald-400'} font-extrabold">${u.status || 'ativo'}</span></div>
               </div>
               <div class="flex items-center gap-2">
                 ${isPending ? `<button onclick="aprovarUtilizador('${uid}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition">Aprovar</button>` : ''}
-                <button onclick="removerUtilizador('${uid}')" class="text-slate-500 hover:text-rose-400 p-1 transition" title="Remover utilizador"><i class="fa-solid fa-trash text-xs"></i></button>
+                <button onclick="removerUtilizador('${uid}')" class="text-slate-500 hover:text-rose-400 p-1 transition" title="Remover"><i class="fa-solid fa-trash text-xs"></i></button>
               </div>
             </div>
           `;
         });
       }, (error) => {
-        console.error("Erro no onSnapshot da coleção users:", error);
-        document.getElementById('usersListContainer').innerHTML = `<div class="text-xs text-rose-400 text-center py-4">Erro ao carregar utilizadores. Verifique as regras do Firestore.</div>`;
+        statusBox.innerText = "Erro no leitor da base de dados: " + error.message;
       });
     }
 
@@ -125,16 +140,16 @@
       try {
         await db.collection('users').doc(uid).update({ status: 'approved' });
       } catch (err) {
-        alert("Erro ao aprovar utilizador.");
+        alert("Erro ao aprovar.");
       }
     }
 
     async function removerUtilizador(uid) {
-      if (confirm("Deseja realmente remover este utilizador?")) {
+      if (confirm("Deseja eliminar este utilizador?")) {
         try {
           await db.collection('users').doc(uid).delete();
         } catch (err) {
-          alert("Erro ao remover utilizador.");
+          alert("Erro ao remover.");
         }
       }
     }
