@@ -62,7 +62,7 @@
         return;
       }
       
-      // Validação de segurança via coleção ADMIN_UID no Firestore
+      // Validação de segurança via coleção ADMIN_UID no Firestore[span_0](start_span)[span_0](end_span)
       const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
 
       if (!adminDoc.exists) {
