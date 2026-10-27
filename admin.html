@@ -28,16 +28,11 @@
       </button>
     </div>
 
-    <!-- Caixa de Diagnóstico Visual -->
-    <div id="boxStatus" class="bg-amber-500/20 border border-amber-500 p-4 rounded-2xl text-xs text-amber-200">
-      A iniciar verificação de segurança...
-    </div>
-
     <!-- Lista de Utilizadores -->
     <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-md space-y-4">
       <h2 class="text-sm font-extrabold text-white">Utilizadores Registados</h2>
       <div id="usersListContainer" class="space-y-2">
-        <div class="text-xs text-slate-400 text-center py-4">A aguardar autorização...</div>
+        <div class="text-xs text-slate-400 text-center py-4">A carregar utilizadores...</div>
       </div>
     </div>
   </div>
@@ -48,8 +43,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
-    const statusBox = document.getElementById('boxStatus');
-
     const firebaseConfig = {
       apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
       authDomain: "nosso-bolso-c8d29.firebaseapp.com",
@@ -59,48 +52,47 @@
       appId: "1:812166717623:web:ba3a4c0db18484be47ad32"
     };
 
-    try {
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-      statusBox.innerText = "Firebase inicializado com sucesso. A verificar sessão...";
-    } catch (e) {
-      statusBox.innerText = "Erro ao inicializar Firebase: " + e.message;
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
     }
 
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let rodou = false;
-
-    auth.onAuthStateChanged(async (user) => {
-      if (rodou) return;
-      rodou = true;
-
+    async function validarE(user) {
       if (!user) {
-        statusBox.innerText = "Nenhum utilizador autenticado. A redirecionar para o login...";
-        setTimeout(() => window.location.replace("index.html"), 1500);
+        window.location.replace("index.html");
         return;
       }
-
-      statusBox.innerText = "Utilizador detetado (UID: " + user.uid + "). A verificar permissões de admin...";
 
       try {
         const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
 
         if (!adminDoc.exists) {
-          statusBox.innerText = "Atenção: Este UID não está registado na coleção ADMIN_UID! A redirecionar...";
-          setTimeout(() => window.location.replace("painel.html"), 2000);
+          window.location.replace("painel.html");
           return;
         }
 
-        statusBox.innerText = "Acesso de Administrador confirmado! A carregar painel...";
         carregarUtilizadores();
-
       } catch (err) {
-        statusBox.innerText = "Erro ao consultar Firestore: " + err.message;
+        console.error("Erro ao validar admin:", err);
       }
+    }
+
+    let processado = false;
+
+    auth.onAuthStateChanged((user) => {
+      if (processado) return;
+      processado = true;
+      validarE(user);
     });
+
+    setTimeout(() => {
+      if (!processado) {
+        processado = true;
+        validarE(auth.currentUser);
+      }
+    }, 600);
 
     function carregarUtilizadores() {
       db.collection('users').onSnapshot((snapshot) => {
@@ -132,7 +124,7 @@
           `;
         });
       }, (error) => {
-        statusBox.innerText = "Erro no leitor da base de dados: " + error.message;
+        console.error("Erro ao ler base de dados:", error);
       });
     }
 
