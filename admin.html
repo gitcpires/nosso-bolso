@@ -14,11 +14,11 @@
     }
   </script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 sm:p-6">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6">
 
   <div class="max-w-4xl mx-auto space-y-6">
     <!-- Cabeçalho -->
-    <div class="flex items-center justify-between bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-md">
+    <div class="flex items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-md">
       <div>
         <h1 class="text-lg font-black text-white"><i class="fa-solid fa-shield-halved text-amber-400 mr-2"></i>Painel Administrativo</h1>
         <p class="text-xs text-slate-400">Gestão de acessos e utilizadores</p>
@@ -28,8 +28,8 @@
       </button>
     </div>
 
-    <!-- Lista de Utilizadores Pendentes / Aprovados -->
-    <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-md space-y-4">
+    <!-- Lista de Utilizadores -->
+    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-md space-y-4">
       <h2 class="text-sm font-extrabold text-white">Utilizadores Registados</h2>
       <div id="usersListContainer" class="space-y-2">
         <div class="text-xs text-slate-400 text-center py-4">A carregar utilizadores...</div>
@@ -56,24 +56,37 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    let emProcessamento = false;
+    let listenerIniciado = false;
+
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
         window.location.replace("index.html");
         return;
       }
+
+      // Impede múltiplas execuções simultâneas do onAuthStateChanged
+      if (emProcessamento || listenerIniciado) return;
+      emProcessamento = true;
       
-      // Validação de segurança via coleção ADMIN_UID no Firestore
-      const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
+      try {
+        const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
 
-      if (!adminDoc.exists) {
-        window.location.replace("painel.html");
-        return;
+        if (!adminDoc.exists) {
+          window.location.replace("painel.html");
+          return;
+        }
+
+        listenerIniciado = true;
+        iniciarPainelAdmin();
+      } catch (err) {
+        console.error("Erro na verificação de admin:", err);
+      } finally {
+        emProcessamento = false;
       }
-
-      ouvinteDadosAdmin();
     });
 
-    function ouvinteDadosAdmin() {
+    function iniciarPainelAdmin() {
       db.collection('users').onSnapshot((snapshot) => {
         const container = document.getElementById('usersListContainer');
         if (!container) return;
@@ -90,14 +103,14 @@
           const isPending = u.status === 'pending';
 
           container.innerHTML += `
-            <div class="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-700">
+            <div class="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
               <div>
-                <div class="text-xs font-bold text-white">${u.email}</div>
+                <div class="text-xs font-bold text-white">${u.email || 'E-mail não disponível'}</div>
                 <div class="text-[10px] text-slate-400">Estado: <span class="${isPending ? 'text-amber-400' : 'text-emerald-400'} font-extrabold">${u.status || 'ativo'}</span></div>
               </div>
               <div class="flex items-center gap-2">
                 ${isPending ? `<button onclick="aprovarUtilizador('${uid}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition">Aprovar</button>` : ''}
-                <button onclick="removerUtilizador('${uid}')" class="text-slate-500 hover:text-rose-400 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
+                <button onclick="removerUtilizador('${uid}')" class="text-slate-500 hover:text-rose-400 p-1 transition" title="Remover utilizador"><i class="fa-solid fa-trash text-xs"></i></button>
               </div>
             </div>
           `;
