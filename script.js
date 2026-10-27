@@ -382,6 +382,8 @@ function mostrarSetupMsg(texto, tipo) {
 }
 
 function initUserSession() {
+  document.getElementById('selectMonth').value = activeMonth;
+
   document.getElementById('headerUserName').innerText = currentUser.name;
   document.getElementById('headerWelcomeMsg').innerText = `Grupo: ${currentWorkspace.code}`;
   document.getElementById('profileWorkspaceCodeDisplay').innerText = currentWorkspace.code;
