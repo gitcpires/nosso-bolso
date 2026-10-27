@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nosso Bolso - Painel do Administrador</title>
+  <title>Nosso Bolso - Login</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome -->
@@ -14,27 +14,52 @@
     }
   </script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6">
+<body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen px-4">
 
-  <div class="max-w-4xl mx-auto space-y-6">
-    <!-- Cabeçalho -->
-    <div class="flex items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-md">
-      <div>
-        <h1 class="text-lg font-black text-white"><i class="fa-solid fa-shield-halved text-amber-400 mr-2"></i>Painel Administrativo</h1>
-        <p class="text-xs text-slate-400">Gestão de acessos e utilizadores</p>
+  <div class="w-full max-w-sm bg-slate-900/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl space-y-6">
+    
+    <!-- Ícone / Logótipo Central (Aponta corretamente para o teu icone-app.png) -->
+    <div class="text-center space-y-3">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-inner overflow-hidden p-2">
+        <img src="icone-app.png" alt="Nosso Bolso" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
       </div>
-      <button onclick="logout()" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-2 rounded-xl text-xs font-extrabold transition">
-        <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair
+    </div>
+
+    <form onsubmit="fazerLogin(event)" class="space-y-4">
+      <!-- Campo E-mail com ícone -->
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+          <i class="fa-solid fa-envelope text-xs"></i>
+        </span>
+        <input type="email" id="loginEmail" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="E-mail">
+      </div>
+
+      <!-- Campo Senha com ícone e botão de mostrar/ocultar -->
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+          <i class="fa-solid fa-lock text-xs"></i>
+        </span>
+        <input type="password" id="loginPassword" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="Senha">
+        <button type="button" onclick="toggleSenha()" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-white transition">
+          <i id="eyeIcon" class="fa-solid fa-eye-slash text-xs"></i>
+        </button>
+      </div>
+
+      <div id="msgFeedback" class="text-xs font-bold text-rose-500 text-center hidden"></div>
+
+      <!-- Botão Entrar Laranja -->
+      <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3.5 rounded-2xl transition shadow-lg shadow-amber-500/20 uppercase tracking-wider">
+        Entrar
       </button>
+    </form>
+
+    <!-- Link Criar Conta / Solicitar Acesso -->
+    <div class="text-center pt-2">
+      <a href="#" onclick="alert('Para solicitar acesso, entre em contacto com o administrador.')" class="text-[11px] text-slate-400 hover:text-amber-400 transition">
+        Criar Conta / Solicitar Acesso
+      </a>
     </div>
 
-    <!-- Lista de Utilizadores -->
-    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-md space-y-4">
-      <h2 class="text-sm font-extrabold text-white">Utilizadores Registados</h2>
-      <div id="usersListContainer" class="space-y-2">
-        <div class="text-xs text-slate-400 text-center py-4">A carregar utilizadores...</div>
-      </div>
-    </div>
   </div>
 
   <!-- Firebase SDKs -->
@@ -56,84 +81,50 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let adminVerificado = false;
+    function toggleSenha() {
+      const input = document.getElementById('loginPassword');
+      const icon = document.getElementById('eyeIcon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      }
+    }
 
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        window.location.replace("index.html");
+    async function fazerLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const feedback = document.getElementById('msgFeedback');
+      feedback.classList.add('hidden');
+      feedback.innerText = '';
+
+      if (!email || !password) {
+        feedback.innerText = 'Preencha o e-mail e a senha.';
+        feedback.classList.remove('hidden');
         return;
       }
-      
-      // Evita disparos repetidos em loop do onAuthStateChanged
-      if (adminVerificado) return;
 
       try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
         const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
 
-        if (!adminDoc.exists) {
-          window.location.replace("painel.html");
-          return;
+        if (adminDoc.exists) {
+            window.location.replace('admin.html');
+        } else {
+            window.location.replace('painel.html');
         }
-
-        adminVerificado = true;
-        ouvinteDadosAdmin();
       } catch (err) {
-        console.error("Erro ao verificar admin:", err);
+        console.error(err);
+        feedback.innerText = 'Erro ao entrar: Verifique seu e-mail e senha.';
+        feedback.classList.remove('hidden');
       }
-    });
-
-    function ouvinteDadosAdmin() {
-      db.collection('users').onSnapshot((snapshot) => {
-        const container = document.getElementById('usersListContainer');
-        if (!container) return;
-        
-        container.innerHTML = '';
-        if (snapshot.empty) {
-          container.innerHTML = `<div class="text-xs text-slate-400 text-center py-4">Nenhum utilizador encontrado.</div>`;
-          return;
-        }
-
-        snapshot.forEach(doc => {
-          const u = doc.data();
-          const uid = doc.id;
-          const isPending = u.status === 'pending';
-
-          container.innerHTML += `
-            <div class="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
-              <div>
-                <div class="text-xs font-bold text-white">${u.email}</div>
-                <div class="text-[10px] text-slate-400">Estado: <span class="${isPending ? 'text-amber-400' : 'text-emerald-400'} font-extrabold">${u.status || 'ativo'}</span></div>
-              </div>
-              <div class="flex items-center gap-2">
-                ${isPending ? `<button onclick="aprovarUtilizador('${uid}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition">Aprovar</button>` : ''}
-                <button onclick="removerUtilizador('${uid}')" class="text-slate-500 hover:text-rose-400 p-1 transition" title="Remover utilizador"><i class="fa-solid fa-trash text-xs"></i></button>
-              </div>
-            </div>
-          `;
-        });
-      });
-    }
-
-    async function aprovarUtilizador(uid) {
-      try {
-        await db.collection('users').doc(uid).update({ status: 'approved' });
-      } catch (err) {
-        alert("Erro ao aprovar utilizador.");
-      }
-    }
-
-    async function removerUtilizador(uid) {
-      if (confirm("Deseja realmente remover este utilizador?")) {
-        try {
-          await db.collection('users').doc(uid).delete();
-        } catch (err) {
-          alert("Erro ao remover utilizador.");
-        }
-      }
-    }
-
-    function logout() {
-      auth.signOut().then(() => window.location.replace('index.html'));
     }
   </script>
 </body>
