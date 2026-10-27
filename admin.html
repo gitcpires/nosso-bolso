@@ -27,7 +27,7 @@
         <button onclick="limparDesabilitados()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-xl text-xs font-bold transition">
           <i class="fa-solid fa-broom mr-1"></i> Limpar Desabilitados
         </button>
-        <button onclick="logout()" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-2 rounded-xl text-xs font-extrabold transition">
+        <button onclick="logout()" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 text-white px-3 py-2 rounded-xl text-xs font-extrabold transition">
           <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair
         </button>
       </div>
@@ -82,7 +82,7 @@
         const container = document.getElementById('usersListContainer');
         if (!container) return;
         
-        container.innerHTML = '';
+        let htmlContent = '';
         if (snapshot.empty) {
           container.innerHTML = `<div class="text-xs text-slate-400 text-center py-4">Nenhum utilizador encontrado.</div>`;
           return;
@@ -94,15 +94,14 @@
           const isPending = u.status === 'pending';
           const isDisabled = u.status === 'disabled';
 
-          // Define a cor e o texto do estado
           let statusBadge = '<span class="text-emerald-400 font-extrabold">ativo</span>';
           if (isPending) statusBadge = '<span class="text-amber-400 font-extrabold">pendente</span>';
           if (isDisabled) statusBadge = '<span class="text-rose-500 font-extrabold">desabilitado</span>';
 
-          container.innerHTML += `
+          htmlContent += `
             <div class="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-700 ${isDisabled ? 'opacity-60' : ''}">
               <div>
-                <div class="text-xs font-bold text-white">${u.email}</div>
+                <div class="text-xs font-bold text-white">${u.email || 'E-mail não registado'}</div>
                 <div class="text-[10px] text-slate-400">Estado: ${statusBadge}</div>
               </div>
               <div class="flex items-center gap-2">
@@ -123,6 +122,8 @@
             </div>
           `;
         });
+
+        container.innerHTML = htmlContent;
       });
     }
 
@@ -134,7 +135,6 @@
       }
     }
 
-    // Apenas marca o utilizador como desabilitado (bloqueia o acesso de imediato)
     async function desabilitarUtilizador(uid) {
       if (confirm("Tens a certeza que pretendes desabilitar este utilizador?")) {
         try {
@@ -145,7 +145,6 @@
       }
     }
 
-    // Elimina permanentemente um utilizador específico
     async function removerUtilizadorDireto(uid) {
       if (confirm("Deseja eliminar este registo permanentemente da base de dados?")) {
         try {
@@ -156,7 +155,6 @@
       }
     }
 
-    // Botão do cabeçalho que varre a base e apaga todos os que estão com estado 'disabled' de uma só vez
     async function limparDesabilitados() {
       if (confirm("Deseja eliminar permanentemente todos os utilizadores marcados como desabilitados?")) {
         try {
