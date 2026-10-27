@@ -14,7 +14,10 @@ const db = firebase.firestore();
 let currentWorkspace = { id: '', code: '', metas: { fixos: 50, gerais: 30, lazer: 10, invest: 10 } };
 let currentUser = { id: '', name: '', email: '' };
 let transactions = [];
-let activeMonth = 'Outubro 2026';
+const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const agora = new Date();
+let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
+
 let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
 let lousaDocId = null;
