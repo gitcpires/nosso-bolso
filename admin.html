@@ -28,13 +28,7 @@
       </button>
     </div>
 
-    <!-- Mensagem de erro caso o UID não seja admin -->
-    <div id="msgErroAdmin" class="hidden bg-rose-900/40 border border-rose-700 p-4 rounded-2xl text-xs text-rose-200 text-center space-y-2">
-      <p class="font-bold">Acesso Restrito / UID não encontrado na coleção ADMIN_UID.</p>
-      <p id="seuUidAtual" class="font-mono bg-slate-900 p-2 rounded text-[10px] text-slate-300"></p>
-    </div>
-
-    <!-- Lista de Utilizadores -->
+    <!-- Lista de Utilizadores Pendentes / Aprovados -->
     <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-md space-y-4">
       <h2 class="text-sm font-extrabold text-white">Utilizadores Registados</h2>
       <div id="usersListContainer" class="space-y-2">
@@ -68,20 +62,15 @@
         return;
       }
       
-      try {
-        const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
+      // Validação de segurança via coleção ADMIN_UID no Firestore
+      const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
 
-        if (!adminDoc.exists) {
-          document.getElementById('msgErroAdmin').classList.remove('hidden');
-          document.getElementById('seuUidAtual').innerText = `O teu UID autenticado é: ${user.uid}`;
-          document.getElementById('usersListContainer').innerHTML = `<div class="text-xs text-rose-400 text-center py-4">Sem permissão de administrador.</div>`;
-          return;
-        }
-
-        ouvinteDadosAdmin();
-      } catch (err) {
-        console.error("Erro ao validar admin:", err);
+      if (!adminDoc.exists) {
+        window.location.replace("painel.html");
+        return;
       }
+
+      ouvinteDadosAdmin();
     });
 
     function ouvinteDadosAdmin() {
@@ -103,12 +92,12 @@
           container.innerHTML += `
             <div class="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-700">
               <div>
-                <div class="text-xs font-bold text-white">${u.email || 'E-mail não disponível'}</div>
+                <div class="text-xs font-bold text-white">${u.email}</div>
                 <div class="text-[10px] text-slate-400">Estado: <span class="${isPending ? 'text-amber-400' : 'text-emerald-400'} font-extrabold">${u.status || 'ativo'}</span></div>
               </div>
               <div class="flex items-center gap-2">
                 ${isPending ? `<button onclick="aprovarUtilizador('${uid}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition">Aprovar</button>` : ''}
-                <button onclick="removerUtilizador('${uid}')" class="text-slate-500 hover:text-rose-400 p-1" title="Remover registo"><i class="fa-solid fa-trash text-xs"></i></button>
+                <button onclick="removerUtilizador('${uid}')" class="text-slate-500 hover:text-rose-400 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
               </div>
             </div>
           `;
@@ -125,7 +114,7 @@
     }
 
     async function removerUtilizador(uid) {
-      if (confirm("Deseja realmente remover este utilizador do Firestore?")) {
+      if (confirm("Deseja realmente remover este utilizador?")) {
         try {
           await db.collection('users').doc(uid).delete();
         } catch (err) {
