@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nosso Bolso - Login</title>
+  <title>Nosso Bolso - Acesso</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome -->
@@ -18,15 +18,16 @@
 
   <div class="w-full max-w-sm bg-slate-900/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl space-y-6">
     
-    <!-- Ícone / Logótipo Central (Aponta corretamente para o teu icone-app.png) -->
+    <!-- Ícone / Logótipo Central -->
     <div class="text-center space-y-3">
       <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-inner overflow-hidden p-2">
         <img src="icone-app.png" alt="Nosso Bolso" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
       </div>
+      <h2 id="tituloForm" class="text-sm font-extrabold text-white">Acesse sua conta</h2>
     </div>
 
-    <form onsubmit="fazerLogin(event)" class="space-y-4">
-      <!-- Campo E-mail com ícone -->
+    <!-- FORMULÁRIO DE LOGIN -->
+    <form id="formLogin" onsubmit="fazerLogin(event)" class="space-y-4">
       <div class="relative">
         <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
           <i class="fa-solid fa-envelope text-xs"></i>
@@ -34,31 +35,58 @@
         <input type="email" id="loginEmail" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="E-mail">
       </div>
 
-      <!-- Campo Senha com ícone e botão de mostrar/ocultar -->
       <div class="relative">
         <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
           <i class="fa-solid fa-lock text-xs"></i>
         </span>
         <input type="password" id="loginPassword" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="Senha">
-        <button type="button" onclick="toggleSenha()" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-white transition">
-          <i id="eyeIcon" class="fa-solid fa-eye-slash text-xs"></i>
+        <button type="button" onclick="toggleSenha('loginPassword', 'eyeIconLogin')" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-white transition">
+          <i id="eyeIconLogin" class="fa-solid fa-eye-slash text-xs"></i>
         </button>
       </div>
 
-      <div id="msgFeedback" class="text-xs font-bold text-rose-500 text-center hidden"></div>
+      <div id="msgFeedbackLogin" class="text-xs font-bold text-rose-500 text-center hidden"></div>
 
-      <!-- Botão Entrar Laranja -->
       <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3.5 rounded-2xl transition shadow-lg shadow-amber-500/20 uppercase tracking-wider">
         Entrar
       </button>
+
+      <div class="text-center pt-2">
+        <button type="button" onclick="mudarParaRegisto()" class="text-[11px] text-slate-400 hover:text-amber-400 transition">
+          Criar Conta / Solicitar Acesso
+        </button>
+      </div>
     </form>
 
-    <!-- Link Criar Conta / Solicitar Acesso -->
-    <div class="text-center pt-2">
-      <a href="#" onclick="alert('Para solicitar acesso, entre em contacto com o administrador.')" class="text-[11px] text-slate-400 hover:text-amber-400 transition">
-        Criar Conta / Solicitar Acesso
-      </a>
-    </div>
+    <!-- FORMULÁRIO DE REGISTO (Oculto por padrão) -->
+    <form id="formRegisto" onsubmit="registarUtilizador(event)" class="space-y-4 hidden">
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+          <i class="fa-solid fa-envelope text-xs"></i>
+        </span>
+        <input type="email" id="regEmail" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="Seu e-mail">
+      </div>
+
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+          <i class="fa-solid fa-lock text-xs"></i>
+        </span>
+        <input type="password" id="regPassword" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="Crie uma senha">
+      </div>
+
+      <div id="msgFeedbackReg" class="text-xs font-bold text-rose-500 text-center hidden"></div>
+      <div id="msgSucessoReg" class="text-xs font-bold text-emerald-400 text-center hidden"></div>
+
+      <button type="submit" id="btnRegistar" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3.5 rounded-2xl transition shadow-lg shadow-amber-500/20 uppercase tracking-wider">
+        Registar / Solicitar Acesso
+      </button>
+
+      <div class="text-center pt-2">
+        <button type="button" onclick="mudarParaLogin()" class="text-[11px] text-slate-400 hover:text-amber-400 transition">
+          <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Login
+        </button>
+      </div>
+    </form>
 
   </div>
 
@@ -81,9 +109,9 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    function toggleSenha() {
-      const input = document.getElementById('loginPassword');
-      const icon = document.getElementById('eyeIcon');
+    function toggleSenha(idInput, idIcon) {
+      const input = document.getElementById(idInput);
+      const icon = document.getElementById(idIcon);
       if (input.type === 'password') {
         input.type = 'text';
         icon.classList.remove('fa-eye-slash');
@@ -95,23 +123,28 @@
       }
     }
 
+    function mudarParaRegisto() {
+      document.getElementById('formLogin').classList.add('hidden');
+      document.getElementById('formRegisto').classList.remove('hidden');
+      document.getElementById('tituloForm').innerText = 'Solicitar Acesso';
+    }
+
+    function mudarParaLogin() {
+      document.getElementById('formRegisto').classList.add('hidden');
+      document.getElementById('formLogin').classList.remove('hidden');
+      document.getElementById('tituloForm').innerText = 'Acesse sua conta';
+    }
+
     async function fazerLogin(e) {
       e.preventDefault();
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value.trim();
-      const feedback = document.getElementById('msgFeedback');
+      const feedback = document.getElementById('msgFeedbackLogin');
       feedback.classList.add('hidden');
-      feedback.innerText = '';
-
-      if (!email || !password) {
-        feedback.innerText = 'Preencha o e-mail e a senha.';
-        feedback.classList.remove('hidden');
-        return;
-      }
 
       try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        const user = userCredential.user;
+        const userCred = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCred.user;
 
         const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
 
@@ -123,6 +156,51 @@
       } catch (err) {
         console.error(err);
         feedback.innerText = 'Erro ao entrar: Verifique seu e-mail e senha.';
+        feedback.classList.remove('hidden');
+      }
+    }
+
+    async function registarUtilizador(e) {
+      e.preventDefault();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value.trim();
+      const feedback = document.getElementById('msgFeedbackReg');
+      const sucesso = document.getElementById('msgSucessoReg');
+      const btn = document.getElementById('btnRegistar');
+
+      feedback.classList.add('hidden');
+      sucesso.classList.add('hidden');
+
+      try {
+        btn.disabled = true;
+        btn.innerText = 'A criar conta...';
+
+        // Cria no Authentication
+        const userCred = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCred.user;
+
+        // Guarda na coleção 'users' com status 'pending' para o Admin aprovar
+        await db.collection('users').doc(user.uid).set({
+          email: email,
+          status: 'pending',
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        sucesso.innerText = 'Conta criada com sucesso! A redirecionar...';
+        sucesso.classList.remove('hidden');
+
+        setTimeout(async () => {
+          await auth.signOut();
+          btn.disabled = false;
+          btn.innerText = 'Registar / Solicitar Acesso';
+          mudarParaLogin();
+        }, 2000);
+
+      } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        btn.innerText = 'Registar / Solicitar Acesso';
+        feedback.innerText = 'Erro ao registar: ' + (err.message || 'Tente novamente.');
         feedback.classList.remove('hidden');
       }
     }
