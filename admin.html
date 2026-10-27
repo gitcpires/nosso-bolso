@@ -72,7 +72,6 @@
         const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
 
         if (!adminDoc.exists) {
-          // Mostra o UID exato para saberes exatamente o que colocar no Firebase Console
           document.getElementById('msgErroAdmin').classList.remove('hidden');
           document.getElementById('seuUidAtual').innerText = `O teu UID autenticado é: ${user.uid}`;
           document.getElementById('usersListContainer').innerHTML = `<div class="text-xs text-rose-400 text-center py-4">Sem permissão de administrador.</div>`;
@@ -109,7 +108,7 @@
               </div>
               <div class="flex items-center gap-2">
                 ${isPending ? `<button onclick="aprovarUtilizador('${uid}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition">Aprovar</button>` : ''}
-                <button onclick="removerUtilizador('${uid}')" class="text-slate-500 hover:text-rose-400 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
+                <button onclick="removerUtilizador('${uid}')" class="text-slate-500 hover:text-rose-400 p-1" title="Remover registo"><i class="fa-solid fa-trash text-xs"></i></button>
               </div>
             </div>
           `;
@@ -126,7 +125,7 @@
     }
 
     async function removerUtilizador(uid) {
-      if (confirm("Deseja realmente remover este utilizador?")) {
+      if (confirm("Deseja realmente remover este utilizador do Firestore?")) {
         try {
           await db.collection('users').doc(uid).delete();
         } catch (err) {
