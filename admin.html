@@ -28,7 +28,13 @@
       </button>
     </div>
 
-    <!-- Lista de Utilizadores Pendentes / Aprovados -->
+    <!-- Mensagem de erro caso o UID não seja admin -->
+    <div id="msgErroAdmin" class="hidden bg-rose-900/40 border border-rose-700 p-4 rounded-2xl text-xs text-rose-200 text-center space-y-2">
+      <p class="font-bold">Acesso Restrito / UID não encontrado na coleção ADMIN_UID.</p>
+      <p id="seuUidAtual" class="font-mono bg-slate-900 p-2 rounded text-[10px] text-slate-300"></p>
+    </div>
+
+    <!-- Lista de Utilizadores -->
     <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-md space-y-4">
       <h2 class="text-sm font-extrabold text-white">Utilizadores Registados</h2>
       <div id="usersListContainer" class="space-y-2">
@@ -62,15 +68,21 @@
         return;
       }
       
-      // Validação de segurança via coleção ADMIN_UID no Firestore[span_0](start_span)[span_0](end_span)
-      const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
+      try {
+        const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
 
-      if (!adminDoc.exists) {
-        window.location.replace("painel.html");
-        return;
+        if (!adminDoc.exists) {
+          // Mostra o UID exato para saberes exatamente o que colocar no Firebase Console
+          document.getElementById('msgErroAdmin').classList.remove('hidden');
+          document.getElementById('seuUidAtual').innerText = `O teu UID autenticado é: ${user.uid}`;
+          document.getElementById('usersListContainer').innerHTML = `<div class="text-xs text-rose-400 text-center py-4">Sem permissão de administrador.</div>`;
+          return;
+        }
+
+        ouvinteDadosAdmin();
+      } catch (err) {
+        console.error("Erro ao validar admin:", err);
       }
-
-      ouvinteDadosAdmin();
     });
 
     function ouvinteDadosAdmin() {
@@ -92,7 +104,7 @@
           container.innerHTML += `
             <div class="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-700">
               <div>
-                <div class="text-xs font-bold text-white">${u.email}</div>
+                <div class="text-xs font-bold text-white">${u.email || 'E-mail não disponível'}</div>
                 <div class="text-[10px] text-slate-400">Estado: <span class="${isPending ? 'text-amber-400' : 'text-emerald-400'} font-extrabold">${u.status || 'ativo'}</span></div>
               </div>
               <div class="flex items-center gap-2">
