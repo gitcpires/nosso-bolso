@@ -13,17 +13,29 @@
       darkMode: 'class',
     }
   </script>
+  <style>
+    /* Força o navegador a usar o esquema escuro e evita o fundo branco do autocompletar */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 30px #030712 inset !important;
+      -webkit-text-fill-color: #ffffff !important;
+      color-scheme: dark;
+    }
+    input {
+      color-scheme: dark;
+    }
+  </style>
 </head>
 <body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen px-4">
 
   <div class="w-full max-w-sm p-6 sm:p-8 space-y-8">
     
-    <!-- Ícone com efeito de brilho (glow) inspirado na imagem -->
+    <!-- Ícone com efeito de brilho (glow) -->
     <div class="text-center space-y-4">
       <div class="relative inline-flex items-center justify-center">
-        <!-- Efeito de luz de fundo traseira -->
         <div class="absolute w-24 h-24 rounded-full bg-amber-500/10 blur-xl"></div>
-        <!-- Caixa do ícone -->
         <div class="relative w-20 h-20 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl flex items-center justify-center p-2.5 overflow-hidden">
           <img src="icone-app.png" alt="Nosso Bolso" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
         </div>
@@ -33,17 +45,17 @@
 
     <!-- FORMULÁRIO DE LOGIN -->
     <form id="formLogin" onsubmit="fazerLogin(event)" class="space-y-5">
-      <!-- Campo E-mail minimalista -->
+      <!-- Campo E-mail -->
       <div class="relative border-b border-slate-800 focus-within:border-amber-500 transition pb-1">
         <div class="flex items-center">
           <span class="text-slate-500 pr-3 text-xs">
             <i class="fa-solid fa-dollar-sign"></i>
           </span>
-          <input type="email" id="loginEmail" required class="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none py-2" placeholder="E-mail">
+          <input type="email" id="loginEmail" required class="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none py-2 autofill:bg-transparent" placeholder="E-mail">
         </div>
       </div>
 
-      <!-- Campo Senha minimalista -->
+      <!-- Campo Senha -->
       <div class="relative border-b border-slate-800 focus-within:border-amber-500 transition pb-1">
         <div class="flex items-center">
           <span class="text-slate-500 pr-3 text-xs">
@@ -58,7 +70,7 @@
 
       <div id="msgFeedbackLogin" class="text-xs font-bold text-rose-500 text-center hidden"></div>
 
-      <!-- Botão Laranja Estilizado em Pill -->
+      <!-- Botão Laranja -->
       <div class="pt-2">
         <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3.5 rounded-full transition shadow-lg shadow-amber-500/20 uppercase tracking-widest">
           Entrar
