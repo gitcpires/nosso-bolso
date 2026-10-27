@@ -469,7 +469,6 @@ function ouvinteLousaGrupo() {
       lousaAutorContainer.classList.remove('hidden');
       btnLimparLousa.classList.remove('hidden');
 
-      // Bolinha vermelha do Mural: Aparece APENAS se o recado foi escrito por OUTRO utilizador e ainda não foi visto por ti
       const vistoMuralId = localStorage.getItem('visto_mural_id');
       const dotMural = document.getElementById('dotMural');
       if (dotMural) {
@@ -638,8 +637,8 @@ function toggleTxTypeUI() {
 function renderAll() {
   const currentTx = transactions.filter(t => t.month === activeMonth);
   
-  // Bolinha vermelha do Extrato: Aparece APENAS se houver transações pendentes criadas por OUTRO utilizador
-  const temPendentesOutro = transactions.some(t => t.confirmado === false && t.userId !== currentUser.id);
+  // Bolinha vermelha do Extrato: Apenas transações pendentes DO MÊS ATIVO criadas por outro utilizador
+  const temPendentesOutro = currentTx.some(t => t.confirmado === false && t.userId !== currentUser.id);
   const dotExtrato = document.getElementById('dotExtrato');
   if (dotExtrato) {
     if (temPendentesOutro) {
@@ -744,7 +743,7 @@ function renderAll() {
   }
 
   renderTransactionsList(currentTx);
-  renderInvestments(currentTx, invest);
+  renderInvestments(currentTx);
   renderCharts(fixed, general, leisure, invest);
 }
 
@@ -821,7 +820,7 @@ function renderTransactionsList(currentTx) {
   });
 
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white dark:bg-[#121c38] rounded-2xl">Nenhuma movimentação encontrada com estes filtros.</div>`;
+    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white dark:bg-[#121c38] rounded-2xl">Nenhuma movimentação encontrada neste mês com estes filtros.</div>`;
     return;
   }
 
@@ -860,7 +859,7 @@ function renderTransactionsList(currentTx) {
   });
 }
 
-function renderInvestments(currentTx, totalInvestedThisMonth) {
+function renderInvestments(currentTx) {
   const investConfirmadosMes = currentTx.filter(t => t.cat === 'Investimentos' && t.confirmado === true);
   const totalMes = investConfirmadosMes.reduce((s, t) => s + t.amount, 0);
 
@@ -929,7 +928,7 @@ function switchTab(tab) {
     if (dotMural) dotMural.classList.add('hidden');
   }
 
-  if (tab === 'extrato') renderTransactionsList(transactions);
+  if (tab === 'extrato') renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   if (tab === 'resumo') renderAll();
 }
 
