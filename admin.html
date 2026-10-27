@@ -2,105 +2,45 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Nosso Bolso - Dashboard do Administrador</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nosso Bolso - Painel do Administrador</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Ícone e Configuração de Atalho para Telemóvel -->
-  <link rel="apple-touch-icon" sizes="180x180" href="icone-app.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="icone-app.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="icone-app.png">
-  <meta name="theme-color" content="#090d16">
-
-  
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  
-  <style>
-    * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-    .glass-nav { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(16px); }
-  </style>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
 </head>
-<body class="bg-slate-100/70 text-slate-900 pb-20 antialiased selection:bg-blue-600 selection:text-white">
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 sm:p-6">
 
-  <!-- Cabeçalho Administrativo -->
-  <header class="sticky top-0 z-40 w-full border-b border-slate-200/90 glass-nav px-4 py-3 shadow-xs">
-    <div class="mx-auto flex max-w-5xl items-center justify-between gap-2">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md">
-          <i class="fa-solid fa-shield-halved text-sm"></i>
-        </div>
-        <div class="min-w-0">
-          <h1 class="text-sm font-extrabold tracking-tight text-slate-900 truncate">Gestão do SaaS - Nosso Bolso</h1>
-          <p class="text-[10px] text-slate-500 font-semibold">Painel Exclusivo do Administrador</p>
-        </div>
+  <div class="max-w-4xl mx-auto space-y-6">
+    <!-- Cabeçalho -->
+    <div class="flex items-center justify-between bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-md">
+      <div>
+        <h1 class="text-lg font-black text-white"><i class="fa-solid fa-shield-halved text-amber-400 mr-2"></i>Painel Administrativo</h1>
+        <p class="text-xs text-slate-400">Gestão de acessos e utilizadores</p>
       </div>
-      
-      <div class="flex items-center gap-2">
-        <button onclick="sairAdmin()" class="flex h-9 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-700 hover:bg-rose-100 transition active:scale-95 shadow-2xs">
-          <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i> Sair
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="mx-auto max-w-5xl px-4 pt-5 space-y-6">
-
-    <!-- SECÇÃO DE MÉTRICAS (KPIs do Negócio) -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-2xs">
-        <span class="text-[10px] font-bold text-slate-400 uppercase">Total de Contas</span>
-        <div id="statTotalUsers" class="text-xl font-black text-slate-900 mt-1">0</div>
-      </div>
-      <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-2xs">
-        <span class="text-[10px] font-bold text-slate-400 uppercase">Clientes Ativos</span>
-        <div id="statActiveUsers" class="text-xl font-black text-emerald-600 mt-1">0</div>
-      </div>
-      <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-2xs">
-        <span class="text-[10px] font-bold text-slate-400 uppercase">Pendentes</span>
-        <div id="statPendingUsers" class="text-xl font-black text-amber-500 mt-1">0</div>
-      </div>
-      <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-2xs">
-        <span class="text-[10px] font-bold text-slate-400 uppercase">Grupos Criados</span>
-        <div id="statWorkspaces" class="text-xl font-black text-blue-600 mt-1">0</div>
-      </div>
+      <button onclick="logout()" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-2 rounded-xl text-xs font-extrabold transition">
+        <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair
+      </button>
     </div>
 
-    <!-- Secção 1: Solicitações Pendentes -->
-    <section class="space-y-3">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xs font-black uppercase tracking-wider text-blue-600 flex items-center gap-2">
-          <i class="fa-solid fa-user-clock"></i> Solicitações Pendentes de Clientes
-        </h2>
+    <!-- Lista de Utilizadores Pendentes / Aprovados -->
+    <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-md space-y-4">
+      <h2 class="text-sm font-extrabold text-white">Utilizadores Registados</h2>
+      <div id="usersListContainer" class="space-y-2">
+        <div class="text-xs text-slate-400 text-center py-4">A carregar utilizadores...</div>
       </div>
+    </div>
+  </div>
 
-      <div id="lista-solicitacoes" class="space-y-2.5">
-        <div class="bg-white border border-slate-200/80 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">
-          A carregar solicitações...
-        </div>
-      </div>
-    </section>
-
-    <!-- Secção 2: Utilizadores Ativos e Organização por Grupos -->
-    <section class="space-y-3 pt-2">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xs font-black uppercase tracking-wider text-emerald-600 flex items-center gap-2">
-          <i class="fa-solid fa-users-gear"></i> Clientes Ativos e Organização de Grupos
-        </h2>
-      </div>
-
-      <div id="lista-usuarios" class="space-y-2.5">
-        <div class="bg-white border border-slate-200/80 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">
-          A carregar membros...
-        </div>
-      </div>
-    </section>
-
-  </main>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -122,7 +62,10 @@
         return;
       }
       
-      if (user.email !== 'c.pirespm@gmail.com') {
+      // Validação de segurança via coleção ADMIN_UID no Firestore
+      const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
+
+      if (!adminDoc.exists) {
         window.location.replace("painel.html");
         return;
       }
@@ -130,122 +73,58 @@
       ouvinteDadosAdmin();
     });
 
-        function ouvinteDadosAdmin() {
-      const containerPendentes = document.getElementById('lista-solicitacoes');
-      const containerUsuarios = document.getElementById('lista-usuarios');
-
-      // Usamos uma query ordenada para garantir estabilidade na listagem
+    function ouvinteDadosAdmin() {
       db.collection('users').onSnapshot((snapshot) => {
+        const container = document.getElementById('usersListContainer');
+        if (!container) return;
+        
+        container.innerHTML = '';
         if (snapshot.empty) {
-          containerPendentes.innerHTML = `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs">Nenhuma solicitação pendente.</div>`;
-          containerUsuarios.innerHTML = `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs">Nenhum utilizador registado.</div>`;
+          container.innerHTML = `<div class="text-xs text-slate-400 text-center py-4">Nenhum utilizador encontrado.</div>`;
           return;
         }
 
-        let htmlPendentes = '';
-        let htmlUsuarios = '';
-        let qtdPendentes = 0;
-        let qtdAtivos = 0;
-        let totalContas = 0;
-        const workspacesSet = new Set();
-
         snapshot.forEach(doc => {
-          const dados = doc.data();
+          const u = doc.data();
           const uid = doc.id;
+          const isPending = u.status === 'pending';
 
-          // Ignora a conta do administrador principal
-          if (dados.email === 'c.pirespm@gmail.com') return;
-
-          totalContas++;
-
-          if (dados.workspaceCode) {
-            workspacesSet.add(dados.workspaceCode);
-          }
-
-          // Se o status for explicitamente 'approved'
-          if (dados.status === 'approved') {
-            qtdAtivos++;
-            const grupoInfo = dados.workspaceCode ? `Código do Grupo: #${dados.workspaceCode}` : `A configurar grupo`;
-            htmlUsuarios += `
-              <div class="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center justify-between shadow-2xs gap-2">
-                <div class="min-w-0">
-                  <p class="text-xs font-extrabold text-slate-800 truncate">${dados.email}</p>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span class="text-[10px] text-emerald-600 font-extrabold bg-emerald-50 px-2 py-0.5 rounded-full">Ativo</span>
-                    <span class="text-[10px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-full">${grupoInfo}</span>
-                  </div>
-                </div>
-                <button onclick="excluirUsuario('${uid}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95 shrink-0">
-                  <i class="fa-solid fa-trash text-xs"></i> Revogar
-                </button>
+          container.innerHTML += `
+            <div class="flex items-center justify-between bg-slate-900 p-3 rounded-xl border border-slate-700">
+              <div>
+                <div class="text-xs font-bold text-white">${u.email}</div>
+                <div class="text-[10px] text-slate-400">Estado: <span class="${isPending ? 'text-amber-400' : 'text-emerald-400'} font-extrabold">${u.status || 'ativo'}</span></div>
               </div>
-            `;
-          } else {
-            // QUALQUER OUTRO ESTADO (pending, ou vazio/undefined) entra aqui como pendente
-            qtdPendentes++;
-            htmlPendentes += `
-              <div class="bg-white border border-slate-200/80 p-4 rounded-2xl flex items-center justify-between shadow-2xs gap-2">
-                <div class="min-w-0">
-                  <p class="text-xs font-extrabold text-slate-800 truncate">${dados.email}</p>
-                  <span class="text-[10px] text-amber-600 font-semibold">Aguardando aprovação</span>
-                </div>
-                <div class="flex gap-1.5 shrink-0">
-                  <button onclick="aprovarUsuario('${uid}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95">
-                    <i class="fa-solid fa-check"></i> Aprovar
-                  </button>
-                  <button onclick="excluirUsuario('${uid}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 active:scale-95">
-                    <i class="fa-solid fa-xmark"></i> Recusar
-                  </button>
-                </div>
+              <div class="flex items-center gap-2">
+                ${isPending ? `<button onclick="aprovarUtilizador('${uid}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition">Aprovar</button>` : ''}
+                <button onclick="removerUtilizador('${uid}')" class="text-slate-500 hover:text-rose-400 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
               </div>
-            `;
-          }
+            </div>
+          `;
         });
-
-        // Atualiza os contadores das KPIs no topo
-        document.getElementById('statTotalUsers').innerText = totalContas;
-        document.getElementById('statActiveUsers').innerText = qtdAtivos;
-        document.getElementById('statPendingUsers').innerText = qtdPendentes;
-        document.getElementById('statWorkspaces').innerText = workspacesSet.size;
-
-        // Renderiza as listas dinamicamente
-        containerPendentes.innerHTML = qtdPendentes > 0 ? htmlPendentes : `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">Nenhuma solicitação pendente no momento.</div>`;
-        containerUsuarios.innerHTML = qtdAtivos > 0 ? htmlUsuarios : `<div class="bg-white border border-slate-200 p-4 rounded-2xl text-center text-slate-400 text-xs shadow-2xs">Nenhum utilizador com acesso ativo.</div>`;
-
-      }, (err) => {
-        console.error("Erro no ouvinte:", err);
-        containerPendentes.innerHTML = `<div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl text-center text-rose-700 text-xs">Erro ao carregar dados do banco.</div>`;
       });
     }
 
-
-    async function aprovarUsuario(uid) {
+    async function aprovarUtilizador(uid) {
       try {
-        await db.collection('users').doc(uid).update({
-          status: 'approved'
-        });
-        alert('Utilizador aprovado com sucesso!');
+        await db.collection('users').doc(uid).update({ status: 'approved' });
       } catch (err) {
-        alert('Erro ao aprovar utilizador: ' + err.message);
+        alert("Erro ao aprovar utilizador.");
       }
     }
 
-    async function excluirUsuario(uid) {
-      if (confirm('Tem certeza que deseja remover e apagar permanentemente o acesso deste utilizador?')) {
+    async function removerUtilizador(uid) {
+      if (confirm("Deseja realmente remover este utilizador?")) {
         try {
-          // Apaga o documento do utilizador na coleção users do Firestore, limpando-o do painel e invalidando o acesso
           await db.collection('users').doc(uid).delete();
-          alert('Utilizador removido com sucesso do sistema!');
         } catch (err) {
-          alert('Erro ao excluir registo do banco de dados: ' + err.message);
+          alert("Erro ao remover utilizador.");
         }
       }
     }
 
-    function sairAdmin() {
-      auth.signOut().then(() => {
-        window.location.replace("index.html");
-      });
+    function logout() {
+      auth.signOut().then(() => window.location.replace('index.html'));
     }
   </script>
 </body>
