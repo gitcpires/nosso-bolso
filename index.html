@@ -77,7 +77,7 @@
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
-        // Verificação segura na coleção ADMIN_UID do Firestore
+        // Verifica diretamente na coleção ADMIN_UID do Firestore se o UID existe
         const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
 
         if (adminDoc.exists) {
