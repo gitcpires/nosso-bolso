@@ -56,33 +56,33 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let emProcessamento = false;
-    let listenerIniciado = false;
+    let verificado = false;
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
+        console.log("Nenhum utilizador logado. A redirecionar para index.html");
         window.location.replace("index.html");
         return;
       }
 
-      // Impede múltiplas execuções simultâneas do onAuthStateChanged
-      if (emProcessamento || listenerIniciado) return;
-      emProcessamento = true;
+      if (verificado) return;
+      verificado = true;
+
+      console.log("Utilizador autenticado:", user.uid);
       
       try {
         const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
 
         if (!adminDoc.exists) {
+          console.warn("UID não encontrado na coleção ADMIN_UID. A redirecionar para painel.html");
           window.location.replace("painel.html");
           return;
         }
 
-        listenerIniciado = true;
+        console.log("Admin verificado com sucesso. A iniciar painel...");
         iniciarPainelAdmin();
       } catch (err) {
-        console.error("Erro na verificação de admin:", err);
-      } finally {
-        emProcessamento = false;
+        console.error("Erro crítico ao validar admin:", err);
       }
     });
 
@@ -93,7 +93,7 @@
         
         container.innerHTML = '';
         if (snapshot.empty) {
-          container.innerHTML = `<div class="text-xs text-slate-400 text-center py-4">Nenhum utilizador encontrado.</div>`;
+          container.innerHTML = `<div class="text-xs text-slate-400 text-center py-4">Nenhum utilizador encontrado na base de dados.</div>`;
           return;
         }
 
@@ -115,6 +115,9 @@
             </div>
           `;
         });
+      }, (error) => {
+        console.error("Erro no onSnapshot da coleção users:", error);
+        document.getElementById('usersListContainer').innerHTML = `<div class="text-xs text-rose-400 text-center py-4">Erro ao carregar utilizadores. Verifique as regras do Firestore.</div>`;
       });
     }
 
