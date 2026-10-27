@@ -16,74 +16,95 @@
 </head>
 <body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen px-4">
 
-  <div class="w-full max-w-sm bg-slate-900/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl space-y-6">
+  <div class="w-full max-w-sm p-6 sm:p-8 space-y-8">
     
-    <!-- Ícone / Logótipo Central -->
-    <div class="text-center space-y-3">
-      <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-inner overflow-hidden p-2">
-        <img src="icone-app.png" alt="Nosso Bolso" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+    <!-- Ícone com efeito de brilho (glow) inspirado na imagem -->
+    <div class="text-center space-y-4">
+      <div class="relative inline-flex items-center justify-center">
+        <!-- Efeito de luz de fundo traseira -->
+        <div class="absolute w-24 h-24 rounded-full bg-amber-500/10 blur-xl"></div>
+        <!-- Caixa do ícone -->
+        <div class="relative w-20 h-20 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl flex items-center justify-center p-2.5 overflow-hidden">
+          <img src="icone-app.png" alt="Nosso Bolso" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+        </div>
       </div>
-      <h2 id="tituloForm" class="text-sm font-extrabold text-white">Acesse sua conta</h2>
+      <h2 id="tituloForm" class="text-sm font-medium tracking-wide text-slate-300">Acesse sua conta</h2>
     </div>
 
     <!-- FORMULÁRIO DE LOGIN -->
-    <form id="formLogin" onsubmit="fazerLogin(event)" class="space-y-4">
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-          <i class="fa-solid fa-envelope text-xs"></i>
-        </span>
-        <input type="email" id="loginEmail" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="E-mail">
+    <form id="formLogin" onsubmit="fazerLogin(event)" class="space-y-5">
+      <!-- Campo E-mail minimalista -->
+      <div class="relative border-b border-slate-800 focus-within:border-amber-500 transition pb-1">
+        <div class="flex items-center">
+          <span class="text-slate-500 pr-3 text-xs">
+            <i class="fa-solid fa-dollar-sign"></i>
+          </span>
+          <input type="email" id="loginEmail" required class="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none py-2" placeholder="E-mail">
+        </div>
       </div>
 
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-          <i class="fa-solid fa-lock text-xs"></i>
-        </span>
-        <input type="password" id="loginPassword" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="Senha">
-        <button type="button" onclick="toggleSenha('loginPassword', 'eyeIconLogin')" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-white transition">
-          <i id="eyeIconLogin" class="fa-solid fa-eye-slash text-xs"></i>
-        </button>
+      <!-- Campo Senha minimalista -->
+      <div class="relative border-b border-slate-800 focus-within:border-amber-500 transition pb-1">
+        <div class="flex items-center">
+          <span class="text-slate-500 pr-3 text-xs">
+            <i class="fa-solid fa-lock"></i>
+          </span>
+          <input type="password" id="loginPassword" required class="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none py-2" placeholder="Senha">
+          <button type="button" onclick="toggleSenha('loginPassword', 'eyeIconLogin')" class="text-slate-600 hover:text-slate-400 px-2 transition">
+            <i id="eyeIconLogin" class="fa-solid fa-eye-slash text-xs"></i>
+          </button>
+        </div>
       </div>
 
       <div id="msgFeedbackLogin" class="text-xs font-bold text-rose-500 text-center hidden"></div>
 
-      <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3.5 rounded-2xl transition shadow-lg shadow-amber-500/20 uppercase tracking-wider">
-        Entrar
-      </button>
+      <!-- Botão Laranja Estilizado em Pill -->
+      <div class="pt-2">
+        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3.5 rounded-full transition shadow-lg shadow-amber-500/20 uppercase tracking-widest">
+          Entrar
+        </button>
+      </div>
 
-      <div class="text-center pt-2">
-        <button type="button" onclick="mudarParaRegisto()" class="text-[11px] text-slate-400 hover:text-amber-400 transition">
-          Criar Conta / Solicitar Acesso
+      <!-- Link Criar Conta -->
+      <div class="text-center pt-3">
+        <button type="button" onclick="mudarParaRegisto()" class="text-[11px] text-amber-500/90 hover:text-amber-400 transition underline underline-offset-4">
+          Criar Conta
         </button>
       </div>
     </form>
 
     <!-- FORMULÁRIO DE REGISTO (Oculto por padrão) -->
-    <form id="formRegisto" onsubmit="registarUtilizador(event)" class="space-y-4 hidden">
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-          <i class="fa-solid fa-envelope text-xs"></i>
-        </span>
-        <input type="email" id="regEmail" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="Seu e-mail">
+    <form id="formRegisto" onsubmit="registarUtilizador(event)" class="space-y-5 hidden">
+      <div class="relative border-b border-slate-800 focus-within:border-amber-500 transition pb-1">
+        <div class="flex items-center">
+          <span class="text-slate-500 pr-3 text-xs">
+            <i class="fa-solid fa-envelope"></i>
+          </span>
+          <input type="email" id="regEmail" required class="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none py-2" placeholder="Seu e-mail">
+        </div>
       </div>
 
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-          <i class="fa-solid fa-lock text-xs"></i>
-        </span>
-        <input type="password" id="regPassword" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="Crie uma senha">
+      <div class="relative border-b border-slate-800 focus-within:border-amber-500 transition pb-1">
+        <div class="flex items-center">
+          <span class="text-slate-500 pr-3 text-xs">
+            <i class="fa-solid fa-lock"></i>
+          </span>
+          <input type="password" id="regPassword" required class="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none py-2" placeholder="Crie uma senha">
+        </div>
       </div>
 
       <div id="msgFeedbackReg" class="text-xs font-bold text-rose-500 text-center hidden"></div>
       <div id="msgSucessoReg" class="text-xs font-bold text-emerald-400 text-center hidden"></div>
 
-      <button type="submit" id="btnRegistar" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3.5 rounded-2xl transition shadow-lg shadow-amber-500/20 uppercase tracking-wider">
-        Registar / Solicitar Acesso
-      </button>
+      <div class="pt-2">
+        <button type="submit" id="btnRegistar" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3.5 rounded-full transition shadow-lg shadow-amber-500/20 uppercase tracking-widest">
+          Registar Conta
+        </button>
+      </div>
 
-      <div class="text-center pt-2">
-        <button type="button" onclick="mudarParaLogin()" class="text-[11px] text-slate-400 hover:text-amber-400 transition">
-          <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Login
+      <div class="text-center pt-3">
+        <button type="button" onclick="mudarParaLogin()" class="text-[11px] text-slate-400 hover:text-slate-300 transition flex items-center justify-center mx-auto gap-1">
+          <i class="fa-solid fa-arrow-left text-[10px]"></i> Voltar ao Login
         </button>
       </div>
     </form>
@@ -126,7 +147,7 @@
     function mudarParaRegisto() {
       document.getElementById('formLogin').classList.add('hidden');
       document.getElementById('formRegisto').classList.remove('hidden');
-      document.getElementById('tituloForm').innerText = 'Solicitar Acesso';
+      document.getElementById('tituloForm').innerText = 'Criar Nova Conta';
     }
 
     function mudarParaLogin() {
@@ -175,11 +196,9 @@
         btn.disabled = true;
         btn.innerText = 'A criar conta...';
 
-        // Cria no Authentication
         const userCred = await auth.createUserWithEmailAndPassword(email, password);
         const user = userCred.user;
 
-        // Guarda na coleção 'users' com status 'pending' para o Admin aprovar
         await db.collection('users').doc(user.uid).set({
           email: email,
           status: 'pending',
@@ -192,14 +211,14 @@
         setTimeout(async () => {
           await auth.signOut();
           btn.disabled = false;
-          btn.innerText = 'Registar / Solicitar Acesso';
+          btn.innerText = 'Registar Conta';
           mudarParaLogin();
         }, 2000);
 
       } catch (err) {
         console.error(err);
         btn.disabled = false;
-        btn.innerText = 'Registar / Solicitar Acesso';
+        btn.innerText = 'Registar Conta';
         feedback.innerText = 'Erro ao registar: ' + (err.message || 'Tente novamente.');
         feedback.classList.remove('hidden');
       }
