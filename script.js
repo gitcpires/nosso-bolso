@@ -35,6 +35,11 @@ auth.onAuthStateChanged(async (userAuth) => {
   currentUser.email = email;
   currentUser.name = email.split('@')[0];
 
+  if (email === 'c.pirespm@gmail.com') {
+    window.location.replace("admin.html");
+    return;
+  }
+
   try {
     const userDocRef = db.collection('users').doc(uid);
     let userDoc = await userDocRef.get();
@@ -270,6 +275,7 @@ async function deixarGrupo() {
 
     if (éOUltimo) {
       const batch = db.batch();
+
       const txsQuery = await db.collection('transacoes').where('workspaceId', '==', wsIdAtual).get();
       txsQuery.forEach(doc => batch.delete(doc.ref));
 
