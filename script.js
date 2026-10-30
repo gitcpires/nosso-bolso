@@ -11,7 +11,7 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let currentWorkspace = { id: '', code: '', metas: { fixos: 50, gerais: 30, lazer: 10, invest: 10 } };
+let currentWorkspace = { id: '', code: '', metasPorMes: {} };
 let currentUser = { id: '', name: '', email: '' };
 let transactions = [];
 const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -75,8 +75,16 @@ auth.onAuthStateChanged(async (userAuth) => {
   }
 });
 
+function getMetasAtuais() {
+  if (!currentWorkspace.metasPorMes) currentWorkspace.metasPorMes = {};
+  // Retorna as metas do mês ativo ou um padrão de 50/30/10/10 caso não existam para este mês específico
+  return currentWorkspace.metasPorMes[activeMonth] || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
+}
+
 function openProfileModal() {
   document.getElementById('profileModal').classList.remove('hidden');
+  const labelMesModal = document.getElementById('labelModalMetasMes');
+  if (labelMesModal) labelMesModal.innerText = `Definir Metas (${activeMonth})`;
   carregarMembrosDoGrupo();
   carregarDadosMetasNoConfig();
   calcularConversaoMetas('fixos');
@@ -103,7 +111,7 @@ function mudarModoMetas(modo) {
 }
 
 function carregarDadosMetasNoConfig() {
-  const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
+  const metas = getMetasAtuais();
   const currentTx = transactions.filter(t => t.month === activeMonth && t.confirmado);
   const income = currentTx.filter(t => (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra')).reduce((s, t) => s + t.amount, 0);
   const baseEntradas = income > 0 ? income : 1;
@@ -231,16 +239,18 @@ async function salvarMetasGrupoConfig(e) {
   errorDiv.classList.add('hidden');
 
   try {
-    const novasMetas = { fixos, gerais, lazer, invest };
-    // Salva as metas diretamente no documento do Workspace partilhado
+    const novasMetasMes = { fixos, gerais, lazer, invest };
+    if (!currentWorkspace.metasPorMes) currentWorkspace.metasPorMes = {};
+    currentWorkspace.metasPorMes[activeMonth] = novasMetasMes;
+
+    // Salva na propriedade específica do mês no Firestore
     await db.collection('workspaces').doc(currentWorkspace.id).set({
-      metas: novasMetas
+      metasPorMes: currentWorkspace.metasPorMes
     }, { merge: true });
 
-    currentWorkspace.metas = novasMetas;
     closeProfileModal();
     renderAll();
-    alert("Metas atualizadas para todo o grupo com sucesso!");
+    alert(`Metas de ${activeMonth} atualizadas para todo o grupo com sucesso!`);
   } catch (err) {
     console.error(err);
     alert("Erro ao salvar metas.");
@@ -309,10 +319,9 @@ async function criarNovoWorkspace() {
     const workspaceId = 'ws_' + currentUser.id;
     const metasPadrao = { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
-    // Cria o documento do workspace compartilhado
     await db.collection('workspaces').doc(workspaceId).set({
       code: novoCodigo,
-      metas: metasPadrao,
+      metasPorMes: { [activeMonth]: metasPadrao },
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
@@ -325,7 +334,7 @@ async function criarNovoWorkspace() {
 
     currentWorkspace.id = workspaceId;
     currentWorkspace.code = novoCodigo;
-    currentWorkspace.metas = metasPadrao;
+    currentWorkspace.metasPorMes = { [activeMonth]: metasPadrao };
 
     document.getElementById('setupWorkspaceModal').classList.add('hidden');
     initUserSession();
@@ -354,7 +363,7 @@ async function entrarGrupoExistente() {
     const wsDoc = wsQuery.docs[0];
     const targetWorkspaceId = wsDoc.id;
     const wsData = wsDoc.data();
-    const metasGrupo = wsData.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
+    const metasPorMesGrupo = wsData.metasPorMes || {};
 
     await db.collection('users').doc(currentUser.id).set({
       workspaceId: targetWorkspaceId,
@@ -365,7 +374,7 @@ async function entrarGrupoExistente() {
 
     currentWorkspace.id = targetWorkspaceId;
     currentWorkspace.code = codigoInput;
-    currentWorkspace.metas = metasGrupo;
+    currentWorkspace.metasPorMes = metasPorMesGrupo;
 
     document.getElementById('setupWorkspaceModal').classList.add('hidden');
     initUserSession();
@@ -398,21 +407,20 @@ function initUserSession() {
 
   renderAll();
   carregarDadosDoBanco();
-  ouvinteWorkspaceMetas(); // Ouve atualizações de metas em tempo real
+  ouvinteWorkspaceWorkspace();
   carregarMembrosDoGrupo();
   ouvinteLousaGrupo();
 }
 
-// Ouve em tempo real qualquer alteração nas metas do workspace partilhado
-function ouvinteWorkspaceMetas() {
+function ouvinteWorkspaceWorkspace() {
   if (!currentWorkspace.id) return;
   db.collection('workspaces').doc(currentWorkspace.id)
     .onSnapshot((doc) => {
       if (doc.exists) {
         const data = doc.data();
-        if (data.metas) {
-          currentWorkspace.metas = data.metas;
-          renderAll(); // Atualiza a tela automaticamente para todos do grupo
+        if (data.metasPorMes) {
+          currentWorkspace.metasPorMes = data.metasPorMes;
+          renderAll();
         }
       }
     });
@@ -727,7 +735,7 @@ function renderAll() {
   const leisure = currentTxConfirmadas.filter(t => t.cat === 'Lazer').reduce((a, b) => a + b.amount, 0);
   const invest = currentTxConfirmadas.filter(t => t.cat === 'Investimentos').reduce((a, b) => a + b.amount, 0);
 
-  const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
+  const metas = getMetasAtuais();
 
   const baseEntradas = income > 0 ? income : 1; 
   const metaFixosVal = baseEntradas * (metas.fixos / 100);
