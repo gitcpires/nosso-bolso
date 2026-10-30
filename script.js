@@ -66,10 +66,6 @@ auth.onAuthStateChanged(async (userAuth) => {
     currentWorkspace.id = userData.workspaceId;
     currentWorkspace.code = userData.workspaceCode || '----';
 
-    if (userData.metas) {
-      currentWorkspace.metas = userData.metas;
-    }
-
     document.getElementById('loadingScreen').classList.add('hidden');
     initUserSession();
 
@@ -236,13 +232,17 @@ async function salvarMetasGrupoConfig(e) {
 
   try {
     const novasMetas = { fixos, gerais, lazer, invest };
-    await db.collection('users').doc(currentUser.id).update({ metas: novasMetas });
-    currentWorkspace.metas = novasMetas;
+    // Salva as metas diretamente no documento do Workspace partilhado
+    await db.collection('workspaces').doc(currentWorkspace.id).set({
+      metas: novasMetas
+    }, { merge: true });
 
+    currentWorkspace.metas = novasMetas;
     closeProfileModal();
     renderAll();
-    alert("Metas atualizadas com sucesso!");
+    alert("Metas atualizadas para todo o grupo com sucesso!");
   } catch (err) {
+    console.error(err);
     alert("Erro ao salvar metas.");
   }
 }
@@ -265,8 +265,7 @@ async function deixarGrupo() {
 
     await db.collection('users').doc(uidAtual).update({
       workspaceId: firebase.firestore.FieldValue.delete(),
-      workspaceCode: firebase.firestore.FieldValue.delete(),
-      metas: firebase.firestore.FieldValue.delete()
+      workspaceCode: firebase.firestore.FieldValue.delete()
     });
 
     if (éOUltimo) {
@@ -276,6 +275,9 @@ async function deixarGrupo() {
 
       const lousaQuery = await db.collection('lousa').where('workspaceId', '==', wsIdAtual).get();
       lousaQuery.forEach(doc => batch.delete(doc.ref));
+
+      const wsRef = db.collection('workspaces').doc(wsIdAtual);
+      batch.delete(wsRef);
 
       await batch.commit();
     }
@@ -297,7 +299,7 @@ async function criarNovoWorkspace() {
 
     while (codigoExiste && tentativas < 10) {
       novoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
-      const checkQuery = await db.collection('users').where('workspaceCode', '==', novoCodigo).get();
+      const checkQuery = await db.collection('workspaces').where('code', '==', novoCodigo).get();
       if (checkQuery.empty) {
         codigoExiste = false;
       }
@@ -307,10 +309,16 @@ async function criarNovoWorkspace() {
     const workspaceId = 'ws_' + currentUser.id;
     const metasPadrao = { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
+    // Cria o documento do workspace compartilhado
+    await db.collection('workspaces').doc(workspaceId).set({
+      code: novoCodigo,
+      metas: metasPadrao,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
     await db.collection('users').doc(currentUser.id).set({
       workspaceId: workspaceId,
       workspaceCode: novoCodigo,
-      metas: metasPadrao,
       email: currentUser.email,
       status: 'approved'
     }, { merge: true });
@@ -336,21 +344,21 @@ async function entrarGrupoExistente() {
 
   try {
     mostrarSetupMsg("A procurar grupo...", "info");
-    const wsQuery = await db.collection('users').where('workspaceCode', '==', codigoInput).get();
+    const wsQuery = await db.collection('workspaces').where('code', '==', codigoInput).get();
 
     if (wsQuery.empty) {
       mostrarSetupMsg("Código de grupo não encontrado. Verifique com o seu familiar/sócio.", "erro");
       return;
     }
 
-    const wsData = wsQuery.docs[0].data();
-    const targetWorkspaceId = wsData.workspaceId;
+    const wsDoc = wsQuery.docs[0];
+    const targetWorkspaceId = wsDoc.id;
+    const wsData = wsDoc.data();
     const metasGrupo = wsData.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
     await db.collection('users').doc(currentUser.id).set({
       workspaceId: targetWorkspaceId,
       workspaceCode: codigoInput,
-      metas: metasGrupo,
       email: currentUser.email,
       status: 'approved'
     }, { merge: true });
@@ -390,8 +398,24 @@ function initUserSession() {
 
   renderAll();
   carregarDadosDoBanco();
+  ouvinteWorkspaceMetas(); // Ouve atualizações de metas em tempo real
   carregarMembrosDoGrupo();
   ouvinteLousaGrupo();
+}
+
+// Ouve em tempo real qualquer alteração nas metas do workspace partilhado
+function ouvinteWorkspaceMetas() {
+  if (!currentWorkspace.id) return;
+  db.collection('workspaces').doc(currentWorkspace.id)
+    .onSnapshot((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.metas) {
+          currentWorkspace.metas = data.metas;
+          renderAll(); // Atualiza a tela automaticamente para todos do grupo
+        }
+      }
+    });
 }
 
 async function carregarMembrosDoGrupo() {
@@ -607,7 +631,6 @@ async function handleSaveTransaction(e) {
   if (editingTxId) {
     await db.collection('transacoes').doc(editingTxId).update(txData);
   } else {
-    // Novos lançamentos começam sempre pendentes (confirmado: false)
     txData.confirmado = false;
     txData.userId = currentUser.id;
     txData.userEmail = currentUser.email;
@@ -685,7 +708,6 @@ function toggleTxTypeUI() {
 }
 
 function renderAll() {
-  // Apenas transações confirmadas alimentam o resumo, gráficos e metas
   const currentTxConfirmadas = transactions.filter(t => t.month === activeMonth && t.confirmado);
 
   const income = currentTxConfirmadas.filter(t => t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra').reduce((s, t) => s + t.amount, 0);
@@ -908,7 +930,6 @@ function renderTransactionsList(currentTx) {
 }
 
 function renderInvestments(currentTx) {
-  // Apenas investimentos confirmados contam para os totais
   const investConfirmadosMes = currentTx.filter(t => t.cat === 'Investimentos' && t.confirmado);
   const totalMes = investConfirmadosMes.reduce((s, t) => s + t.amount, 0);
 
