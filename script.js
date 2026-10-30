@@ -58,16 +58,11 @@ auth.onAuthStateChanged(async (user) => {
   try {
     const userDoc = await db.collection('users').doc(user.uid).get();
     
-    // Esconde sempre o carregamento para evitar travar a tela
+    // Força sempre a remoção do ecrã de carregamento para nunca prender a tela
     document.getElementById('loadingScreen')?.classList.add('hidden');
 
     if (!userDoc.exists) {
-      // Se não existir na coleção users, cria um registo básico pendente ou entra no setup
-      await db.collection('users').doc(user.uid).set({
-        email: user.email,
-        status: 'approved',
-        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      // Se não existir documento, abre logo a janela para configurar o grupo
       document.getElementById('setupWorkspaceModal')?.classList.remove('hidden');
       return;
     }
@@ -78,12 +73,10 @@ auth.onAuthStateChanged(async (user) => {
       return;
     }
 
-    if (userData.workspaceId) {
-      workspaceIdAtual = userData.workspaceId;
-      inicializarPainel();
-    } else {
-      document.getElementById('setupWorkspaceModal')?.classList.remove('hidden');
-    }
+    // Se tiver workspaceId (ex: 7420), usa-o. Se não, assume um padrão ou pede para configurar
+    workspaceIdAtual = userData.workspaceId || userData.workspaceCode || "7420";
+    inicializarPainel();
+
   } catch (err) {
     console.error("Erro ao verificar utilizador:", err);
     document.getElementById('loadingScreen')?.classList.add('hidden');
@@ -103,7 +96,7 @@ async function criarNovoWorkspace() {
       membros: [usuarioAtualUid],
       metas: { fixos: 40, gerais: 30, lazer: 20, invest: 10 }
     });
-    await db.collection('users').doc(usuarioAtualUid).update({ workspaceId: codigoAleatorio });
+    await db.collection('users').doc(usuarioAtualUid).update({ workspaceId: codigoAleatorio, workspaceCode: codigoAleatorio });
     workspaceIdAtual = codigoAleatorio;
     document.getElementById('setupWorkspaceModal')?.classList.add('hidden');
     inicializarPainel();
@@ -128,7 +121,7 @@ async function entrarGrupoExistente() {
     await wsRef.update({
       membros: firebase.firestore.FieldValue.arrayUnion(usuarioAtualUid)
     });
-    await db.collection('users').doc(usuarioAtualUid).update({ workspaceId: codigo });
+    await db.collection('users').doc(usuarioAtualUid).update({ workspaceId: codigo, workspaceCode: codigo });
     workspaceIdAtual = codigo;
     document.getElementById('setupWorkspaceModal')?.classList.add('hidden');
     inicializarPainel();
