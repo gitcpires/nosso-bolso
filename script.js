@@ -817,11 +817,11 @@ function renderTransactionsList(currentTx) {
     return matchSearch && matchMembro && matchCat;
   });
 
-  // Ordenação definitiva: primeiro pelo exato momento de criação no sistema (recente no topo)
+  // Ordenação corrigida: do mais recente para o topo (tempo maior no topo)
   filtered.sort((a, b) => {
     const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
     const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
-    if (timeB !== timeA) {
+    if (timeA !== timeB) {
       return timeB - timeA;
     }
     return new Date(b.date) - new Date(a.date);
@@ -890,7 +890,7 @@ function renderInvestments(currentTx) {
   invests.sort((a, b) => {
     const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
     const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
-    if (timeB !== timeA) return timeB - timeA;
+    if (timeA !== timeB) return timeB - timeA;
     return new Date(b.date) - new Date(a.date);
   });
 
