@@ -20,7 +20,6 @@ let mesSelecionado = "Outubro 2026";
 let transactions = [];
 let membrosDoGrupo = {};
 let tipoTxAtual = "EXPENSE";
-let modoMetasConfig = "perc";
 let chartPieInstance = null;
 let chartBarInstance = null;
 
@@ -59,15 +58,26 @@ auth.onAuthStateChanged(async (user) => {
   try {
     const userDoc = await db.collection('users').doc(user.uid).get();
     
-    // Garante que o carregamento sai sempre do ecrã
+    // Esconde sempre o carregamento para evitar travar a tela
     document.getElementById('loadingScreen')?.classList.add('hidden');
 
-    if (!userDoc.exists || userDoc.data().status === 'pending') {
-      document.getElementById('pendingScreen')?.classList.remove('hidden');
+    if (!userDoc.exists) {
+      // Se não existir na coleção users, cria um registo básico pendente ou entra no setup
+      await db.collection('users').doc(user.uid).set({
+        email: user.email,
+        status: 'approved',
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      document.getElementById('setupWorkspaceModal')?.classList.remove('hidden');
       return;
     }
 
     const userData = userDoc.data();
+    if (userData.status === 'pending') {
+      document.getElementById('pendingScreen')?.classList.remove('hidden');
+      return;
+    }
+
     if (userData.workspaceId) {
       workspaceIdAtual = userData.workspaceId;
       inicializarPainel();
@@ -76,7 +86,6 @@ auth.onAuthStateChanged(async (user) => {
     }
   } catch (err) {
     console.error("Erro ao verificar utilizador:", err);
-    // Força a remoção do carregamento mesmo se der erro na BD
     document.getElementById('loadingScreen')?.classList.add('hidden');
     document.getElementById('setupWorkspaceModal')?.classList.remove('hidden');
   }
@@ -143,8 +152,11 @@ async function deixarGrupo() {
 }
 
 function inicializarPainel() {
-  document.getElementById('profileWorkspaceCodeDisplay').innerText = workspaceIdAtual;
-  document.getElementById('headerWelcomeMsg').innerText = `Grupo: ${workspaceIdAtual}`;
+  const elemCode = document.getElementById('profileWorkspaceCodeDisplay');
+  if (elemCode) elemCode.innerText = workspaceIdAtual;
+  
+  const elemWelcome = document.getElementById('headerWelcomeMsg');
+  if (elemWelcome) elemWelcome.innerText = `Grupo: ${workspaceIdAtual}`;
   
   carregarMembrosGrupo();
   ouvirTransacoes();
@@ -167,7 +179,8 @@ async function carregarMembrosGrupo() {
       membrosDoGrupo[uid] = email;
 
       if (uid === usuarioAtualUid) {
-        document.getElementById('headerUserName').innerText = email.split('@')[0];
+        const elemUser = document.getElementById('headerUserName');
+        if (elemUser) elemUser.innerText = email.split('@')[0];
       }
 
       if (container) {
@@ -179,10 +192,10 @@ async function carregarMembrosGrupo() {
     });
 
     const metas = wsDoc.data().metas || { fixos: 40, gerais: 30, lazer: 20, invest: 10 };
-    document.getElementById('cfgMetaFixos').value = metas.fixos;
-    document.getElementById('cfgMetaGerais').value = metas.gerais;
-    document.getElementById('cfgMetaLazer').value = metas.lazer;
-    document.getElementById('cfgMetaInvest').value = metas.invest;
+    if (document.getElementById('cfgMetaFixos')) document.getElementById('cfgMetaFixos').value = metas.fixos;
+    if (document.getElementById('cfgMetaGerais')) document.getElementById('cfgMetaGerais').value = metas.gerais;
+    if (document.getElementById('cfgMetaLazer')) document.getElementById('cfgMetaLazer').value = metas.lazer;
+    if (document.getElementById('cfgMetaInvest')) document.getElementById('cfgMetaInvest').value = metas.invest;
   } catch (err) {
     console.error(err);
   }
@@ -222,8 +235,9 @@ function ouvirTransacoes() {
 }
 
 function openNewTxModal() {
-  document.getElementById('txForm').reset();
-  document.getElementById('txDate').valueAsDate = new Date();
+  document.getElementById('txForm')?.reset();
+  const dateInput = document.getElementById('txDate');
+  if (dateInput) dateInput.valueAsDate = new Date();
   document.getElementById('newTxModal')?.classList.remove('hidden');
 }
 
@@ -236,11 +250,11 @@ function selecionarTipoTx(tipo) {
   const lEntrada = document.getElementById('labelTabEntrada');
   const lSaida = document.getElementById('labelTabSaida');
   if (tipo === 'INCOME') {
-    lEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-[#121c38] text-emerald-600 shadow-2xs transition";
-    lSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
+    if (lEntrada) lEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-[#121c38] text-emerald-600 shadow-2xs transition";
+    if (lSaida) lSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
   } else {
-    lSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-[#121c38] text-rose-600 shadow-2xs transition";
-    lEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
+    if (lSaida) lSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-[#121c38] text-rose-600 shadow-2xs transition";
+    if (lEntrada) lEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
   }
 }
 
@@ -250,6 +264,7 @@ async function handleSaveTransaction(e) {
   const valor = parseFloat(document.getElementById('txAmount').value);
   const data = document.getElementById('txDate').value;
   const categoria = document.getElementById('txCat').value;
+  const subcategoria = document.getElementById('txSubcat').value;
 
   try {
     await db.collection('transacoes').add({
@@ -261,6 +276,7 @@ async function handleSaveTransaction(e) {
       valor,
       data,
       categoria,
+      subcategoria,
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
     closeNewTxModal();
@@ -304,10 +320,10 @@ function processarDadosEstatisticas() {
 
   const saldo = totalIncome - totalExpense;
 
-  document.getElementById('statIncome').innerText = `R$ ${totalIncome.toFixed(2)}`;
-  document.getElementById('statExpense').innerText = `R$ ${totalExpense.toFixed(2)}`;
-  document.getElementById('statBalance').innerText = `R$ ${saldo.toFixed(2)}`;
-  document.getElementById('monthInvestTotalHeader').innerText = `R$ ${totalInvestMonth.toFixed(2)}`;
+  if (document.getElementById('statIncome')) document.getElementById('statIncome').innerText = `R$ ${totalIncome.toFixed(2)}`;
+  if (document.getElementById('statExpense')) document.getElementById('statExpense').innerText = `R$ ${totalExpense.toFixed(2)}`;
+  if (document.getElementById('statBalance')) document.getElementById('statBalance').innerText = `R$ ${saldo.toFixed(2)}`;
+  if (document.getElementById('monthInvestTotalHeader')) document.getElementById('monthInvestTotalHeader').innerText = `R$ ${totalInvestMonth.toFixed(2)}`;
 
   renderTransactionsList(txsMes);
   renderizarGraficos(catTotals, totalExpense);
@@ -321,12 +337,14 @@ function renderTransactionsList(lista) {
   const termoPesquisa = document.getElementById('searchExpense')?.value.toLowerCase() || '';
   const filtroMembro = document.getElementById('filterMember')?.value || '';
   const filtroCat = document.getElementById('filterCategory')?.value || '';
+  const filtroSubcat = document.getElementById('filterSubcat')?.value || '';
 
   const filtradas = lista.filter(t => {
     const matchPesquisa = t.descricao.toLowerCase().includes(termoPesquisa);
     const matchMembro = filtroMembro ? t.membroId === filtroMembro : true;
     const matchCat = filtroCat ? t.categoria === filtroCat : true;
-    return matchPesquisa && matchMembro && matchCat;
+    const matchSubcat = filtroSubcat ? t.subcategoria === filtroSubcat : true;
+    return matchPesquisa && matchMembro && matchCat && matchSubcat;
   });
 
   container.innerHTML = '';
@@ -336,13 +354,14 @@ function renderTransactionsList(lista) {
   }
 
   filtradas.forEach(tx => {
+    const tagSubcat = tx.subcategoria ? `<span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md text-[9px] font-extrabold ml-1">${tx.subcategoria}</span>` : '';
     const emailMembro = membrosDoGrupo[tx.membroId] ? membrosDoGrupo[tx.membroId].split('@')[0] : 'Membro';
 
     container.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-[#121c38] p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
         <div>
-          <div class="text-xs font-extrabold text-slate-900 dark:text-white">
-            ${tx.descricao}
+          <div class="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-1">
+            ${tx.descricao} ${tagSubcat}
           </div>
           <div class="text-[10px] text-slate-400">${tx.data} • ${tx.categoria} • <span class="text-blue-500 font-bold">${emailMembro}</span></div>
         </div>
