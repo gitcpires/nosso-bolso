@@ -23,6 +23,11 @@ let categoryBarChartInstance = null;
 let lousaDocId = null;
 let modoMetasAtual = 'perc';
 
+// Controlo das bolinhas vermelhas de notificação para outros membros
+let naoLidoExtrato = false;
+let naoLidoInvest = false;
+let naoLidoMural = false;
+
 auth.onAuthStateChanged(async (userAuth) => {
   if (!userAuth) {
     window.location.href = 'index.html';
@@ -455,6 +460,12 @@ function ouvinteLousaGrupo() {
       const dados = docLousa.data();
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
+      // Notificação se o recado foi criado pelo outro membro
+      if (dados.userId && dados.userId !== currentUser.id) {
+        naoLidoMural = true;
+        atualizarBadgesNavegacao();
+      }
+
       lousaConteudo.innerHTML = `
         <div class="py-4 bg-white/90 backdrop-blur-xs rounded-2xl p-4 shadow-sm border border-slate-200 inline-block max-w-full">
           <p class="text-xl sm:text-2xl font-extrabold tracking-wide text-slate-900 fonte-manuscrita break-words">"${dados.texto}"</p>
@@ -527,8 +538,19 @@ function carregarDadosDoBanco() {
     .onSnapshot((snapshot) => {
       transactions = [];
       snapshot.forEach((doc) => {
-        transactions.push({ id: doc.id, ...doc.data() });
+        const data = doc.data();
+        transactions.push({ id: doc.id, ...data });
+
+        // Notificação se a transação foi feita pelo outro membro
+        if (data.userId && data.userId !== currentUser.id) {
+          if (data.cat === 'Investimentos') {
+            naoLidoInvest = true;
+          } else {
+            naoLidoExtrato = true;
+          }
+        }
       });
+      atualizarBadgesNavegacao();
       renderAll();
     });
 }
@@ -549,7 +571,7 @@ async function handleSaveTransaction(e) {
     workspaceId: currentWorkspace.id,
     month: activeMonth,
     date,
-    confirmado: false // Começa sempre pendente para o outro membro ver e confirmar se necessário
+    confirmado: false 
   };
 
   await db.collection('transacoes').add(newTx);
@@ -598,7 +620,6 @@ function toggleTxTypeUI() {
     if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-emerald-600 shadow-2xs transition";
     if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
     
-    // Categorias exclusivas de Entrada com Ícones
     selectCat.innerHTML = `
       <option value="Salário">💰 Salário</option>
       <option value="Renda Extra">💵 Renda Extra</option>
@@ -607,7 +628,6 @@ function toggleTxTypeUI() {
     if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition";
     if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
     
-    // Categorias de Saída com Ícones
     selectCat.innerHTML = `
       <option value="Gastos Fixos">🏠 Gastos Fixos</option>
       <option value="Gastos Gerais">🛒 Gastos Gerais</option>
@@ -800,9 +820,8 @@ function renderTransactionsList(currentTx) {
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
     const isConfirmed = t.confirmado === true;
 
-    // Marcador visual com destaque de cor e indicação clara de Pendente para o outro membro ver
     container.innerHTML += `
-      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-400 bg-amber-50/50'} shadow-2xs">
+      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-400 bg-amber-50/40'} shadow-2xs">
         <div>
           <div class="text-xs font-extrabold text-slate-900">${t.desc} 
             <span class="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
@@ -810,7 +829,7 @@ function renderTransactionsList(currentTx) {
           </div>
           <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2">
             <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
-            ${!isConfirmed ? '<span class="text-[9px] text-amber-700 font-extrabold bg-amber-200 px-1.5 py-0.2 rounded animate-pulse">⚠️ Pendente de Confirmação</span>' : '<span class="text-[9px] text-emerald-700 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">✓ Confirmado</span>'}
+            ${!isConfirmed ? '<span class="text-[9px] text-amber-700 font-extrabold bg-amber-200 px-1.5 py-0.2 rounded">⚠️ Pendente</span>' : '<span class="text-[9px] text-emerald-700 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">✓ Confirmado</span>'}
           </div>
         </div>
         <div class="flex items-center gap-2.5">
@@ -861,7 +880,7 @@ function renderInvestments(currentTx) {
   invests.forEach(t => {
     const isConfirmed = t.confirmado === true;
     investList.innerHTML += `
-      <div class="flex items-center justify-between bg-white p-3 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-400 bg-amber-50/50'} shadow-2xs">
+      <div class="flex items-center justify-between bg-white p-3 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-400 bg-amber-50/40'} shadow-2xs">
         <div>
           <div class="text-xs font-extrabold text-slate-900">${t.desc}</div>
           <div class="text-[10px] text-slate-500">${t.date} ${!isConfirmed ? '• <span class="text-amber-700 font-bold">Pendente</span>' : ''}</div>
@@ -878,6 +897,27 @@ function renderInvestments(currentTx) {
   });
 }
 
+function atualizarBadgesNavegacao() {
+  const badgeExtrato = document.getElementById('badgeExtrato');
+  const badgeInvest = document.getElementById('badgeInvest');
+  const badgeMural = document.getElementById('badgeMural');
+
+  if (badgeExtrato) {
+    if (naoLidoExtrato) badgeExtrato.classList.remove('hidden');
+    else badgeExtrato.classList.add('hidden');
+  }
+
+  if (badgeInvest) {
+    if (naoLidoInvest) badgeInvest.classList.remove('hidden');
+    else badgeInvest.classList.add('hidden');
+  }
+
+  if (badgeMural) {
+    if (naoLidoMural) badgeMural.classList.remove('hidden');
+    else badgeMural.classList.add('hidden');
+  }
+}
+
 function switchTab(tab) {
   ['resumo', 'extrato', 'invest', 'mural'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
@@ -887,14 +927,19 @@ function switchTab(tab) {
   const activeEl = document.getElementById(`tab-${tab}`);
   if (activeEl) activeEl.classList.remove('hidden');
 
+  // Ao clicar na aba, limpa a notificação correspondente
+  if (tab === 'extrato') { naoLidoExtrato = false; renderTransactionsList(transactions.filter(t => t.month === activeMonth)); }
+  if (tab === 'invest') { naoLidoInvest = false; }
+  if (tab === 'mural') { naoLidoMural = false; }
+  atualizarBadgesNavegacao();
+
   ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     if (btn) {
-      btn.className = name === tab ? 'flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
+      btn.className = name === tab ? 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
     }
   });
 
-  if (tab === 'extrato') renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   if (tab === 'resumo') renderAll();
 }
 
