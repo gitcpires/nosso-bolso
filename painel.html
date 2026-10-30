@@ -266,20 +266,24 @@
   <!-- Barra de Navegação Inferior -->
   <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2.5 shadow-lg">
     <div class="mx-auto max-w-md grid grid-cols-5 items-center">
-      <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5">
+      <button onclick="switchTab('resumo')" id="bottomNavResumo" class="relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5">
+        <span id="badgeResumo" class="absolute top-0 right-3 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full hidden"></span>
         <i class="fa-solid fa-chart-pie text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Resumo</span>
       </button>
-      <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+      <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+        <span id="badgeExtrato" class="absolute top-0 right-3 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full hidden"></span>
         <i class="fa-solid fa-receipt text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Extrato</span>
       </button>
       <div></div>
-      <button onclick="switchTab('invest')" id="bottomNavInvest" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+      <button onclick="switchTab('invest')" id="bottomNavInvest" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+        <span id="badgeInvest" class="absolute top-0 right-3 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full hidden"></span>
         <i class="fa-solid fa-chart-line text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Invest</span>
       </button>
-      <button onclick="switchTab('mural')" id="bottomNavMural" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+      <button onclick="switchTab('mural')" id="bottomNavMural" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+        <span id="badgeMural" class="absolute top-0 right-3 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full hidden"></span>
         <i class="fa-solid fa-note-sticky text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Mural</span>
       </button>
@@ -324,12 +328,10 @@
         <div>
           <label class="block text-[10px] font-bold text-slate-500 mb-1">Categoria</label>
           <select id="txCat" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white">
-            <option value="Salário">Salário</option>
-            <option value="Renda Extra">Renda Extra</option>
-            <option value="Gastos Fixos">Gastos Fixos</option>
-            <option value="Gastos Gerais">Gastos Gerais</option>
-            <option value="Lazer">Lazer</option>
-            <option value="Investimentos">Investimentos</option>
+            <option value="Gastos Fixos">🏠 Gastos Fixos</option>
+            <option value="Gastos Gerais">🛒 Gastos Gerais</option>
+            <option value="Lazer">🎉 Lazer</option>
+            <option value="Investimentos">📈 Investimentos</option>
           </select>
         </div>
 
