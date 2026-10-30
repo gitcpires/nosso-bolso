@@ -295,16 +295,15 @@
       </div>
 
       <form id="txForm" onsubmit="handleSaveTransaction(event)" class="space-y-3">
-        <!-- Seletor de Tipo (Entrada / Saída) Funcional -->
+        <!-- Seletor de Tipo Original com Radio Buttons -->
         <div class="flex bg-slate-100 p-1 rounded-xl">
-          <button type="button" id="btnTabEntrada" onclick="selecionarTipoTx('INCOME')" class="w-1/2 py-2 text-xs font-extrabold rounded-lg text-slate-500 transition">
-            Entrada
-          </button>
-          <button type="button" id="btnTabSaida" onclick="selecionarTipoTx('EXPENSE')" class="w-1/2 py-2 text-xs font-extrabold rounded-lg bg-white text-rose-600 shadow-2xs transition">
-            Saída
-          </button>
+          <label id="labelTabEntrada" onclick="selecionarTipoTx('INCOME')" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition">
+            <input type="radio" name="txType" value="INCOME" onchange="toggleTxTypeUI()" class="hidden" /> Entrada
+          </label>
+          <label id="labelTabSaida" onclick="selecionarTipoTx('EXPENSE')" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition">
+            <input type="radio" name="txType" value="EXPENSE" checked onchange="toggleTxTypeUI()" class="hidden" /> Saída
+          </label>
         </div>
-        <input type="hidden" id="txTypeInput" value="EXPENSE">
 
         <div>
           <label class="block text-[10px] font-bold text-slate-500 mb-1">Descrição</label>
@@ -325,7 +324,6 @@
         <div>
           <label class="block text-[10px] font-bold text-slate-500 mb-1">Categoria</label>
           <select id="txCat" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white">
-            <!-- As opções mudam dinamicamente ou contêm as principais -->
             <option value="Salário">Salário</option>
             <option value="Renda Extra">Renda Extra</option>
             <option value="Gastos Fixos">Gastos Fixos</option>
