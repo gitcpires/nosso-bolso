@@ -23,10 +23,6 @@ let categoryBarChartInstance = null;
 let lousaDocId = null;
 let modoMetasAtual = 'perc';
 
-let naoLidoExtrato = false;
-let naoLidoInvest = false;
-let naoLidoMural = false;
-
 auth.onAuthStateChanged(async (userAuth) => {
   if (!userAuth) {
     window.location.href = 'index.html';
@@ -459,16 +455,6 @@ function ouvinteLousaGrupo() {
       const dados = docLousa.data();
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
-      // Verifica se há novo recado do outro membro após a última leitura guardada
-      if (dados.userId && dados.userId !== currentUser.id) {
-        const muralTime = dados.createdAt ? (dados.createdAt.toMillis ? dados.createdAt.toMillis() : dados.createdAt) : 0;
-        const lastMuralView = parseInt(localStorage.getItem('lastMuralView_' + currentUser.id) || '0');
-        if (muralTime > lastMuralView) {
-          naoLidoMural = true;
-          atualizarBadgesNavegacao();
-        }
-      }
-
       lousaConteudo.innerHTML = `
         <div class="py-4 bg-white/90 backdrop-blur-xs rounded-2xl p-4 shadow-sm border border-slate-200 inline-block max-w-full">
           <p class="text-xl sm:text-2xl font-extrabold tracking-wide text-slate-900 fonte-manuscrita break-words">"${dados.texto}"</p>
@@ -502,7 +488,6 @@ async function escreverNaLousa(e) {
         texto: texto,
         userId: currentUser.id,
         userEmail: currentUser.email,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     } else {
@@ -541,23 +526,9 @@ function carregarDadosDoBanco() {
     .where('workspaceId', '==', currentWorkspace.id)
     .onSnapshot((snapshot) => {
       transactions = [];
-      const lastExtratoView = parseInt(localStorage.getItem('lastExtratoView_' + currentUser.id) || '0');
-      const lastInvestView = parseInt(localStorage.getItem('lastInvestView_' + currentUser.id) || '0');
-
       snapshot.forEach((doc) => {
-        const data = doc.data();
-        transactions.push({ id: doc.id, ...data });
-
-        if (data.userId && data.userId !== currentUser.id) {
-          const txTime = data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : data.createdAt) : 0;
-          if (data.cat === 'Investimentos') {
-            if (txTime > lastInvestView) naoLidoInvest = true;
-          } else {
-            if (txTime > lastExtratoView) naoLidoExtrato = true;
-          }
-        }
+        transactions.push({ id: doc.id, ...doc.data() });
       });
-      atualizarBadgesNavegacao();
       renderAll();
     });
 }
@@ -578,8 +549,7 @@ async function handleSaveTransaction(e) {
     workspaceId: currentWorkspace.id,
     month: activeMonth,
     date,
-    confirmado: false,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    confirmado: false // Começa pendente para o outro membro ver e confirmar
   };
 
   await db.collection('transacoes').add(newTx);
@@ -828,16 +798,17 @@ function renderTransactionsList(currentTx) {
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
     const isConfirmed = t.confirmado === true;
 
+    // Marcadores visuais e botão de confirmação para o outro membro ver o lançamento pendente
     container.innerHTML += `
       <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-400 bg-amber-50/40'} shadow-2xs">
         <div>
-          <div class="text-xs font-extrabold text-slate-900">${t.desc} 
+          <div class="text-xs font-extrabold text-slate-900">${!isConfirmed ? '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span>' : ''}${t.desc} 
             <span class="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
             <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
           </div>
           <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2">
             <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
-            ${!isConfirmed ? '<span class="text-[9px] text-amber-700 font-extrabold bg-amber-200 px-1.5 py-0.2 rounded">⚠️ Pendente</span>' : '<span class="text-[9px] text-emerald-700 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">✓ Confirmado</span>'}
+            ${!isConfirmed ? '<span class="text-[9px] text-amber-700 font-extrabold bg-amber-200 px-1.5 py-0.2 rounded">⚠️ Pendente de Confirmação</span>' : '<span class="text-[9px] text-emerald-700 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">✓ Confirmado</span>'}
           </div>
         </div>
         <div class="flex items-center gap-2.5">
@@ -846,7 +817,7 @@ function renderTransactionsList(currentTx) {
           </span>
           
           ${!isConfirmed ? `
-            <button onclick="alternarConfirmacaoTx('${t.id}', false)" title="Confirmar lançamento" class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-amber-500 text-white hover:bg-amber-600 transition shadow-2xs">
+            <button onclick="alternarConfirmacaoTx('${t.id}', false)" title="Confirmar lançamento" class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-amber-500 text-white hover:bg-amber-600 animate-pulse transition shadow-2xs">
               Confirmar
             </button>
           ` : ''}
@@ -890,40 +861,19 @@ function renderInvestments(currentTx) {
     investList.innerHTML += `
       <div class="flex items-center justify-between bg-white p-3 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-400 bg-amber-50/40'} shadow-2xs">
         <div>
-          <div class="text-xs font-extrabold text-slate-900">${t.desc}</div>
+          <div class="text-xs font-extrabold text-slate-900">${!isConfirmed ? '<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span>' : ''}${t.desc}</div>
           <div class="text-[10px] text-slate-500">${t.date} ${!isConfirmed ? '• <span class="text-amber-700 font-bold">Pendente</span>' : ''}</div>
         </div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-black text-rose-600">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
           ${!isConfirmed ? `
-            <button onclick="alternarConfirmacaoTx('${t.id}', false)" class="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-500 text-white">Confirmar</button>
+            <button onclick="alternarConfirmacaoTx('${t.id}', false)" class="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-500 text-white animate-pulse">Confirmar</button>
           ` : ''}
           <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
     `;
   });
-}
-
-function atualizarBadgesNavegacao() {
-  const badgeExtrato = document.getElementById('badgeExtrato');
-  const badgeInvest = document.getElementById('badgeInvest');
-  const badgeMural = document.getElementById('badgeMural');
-
-  if (badgeExtrato) {
-    if (naoLidoExtrato) badgeExtrato.classList.remove('hidden');
-    else badgeExtrato.classList.add('hidden');
-  }
-
-  if (badgeInvest) {
-    if (naoLidoInvest) badgeInvest.classList.remove('hidden');
-    else badgeInvest.classList.add('hidden');
-  }
-
-  if (badgeMural) {
-    if (naoLidoMural) badgeMural.classList.remove('hidden');
-    else badgeMural.classList.add('hidden');
-  }
 }
 
 function switchTab(tab) {
@@ -935,28 +885,14 @@ function switchTab(tab) {
   const activeEl = document.getElementById(`tab-${tab}`);
   if (activeEl) activeEl.classList.remove('hidden');
 
-  if (tab === 'extrato') {
-    naoLidoExtrato = false;
-    localStorage.setItem('lastExtratoView_' + currentUser.id, Date.now());
-    renderTransactionsList(transactions.filter(t => t.month === activeMonth));
-  }
-  if (tab === 'invest') {
-    naoLidoInvest = false;
-    localStorage.setItem('lastInvestView_' + currentUser.id, Date.now());
-  }
-  if (tab === 'mural') {
-    naoLidoMural = false;
-    localStorage.setItem('lastMuralView_' + currentUser.id, Date.now());
-  }
-  atualizarBadgesNavegacao();
-
   ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     if (btn) {
-      btn.className = name === tab ? 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
+      btn.className = name === tab ? 'flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
     }
   });
 
+  if (tab === 'extrato') renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   if (tab === 'resumo') renderAll();
 }
 
