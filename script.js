@@ -23,7 +23,6 @@ let categoryBarChartInstance = null;
 let lousaDocId = null;
 let modoMetasAtual = 'perc';
 
-// Controlo das bolinhas vermelhas de notificação para outros membros
 let naoLidoExtrato = false;
 let naoLidoInvest = false;
 let naoLidoMural = false;
@@ -460,7 +459,6 @@ function ouvinteLousaGrupo() {
       const dados = docLousa.data();
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
-      // Notificação se o recado foi criado pelo outro membro
       if (dados.userId && dados.userId !== currentUser.id) {
         naoLidoMural = true;
         atualizarBadgesNavegacao();
@@ -541,7 +539,6 @@ function carregarDadosDoBanco() {
         const data = doc.data();
         transactions.push({ id: doc.id, ...data });
 
-        // Notificação se a transação foi feita pelo outro membro
         if (data.userId && data.userId !== currentUser.id) {
           if (data.cat === 'Investimentos') {
             naoLidoInvest = true;
@@ -927,7 +924,6 @@ function switchTab(tab) {
   const activeEl = document.getElementById(`tab-${tab}`);
   if (activeEl) activeEl.classList.remove('hidden');
 
-  // Ao clicar na aba, limpa a notificação correspondente
   if (tab === 'extrato') { naoLidoExtrato = false; renderTransactionsList(transactions.filter(t => t.month === activeMonth)); }
   if (tab === 'invest') { naoLidoInvest = false; }
   if (tab === 'mural') { naoLidoMural = false; }
