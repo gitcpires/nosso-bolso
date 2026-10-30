@@ -14,25 +14,53 @@
     }
   </script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 antialiased selection:bg-amber-500 selection:text-slate-950">
 
   <div class="max-w-4xl mx-auto space-y-6">
     <!-- Cabeçalho -->
-    <div class="flex items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-md">
-      <div>
-        <h1 class="text-lg font-black text-white"><i class="fa-solid fa-shield-halved text-amber-400 mr-2"></i>Painel Administrativo</h1>
-        <p class="text-xs text-slate-400">Gestão de acessos e utilizadores</p>
+    <div class="flex items-center justify-between bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-lg">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center text-lg">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-black text-white">Painel Administrativo</h1>
+          <p class="text-xs text-slate-400">Gestão avançada de acessos e utilizadores</p>
+        </div>
       </div>
-      <button onclick="logout()" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-2 rounded-xl text-xs font-extrabold transition">
+      <button onclick="logout()" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-2 rounded-xl text-xs font-extrabold transition shadow-2xs">
         <i class="fa-solid fa-right-from-bracket mr-1"></i> Sair
       </button>
     </div>
 
-    <!-- Lista de Utilizadores -->
-    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-md space-y-4">
-      <h2 class="text-sm font-extrabold text-white">Utilizadores Registados</h2>
-      <div id="usersListContainer" class="space-y-2">
-        <div class="text-xs text-slate-400 text-center py-4">A carregar utilizadores...</div>
+    <!-- Cartões de Estatísticas Rápidas -->
+    <div class="grid grid-cols-3 gap-3">
+      <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-md space-y-1">
+        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Total</span>
+        <div id="statTotalUsers" class="text-lg sm:text-xl font-black text-white">0</div>
+      </div>
+      <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-md space-y-1">
+        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Aprovados</span>
+        <div id="statApprovedUsers" class="text-lg sm:text-xl font-black text-emerald-400">0</div>
+      </div>
+      <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-md space-y-1">
+        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Pendentes</span>
+        <div id="statPendingUsers" class="text-lg sm:text-xl font-black text-amber-400">0</div>
+      </div>
+    </div>
+
+    <!-- Lista de Utilizadores e Pesquisa -->
+    <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-lg space-y-4">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <h2 class="text-xs sm:text-sm font-extrabold text-white uppercase tracking-wider w-full sm:w-auto">Utilizadores Registados</h2>
+        <div class="relative w-full sm:w-64">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500"><i class="fa-solid fa-magnifying-glass text-xs"></i></span>
+          <input type="text" id="searchUser" oninput="filtrarUtilizadores()" placeholder="Pesquisar e-mail..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs font-bold text-slate-200 focus:outline-none focus:border-amber-500 transition" />
+        </div>
+      </div>
+
+      <div id="usersListContainer" class="space-y-2.5">
+        <div class="text-xs text-slate-400 text-center py-6">A carregar utilizadores...</div>
       </div>
     </div>
   </div>
@@ -58,6 +86,8 @@
 
     const auth = firebase.auth();
     const db = firebase.firestore();
+
+    let cacheUtilizadores = [];
 
     async function validarE(user) {
       if (!user) {
@@ -96,52 +126,91 @@
 
     function carregarUtilizadores() {
       db.collection('users').onSnapshot((snapshot) => {
-        const container = document.getElementById('usersListContainer');
-        if (!container) return;
-        
-        container.innerHTML = '';
-        if (snapshot.empty) {
-          container.innerHTML = `<div class="text-xs text-slate-400 text-center py-4">Nenhum utilizador encontrado.</div>`;
-          return;
-        }
+        cacheUtilizadores = [];
+        let total = 0;
+        let aprovados = 0;
+        let pendentes = 0;
 
         snapshot.forEach(doc => {
+          total++;
           const u = doc.data();
-          const uid = doc.id;
-          const isPending = u.status === 'pending';
+          if (u.status === 'approved') aprovados++;
+          else pendentes++;
 
-          container.innerHTML += `
-            <div class="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
-              <div>
-                <div class="text-xs font-bold text-white">${u.email || 'E-mail indisponível'}</div>
-                <div class="text-[10px] text-slate-400">Estado: <span class="${isPending ? 'text-amber-400' : 'text-emerald-400'} font-extrabold">${u.status || 'ativo'}</span></div>
-              </div>
-              <div class="flex items-center gap-2">
-                ${isPending ? `<button onclick="aprovarUtilizador('${uid}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold transition">Aprovar</button>` : ''}
-                <button onclick="removerUtilizador('${uid}')" class="text-slate-500 hover:text-rose-400 p-1 transition" title="Remover"><i class="fa-solid fa-trash text-xs"></i></button>
-              </div>
-            </div>
-          `;
+          cacheUtilizadores.push({
+            id: doc.id,
+            ...u
+          });
         });
+
+        document.getElementById('statTotalUsers').innerText = total;
+        document.getElementById('statApprovedUsers').innerText = aprovados;
+        document.getElementById('statPendingUsers').innerText = pendentes;
+
+        renderizarLista(cacheUtilizadores);
       }, (error) => {
         console.error("Erro ao ler base de dados:", error);
       });
     }
 
-    async function aprovarUtilizador(uid) {
+    function renderizarLista(lista) {
+      const container = document.getElementById('usersListContainer');
+      if (!container) return;
+      
+      container.innerHTML = '';
+      if (lista.length === 0) {
+        container.innerHTML = `<div class="text-xs text-slate-500 text-center py-6">Nenhum utilizador encontrado.</div>`;
+        return;
+      }
+
+      lista.forEach(u => {
+        const isPending = u.status !== 'approved';
+        const workspaceInfo = u.workspaceCode ? `Grupo: ${u.workspaceCode}` : 'Sem grupo atribuído';
+
+        container.innerHTML += `
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-slate-950 p-3.5 rounded-xl border border-slate-800/80 gap-3 shadow-2xs">
+            <div class="space-y-0.5">
+              <div class="text-xs font-black text-white flex items-center gap-2">
+                ${u.email || 'E-mail indisponível'}
+              </div>
+              <div class="text-[10px] text-slate-400 flex items-center gap-3">
+                <span>Estado: <strong class="${isPending ? 'text-amber-400' : 'text-emerald-400'}">${u.status || 'pending'}</strong></span>
+                <span>•</span>
+                <span class="text-slate-500">${workspaceInfo}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-900">
+              ${isPending 
+                ? `<button onclick="alterarEstado('${u.id}', 'approved')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-extrabold transition shadow-xs">Aprovar</button>`
+                : `<button onclick="alterarEstado('${u.id}', 'pending')" class="bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white px-3 py-1.5 rounded-lg text-[10px] font-extrabold transition">Tornar Pendente</button>`
+              }
+              <button onclick="removerUtilizador('${u.id}')" class="text-slate-500 hover:text-rose-400 p-2 transition rounded-lg hover:bg-slate-900" title="Eliminar utilizador"><i class="fa-solid fa-trash text-xs"></i></button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function filtrarUtilizadores() {
+      const termo = document.getElementById('searchUser').value.toLowerCase();
+      const filtrados = cacheUtilizadores.filter(u => (u.email || '').toLowerCase().includes(termo));
+      renderizarLista(filtrados);
+    }
+
+    async function alterarEstado(uid, novoEstado) {
       try {
-        await db.collection('users').doc(uid).update({ status: 'approved' });
+        await db.collection('users').doc(uid).update({ status: novoEstado });
       } catch (err) {
-        alert("Erro ao aprovar.");
+        alert("Erro ao alterar o estado do utilizador.");
       }
     }
 
     async function removerUtilizador(uid) {
-      if (confirm("Deseja eliminar este utilizador?")) {
+      if (confirm("Deseja eliminar permanentemente este utilizador do sistema?")) {
         try {
           await db.collection('users').doc(uid).delete();
         } catch (err) {
-          alert("Erro ao remover.");
+          alert("Erro ao remover utilizador.");
         }
       }
     }
