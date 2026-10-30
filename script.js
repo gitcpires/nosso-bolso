@@ -1,4 +1,3 @@
-// Configuração do Firebase e Lógica Principal do Nosso Bolso
 const firebaseConfig = {
   apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
   authDomain: "nosso-bolso-c8d29.firebaseapp.com",
@@ -25,7 +24,6 @@ let modoMetasConfig = "perc";
 let chartPieInstance = null;
 let chartBarInstance = null;
 
-// Controlo de Modo Escuro / Claro
 function aplicarTemaInicial() {
   const temaSalvo = localStorage.getItem('nosso_bolso_tema') || 'dark';
   if (temaSalvo === 'dark') {
@@ -84,7 +82,6 @@ function logout() {
   auth.signOut().then(() => window.location.replace("index.html"));
 }
 
-// Gestão de Workspaces
 async function criarNovoWorkspace() {
   const codigoAleatorio = Math.floor(1000 + Math.random() * 9000).toString();
   try {
@@ -141,7 +138,6 @@ async function deixarGrupo() {
   }
 }
 
-// Inicialização do Painel
 function inicializarPainel() {
   document.getElementById('profileWorkspaceCodeDisplay').innerText = workspaceIdAtual;
   document.getElementById('headerWelcomeMsg').innerText = `Grupo: ${workspaceIdAtual}`;
@@ -178,7 +174,6 @@ async function carregarMembrosGrupo() {
       }
     });
 
-    // Carregar Metas
     const metas = wsDoc.data().metas || { fixos: 40, gerais: 30, lazer: 20, invest: 10 };
     document.getElementById('cfgMetaFixos').value = metas.fixos;
     document.getElementById('cfgMetaGerais').value = metas.gerais;
@@ -189,7 +184,6 @@ async function carregarMembrosGrupo() {
   }
 }
 
-// Navegação por Abas
 function switchTab(tabName) {
   ['resumo', 'extrato', 'invest', 'mural'].forEach(t => {
     document.getElementById(`tab-${t}`)?.classList.add('hidden');
@@ -211,7 +205,6 @@ function changeActiveMonth(mes) {
   processarDadosEstatisticas();
 }
 
-// Gestão de Transações com Subcategoria / Tag
 function ouvirTransacoes() {
   db.collection('transacoes')
     .where('workspaceId', '==', workspaceIdAtual)
@@ -220,23 +213,8 @@ function ouvirTransacoes() {
       snapshot.forEach(doc => {
         transactions.push({ id: doc.id, ...doc.data() });
       });
-      atualizarFiltroSubcategorias();
       processarDadosEstatisticas();
     }, (err) => console.error(err));
-}
-
-function atualizarFiltroSubcategorias() {
-  const selectSubcat = document.getElementById('filterSubcat');
-  if (!selectSubcat) return;
-  
-  const subcategoriasUnicas = [...new Set(transactions.map(t => t.subcategoria).filter(Boolean))];
-  const valorAtual = selectSubcat.value;
-
-  selectSubcat.innerHTML = '<option value="">💳 Subcat / Tag</option>';
-  subcategoriasUnicas.forEach(sub => {
-    selectSubcat.innerHTML += `<option value="${sub}">${sub}</option>`;
-  });
-  selectSubcat.value = valorAtual;
 }
 
 function openNewTxModal() {
@@ -268,7 +246,7 @@ async function handleSaveTransaction(e) {
   const valor = parseFloat(document.getElementById('txAmount').value);
   const data = document.getElementById('txDate').value;
   const categoria = document.getElementById('txCat').value;
-  const subcategoria = document.getElementById('txSubcat').value.trim() || 'Geral';
+  const subcategoria = document.getElementById('txSubcat').value;
 
   try {
     await db.collection('transacoes').add({
@@ -299,7 +277,6 @@ async function eliminarTransacao(id) {
   }
 }
 
-// Estatísticas, Extrato e Gráficos
 function processarDadosEstatisticas() {
   const txsMes = transactions.filter(t => t.mesAno === mesSelecionado);
   
@@ -438,7 +415,6 @@ function renderizarProgressoMetas(catTotals, totalExpense) {
   });
 }
 
-// Configurações e Mural
 function openProfileModal() {
   document.getElementById('profileModal')?.classList.remove('hidden');
 }
