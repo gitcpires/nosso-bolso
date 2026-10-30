@@ -549,7 +549,7 @@ async function handleSaveTransaction(e) {
     workspaceId: currentWorkspace.id,
     month: activeMonth,
     date,
-    confirmado: false
+    confirmado: false // Começa sempre pendente para o outro membro ver e confirmar se necessário
   };
 
   await db.collection('transacoes').add(newTx);
@@ -598,7 +598,7 @@ function toggleTxTypeUI() {
     if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-emerald-600 shadow-2xs transition";
     if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
     
-    // Mostra categorias de Entrada com Ícones
+    // Categorias exclusivas de Entrada com Ícones
     selectCat.innerHTML = `
       <option value="Salário">💰 Salário</option>
       <option value="Renda Extra">💵 Renda Extra</option>
@@ -607,7 +607,7 @@ function toggleTxTypeUI() {
     if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition";
     if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
     
-    // Mostra categorias de Saída com Ícones
+    // Categorias de Saída com Ícones
     selectCat.innerHTML = `
       <option value="Gastos Fixos">🏠 Gastos Fixos</option>
       <option value="Gastos Gerais">🛒 Gastos Gerais</option>
@@ -800,8 +800,9 @@ function renderTransactionsList(currentTx) {
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
     const isConfirmed = t.confirmado === true;
 
+    // Marcador visual com destaque de cor e indicação clara de Pendente para o outro membro ver
     container.innerHTML += `
-      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-300 bg-amber-50/30'} shadow-2xs">
+      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-400 bg-amber-50/50'} shadow-2xs">
         <div>
           <div class="text-xs font-extrabold text-slate-900">${t.desc} 
             <span class="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
@@ -809,7 +810,7 @@ function renderTransactionsList(currentTx) {
           </div>
           <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2">
             <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
-            ${!isConfirmed ? '<span class="text-[9px] text-amber-700 font-extrabold bg-amber-100 px-1.5 py-0.2 rounded">Pendente</span>' : '<span class="text-[9px] text-emerald-700 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">Confirmado</span>'}
+            ${!isConfirmed ? '<span class="text-[9px] text-amber-700 font-extrabold bg-amber-200 px-1.5 py-0.2 rounded animate-pulse">⚠️ Pendente de Confirmação</span>' : '<span class="text-[9px] text-emerald-700 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">✓ Confirmado</span>'}
           </div>
         </div>
         <div class="flex items-center gap-2.5">
@@ -818,7 +819,7 @@ function renderTransactionsList(currentTx) {
           </span>
           
           ${!isConfirmed ? `
-            <button onclick="alternarConfirmacaoTx('${t.id}', false)" title="Confirmar lançamento" class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-amber-500 text-white hover:bg-amber-600 animate-pulse transition shadow-2xs">
+            <button onclick="alternarConfirmacaoTx('${t.id}', false)" title="Confirmar lançamento" class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-amber-500 text-white hover:bg-amber-600 transition shadow-2xs">
               Confirmar
             </button>
           ` : ''}
@@ -860,7 +861,7 @@ function renderInvestments(currentTx) {
   invests.forEach(t => {
     const isConfirmed = t.confirmado === true;
     investList.innerHTML += `
-      <div class="flex items-center justify-between bg-white p-3 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-300 bg-amber-50/30'} shadow-2xs">
+      <div class="flex items-center justify-between bg-white p-3 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-400 bg-amber-50/50'} shadow-2xs">
         <div>
           <div class="text-xs font-extrabold text-slate-900">${t.desc}</div>
           <div class="text-[10px] text-slate-500">${t.date} ${!isConfirmed ? '• <span class="text-amber-700 font-bold">Pendente</span>' : ''}</div>
@@ -868,7 +869,7 @@ function renderInvestments(currentTx) {
         <div class="flex items-center gap-2">
           <span class="text-xs font-black text-rose-600">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
           ${!isConfirmed ? `
-            <button onclick="alternarConfirmacaoTx('${t.id}', false)" class="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-500 text-white animate-pulse">Confirmar</button>
+            <button onclick="alternarConfirmacaoTx('${t.id}', false)" class="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-500 text-white">Confirmar</button>
           ` : ''}
           <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
@@ -900,7 +901,7 @@ function switchTab(tab) {
 function openNewTxModal() { 
   const txDate = document.getElementById('txDate');
   if (txDate) txDate.value = new Date().toISOString().split('T')[0];
-  selecionarTipoTx('EXPENSE'); // Inicia por defeito em Saída
+  selecionarTipoTx('EXPENSE'); 
   document.getElementById('newTxModal').classList.remove('hidden'); 
 }
 function closeNewTxModal() { document.getElementById('newTxModal').classList.add('hidden'); }
