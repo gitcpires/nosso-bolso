@@ -58,8 +58,11 @@ auth.onAuthStateChanged(async (user) => {
 
   try {
     const userDoc = await db.collection('users').doc(user.uid).get();
+    
+    // Garante que o carregamento sai sempre do ecrã
+    document.getElementById('loadingScreen')?.classList.add('hidden');
+
     if (!userDoc.exists || userDoc.data().status === 'pending') {
-      document.getElementById('loadingScreen')?.classList.add('hidden');
       document.getElementById('pendingScreen')?.classList.remove('hidden');
       return;
     }
@@ -67,14 +70,15 @@ auth.onAuthStateChanged(async (user) => {
     const userData = userDoc.data();
     if (userData.workspaceId) {
       workspaceIdAtual = userData.workspaceId;
-      document.getElementById('loadingScreen')?.classList.add('hidden');
       inicializarPainel();
     } else {
-      document.getElementById('loadingScreen')?.classList.add('hidden');
       document.getElementById('setupWorkspaceModal')?.classList.remove('hidden');
     }
   } catch (err) {
     console.error("Erro ao verificar utilizador:", err);
+    // Força a remoção do carregamento mesmo se der erro na BD
+    document.getElementById('loadingScreen')?.classList.add('hidden');
+    document.getElementById('setupWorkspaceModal')?.classList.remove('hidden');
   }
 });
 
@@ -461,7 +465,7 @@ function carregarMural() {
       autorNome.innerText = membrosDoGrupo[data.autorId] ? membrosDoGrupo[data.autorId].split('@')[0] : 'Membro';
       autorContainer.classList.remove('hidden');
     }
-    if (btnLimpar) btnLimpar.classList.add('hidden');
+    if (btnLimpar) btnLimpar.classList.remove('hidden');
   });
 }
 
