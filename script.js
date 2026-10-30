@@ -586,25 +586,8 @@ function selecionarTipoTx(tipo) {
 }
 
 function toggleTxTypeUI() {
-  const type = document.querySelector('input[name="txType"]:checked').value;
-  const catSelect = document.getElementById('txCat');
-  const labelEntrada = document.getElementById('labelTabEntrada');
-  const labelSaida = document.getElementById('labelTabSaida');
-
-  if (type === 'INCOME') {
-    labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-emerald-600 shadow-2xs transition";
-    labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
-    catSelect.innerHTML = `<option value="Salário">💼 Salário</option><option value="Renda Extra">✨ Renda Extra</option>`;
-  } else {
-    labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition";
-    labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
-    catSelect.innerHTML = `
-      <option value="Gastos Fixos">🏠 Gastos Fixos</option>
-      <option value="Gastos Gerais">🛒 Gastos Gerais</option>
-      <option value="Lazer">🎉 Lazer</option>
-      <option value="Investimentos">📈 Investimentos</option>
-    `;
-  }
+  const type = document.querySelector('input[name="txType"][value="EXPENSE"]').checked ? 'EXPENSE' : 'INCOME';
+  // Mantém a UI de seleção dos botões de Entrada/Saída no modal
 }
 
 function renderAll() {
@@ -781,7 +764,7 @@ function renderTransactionsList(currentTx) {
   });
 
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl">Nenhuma movimentação encontrada neste mês com estes filtros.</div>`;
+    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">Nenhuma movimentação encontrada neste mês com estes filtros.</div>`;
     return;
   }
 
@@ -791,15 +774,15 @@ function renderTransactionsList(currentTx) {
     const isConfirmed = t.confirmado === true;
 
     container.innerHTML += `
-      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-100' : 'border-amber-300 bg-amber-50/30'} shadow-2xs">
+      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-300 bg-amber-50/30'} shadow-2xs">
         <div>
-          <div class="text-xs font-extrabold text-slate-800">${t.desc} 
+          <div class="text-xs font-extrabold text-slate-900">${t.desc} 
             <span class="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
             <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
           </div>
-          <div class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
+          <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2">
             <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
-            ${!isConfirmed ? '<span class="text-[9px] text-amber-600 font-extrabold bg-amber-100 px-1.5 py-0.2 rounded">Pendente</span>' : '<span class="text-[9px] text-emerald-600 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">Confirmado</span>'}
+            ${!isConfirmed ? '<span class="text-[9px] text-amber-700 font-extrabold bg-amber-100 px-1.5 py-0.2 rounded">Pendente</span>' : '<span class="text-[9px] text-emerald-700 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">Confirmado</span>'}
           </div>
         </div>
         <div class="flex items-center gap-2.5">
@@ -813,7 +796,7 @@ function renderTransactionsList(currentTx) {
             </button>
           ` : ''}
 
-          <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
     `;
@@ -842,7 +825,7 @@ function renderInvestments(currentTx) {
   const invests = currentTx.filter(t => t.cat === 'Investimentos');
 
   if (invests.length === 0) {
-    investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl">Nenhum aporte registrado neste mês.</div>`;
+    investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">Nenhum aporte registrado neste mês.</div>`;
     return;
   }
 
@@ -850,17 +833,17 @@ function renderInvestments(currentTx) {
   invests.forEach(t => {
     const isConfirmed = t.confirmado === true;
     investList.innerHTML += `
-      <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-300 bg-amber-50/30'}">
+      <div class="flex items-center justify-between bg-white p-3 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-300 bg-amber-50/30'} shadow-2xs">
         <div>
-          <div class="text-xs font-extrabold text-slate-800">${t.desc}</div>
-          <div class="text-[10px] text-slate-400">${t.date} ${!isConfirmed ? '• <span class="text-amber-600 font-bold">Pendente</span>' : ''}</div>
+          <div class="text-xs font-extrabold text-slate-900">${t.desc}</div>
+          <div class="text-[10px] text-slate-500">${t.date} ${!isConfirmed ? '• <span class="text-amber-700 font-bold">Pendente</span>' : ''}</div>
         </div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-black text-emerald-600">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
           ${!isConfirmed ? `
             <button onclick="alternarConfirmacaoTx('${t.id}', false)" class="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-500 text-white animate-pulse">Confirmar</button>
           ` : ''}
-          <button onclick="deleteTransaction('${t.id}')" class="text-slate-300 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
     `;
