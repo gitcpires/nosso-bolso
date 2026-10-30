@@ -23,10 +23,6 @@ let categoryBarChartInstance = null;
 let lousaDocId = null;
 let modoMetasAtual = 'perc';
 
-let naoLidoExtrato = false;
-let naoLidoInvest = false;
-let naoLidoMural = false;
-
 auth.onAuthStateChanged(async (userAuth) => {
   if (!userAuth) {
     window.location.href = 'index.html';
@@ -112,7 +108,7 @@ function mudarModoMetas(modo) {
 function carregarDadosMetasNoConfig() {
   const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
   const currentTx = transactions.filter(t => t.month === activeMonth);
-  const income = currentTx.filter(t => (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra') && t.confirmado === true).reduce((s, t) => s + t.amount, 0);
+  const income = currentTx.filter(t => (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra')).reduce((s, t) => s + t.amount, 0);
   const baseEntradas = income > 0 ? income : 1;
 
   ['Fixos', 'Gerais', 'Lazer', 'Invest'].forEach(catKey => {
@@ -143,7 +139,7 @@ function carregarDadosMetasNoConfig() {
 
 function calcularConversaoMetas(catKey) {
   const currentTx = transactions.filter(t => t.month === activeMonth);
-  const income = currentTx.filter(t => (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra') && t.confirmado === true).reduce((s, t) => s + t.amount, 0);
+  const income = currentTx.filter(t => (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra')).reduce((s, t) => s + t.amount, 0);
   const baseEntradas = income > 0 ? income : 1;
 
   const inputEl = document.getElementById(`cfgMeta${catKey.charAt(0).toUpperCase() + catKey.slice(1)}`);
@@ -196,7 +192,7 @@ function calcularConversaoMetas(catKey) {
 async function salvarMetasGrupoConfig(e) {
   e.preventDefault();
   const currentTx = transactions.filter(t => t.month === activeMonth);
-  const income = currentTx.filter(t => (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra') && t.confirmado === true).reduce((s, t) => s + t.amount, 0);
+  const income = currentTx.filter(t => (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra')).reduce((s, t) => s + t.amount, 0);
   const baseEntradas = income > 0 ? income : 1;
 
   let fixosInput = document.getElementById('cfgMetaFixos').value;
@@ -459,15 +455,6 @@ function ouvinteLousaGrupo() {
       const dados = docLousa.data();
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
-      if (dados.userId && dados.userId !== currentUser.id) {
-        const muralTime = dados.createdAt ? (dados.createdAt.toMillis ? dados.createdAt.toMillis() : dados.createdAt) : 0;
-        const lastMuralView = parseInt(localStorage.getItem('lastMuralView_' + currentUser.id) || '0');
-        if (muralTime > lastMuralView) {
-          naoLidoMural = true;
-          atualizarBadgesNavegacao();
-        }
-      }
-
       lousaConteudo.innerHTML = `
         <div class="py-4 bg-white/90 backdrop-blur-xs rounded-2xl p-4 shadow-sm border border-slate-200 inline-block max-w-full">
           <p class="text-xl sm:text-2xl font-extrabold tracking-wide text-slate-900 fonte-manuscrita break-words">"${dados.texto}"</p>
@@ -540,23 +527,10 @@ function carregarDadosDoBanco() {
     .where('workspaceId', '==', currentWorkspace.id)
     .onSnapshot((snapshot) => {
       transactions = [];
-      const lastExtratoView = parseInt(localStorage.getItem('lastExtratoView_' + currentUser.id) || '0');
-      const lastInvestView = parseInt(localStorage.getItem('lastInvestView_' + currentUser.id) || '0');
-
       snapshot.forEach((doc) => {
         const data = doc.data();
         transactions.push({ id: doc.id, ...data });
-
-        if (data.userId && data.userId !== currentUser.id) {
-          const txTime = data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : dados.createdAt) : 0;
-          if (data.cat === 'Investimentos') {
-            if (txTime > lastInvestView) naoLidoInvest = true;
-          } else {
-            if (txTime > lastExtratoView) naoLidoExtrato = true;
-          }
-        }
       });
-      atualizarBadgesNavegacao();
       renderAll();
     });
 }
@@ -570,7 +544,7 @@ async function handleSaveTransaction(e) {
   const dateStr = document.getElementById('txDate').value; // Ex: "2026-11-01"
   const cat = document.getElementById('txCat').value;
 
-  // Converte a data escolhida para extrair o mês dinamicamente (ex: "Novembro 2026")
+  // Converte a data escolhida para o mês por extenso correto
   const partesData = dateStr.split('-');
   const ano = partesData[0];
   const mesIndex = parseInt(partesData[1], 10) - 1;
@@ -581,25 +555,14 @@ async function handleSaveTransaction(e) {
     userId: currentUser.id,
     userEmail: currentUser.email,
     workspaceId: currentWorkspace.id,
-    month: mesCalculado, // Atribui automaticamente o mês baseado na data selecionada!
+    month: mesCalculado, // Atribui automaticamente com base na data escolhida
     date: dateStr,
-    confirmado: false,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
   await db.collection('transacoes').add(newTx);
   closeNewTxModal();
   document.getElementById('txForm').reset();
-}
-
-async function alternarConfirmacaoTx(id, estadoAtual) {
-  try {
-    await db.collection('transacoes').doc(id).update({
-      confirmado: !estadoAtual
-    });
-  } catch (err) {
-    alert("Erro ao alterar o estado de confirmação.");
-  }
 }
 
 async function deleteTransaction(id) {
@@ -652,10 +615,9 @@ function toggleTxTypeUI() {
 
 function renderAll() {
   const currentTx = transactions.filter(t => t.month === activeMonth);
-  const txConfirmadas = currentTx.filter(t => t.confirmado === true);
 
-  const income = txConfirmadas.filter(t => t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra').reduce((s, t) => s + t.amount, 0);
-  const expense = txConfirmadas.filter(t => t.type === 'EXPENSE' && t.cat !== 'Salário' && t.cat !== 'Renda Extra').reduce((s, t) => s + t.amount, 0);
+  const income = currentTx.filter(t => t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra').reduce((s, t) => s + t.amount, 0);
+  const expense = currentTx.filter(t => t.type === 'EXPENSE' && t.cat !== 'Salário' && t.cat !== 'Renda Extra').reduce((s, t) => s + t.amount, 0);
   const balance = income - expense;
 
   const statIncome = document.getElementById('statIncome');
@@ -666,10 +628,10 @@ function renderAll() {
   if (statExpense) statExpense.innerText = `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
   if (statBalance) statBalance.innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
-  const fixed = txConfirmadas.filter(t => t.cat === 'Gastos Fixos').reduce((a, b) => a + b.amount, 0);
-  const general = txConfirmadas.filter(t => t.cat === 'Gastos Gerais').reduce((a, b) => a + b.amount, 0);
-  const leisure = txConfirmadas.filter(t => t.cat === 'Lazer').reduce((a, b) => a + b.amount, 0);
-  const invest = txConfirmadas.filter(t => t.cat === 'Investimentos').reduce((a, b) => a + b.amount, 0);
+  const fixed = currentTx.filter(t => t.cat === 'Gastos Fixos').reduce((a, b) => a + b.amount, 0);
+  const general = currentTx.filter(t => t.cat === 'Gastos Gerais').reduce((a, b) => a + b.amount, 0);
+  const leisure = currentTx.filter(t => t.cat === 'Lazer').reduce((a, b) => a + b.amount, 0);
+  const invest = currentTx.filter(t => t.cat === 'Investimentos').reduce((a, b) => a + b.amount, 0);
 
   const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
@@ -840,10 +802,9 @@ function renderTransactionsList(currentTx) {
   filtered.forEach(t => {
     const isIncome = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
-    const isConfirmed = t.confirmado === true;
 
     container.innerHTML += `
-      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-400 bg-amber-50/40'} shadow-2xs">
+      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
         <div>
           <div class="text-xs font-extrabold text-slate-900">${t.desc} 
             <span class="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
@@ -851,20 +812,13 @@ function renderTransactionsList(currentTx) {
           </div>
           <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2">
             <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
-            ${!isConfirmed ? '<span class="text-[9px] text-amber-700 font-extrabold bg-amber-200 px-1.5 py-0.2 rounded">⚠️ Pendente</span>' : '<span class="text-[9px] text-emerald-700 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">✓ Confirmado</span>'}
+            <span class="text-[9px] text-emerald-700 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">✓ Registado</span>
           </div>
         </div>
         <div class="flex items-center gap-2.5">
           <span class="text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">
             ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
           </span>
-          
-          ${!isConfirmed ? `
-            <button onclick="alternarConfirmacaoTx('${t.id}', false)" title="Confirmar lançamento" class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-amber-500 text-white hover:bg-amber-600 transition shadow-2xs">
-              Confirmar
-            </button>
-          ` : ''}
-
           <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
@@ -873,14 +827,14 @@ function renderTransactionsList(currentTx) {
 }
 
 function renderInvestments(currentTx) {
-  const investConfirmadosMes = currentTx.filter(t => t.cat === 'Investimentos' && t.confirmado === true);
+  const investConfirmadosMes = currentTx.filter(t => t.cat === 'Investimentos');
   const totalMes = investConfirmadosMes.reduce((s, t) => s + t.amount, 0);
 
   const monthInvestEl = document.getElementById('monthInvestTotalHeader');
   if (monthInvestEl) monthInvestEl.innerText = `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
   const totalYearInvested = transactions
-    .filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE' && t.confirmado === true && (t.month.includes('2026') || (t.date && t.date.startsWith('2026'))))
+    .filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE' && (t.month.includes('2026') || (t.date && t.date.startsWith('2026'))))
     .reduce((sum, t) => sum + t.amount, 0);
 
   const yearHeader = document.getElementById('yearInvestTotalHeader');
@@ -906,44 +860,19 @@ function renderInvestments(currentTx) {
 
   investList.innerHTML = '';
   invests.forEach(t => {
-    const isConfirmed = t.confirmado === true;
     investList.innerHTML += `
-      <div class="flex items-center justify-between bg-white p-3 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-400 bg-amber-50/40'} shadow-2xs">
+      <div class="flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
         <div>
           <div class="text-xs font-extrabold text-slate-900">${t.desc}</div>
-          <div class="text-[10px] text-slate-500">${t.date} ${!isConfirmed ? '• <span class="text-amber-700 font-bold">Pendente</span>' : ''}</div>
+          <div class="text-[10px] text-slate-500">${t.date}</div>
         </div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-black text-rose-600">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
-          ${!isConfirmed ? `
-            <button onclick="alternarConfirmacaoTx('${t.id}', false)" class="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-500 text-white">Confirmar</button>
-          ` : ''}
           <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
     `;
   });
-}
-
-function atualizarBadgesNavegacao() {
-  const badgeExtrato = document.getElementById('badgeExtrato');
-  const badgeInvest = document.getElementById('badgeInvest');
-  const badgeMural = document.getElementById('badgeMural');
-
-  if (badgeExtrato) {
-    if (naoLidoExtrato) badgeExtrato.classList.remove('hidden');
-    else badgeExtrato.classList.add('hidden');
-  }
-
-  if (badgeInvest) {
-    if (naoLidoInvest) badgeInvest.classList.remove('hidden');
-    else badgeInvest.classList.add('hidden');
-  }
-
-  if (badgeMural) {
-    if (naoLidoMural) badgeMural.classList.remove('hidden');
-    else badgeMural.classList.add('hidden');
-  }
 }
 
 function switchTab(tab) {
@@ -956,22 +885,11 @@ function switchTab(tab) {
   if (activeEl) activeEl.classList.remove('hidden');
 
   if (tab === 'extrato') {
-    naoLidoExtrato = false;
-    localStorage.setItem('lastExtratoView_' + currentUser.id, Date.now());
     renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   }
-  if (tab === 'invest') {
-    naoLidoInvest = false;
-    localStorage.setItem('lastInvestView_' + currentUser.id, Date.now());
-  }
-  if (tab === 'mural') {
-    naoLidoMural = false;
-    localStorage.setItem('lastMuralView_' + currentUser.id, Date.now());
-  }
-  atualizarBadgesNavegacao();
 
   ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
-    const_btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
+    const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     if (btn) {
       btn.className = name === tab ? 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
     }
@@ -984,6 +902,7 @@ function openNewTxModal() {
   const txDate = document.getElementById('txDate');
   if (txDate) txDate.value = new Date().toISOString().split('T')[0];
   selecionarTipoTx('EXPENSE'); 
+  document.getElementById('newTxModal').classList.add('hidden'); 
   document.getElementById('newTxModal').classList.remove('hidden'); 
 }
 function closeNewTxModal() { document.getElementById('newTxModal').classList.add('hidden'); }
