@@ -642,6 +642,7 @@ function toggleTxTypeUI() {
 function renderAll() {
   const currentTx = transactions.filter(t => t.month === activeMonth);
   
+  // Bolinha vermelha do Extrato: Apenas transações pendentes DO MÊS ATIVO criadas por outro utilizador
   const temPendentesOutro = currentTx.some(t => t.confirmado === false && t.userId !== currentUser.id);
   const dotExtrato = document.getElementById('dotExtrato');
   if (dotExtrato) {
