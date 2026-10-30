@@ -1,240 +1,58 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nosso Bolso - Acesso</title>
-  <!-- Tailwind CSS CDN -->
+  <title>Nosso Bolso - Entrar</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
     tailwind.config = {
       darkMode: 'class',
+      theme: { extend: {} }
     }
   </script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* Força o navegador a usar o esquema escuro e evita o fundo branco do autocompletar */
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus,
-    input:-webkit-autofill:active {
-      -webkit-box-shadow: 0 0 0 30px #030712 inset !important;
-      -webkit-text-fill-color: #ffffff !important;
-      color-scheme: dark;
-    }
-    input {
-      color-scheme: dark;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen px-4">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
 
-  <div class="w-full max-w-sm p-6 sm:p-8 space-y-8">
-    
-    <!-- Ícone com efeito de brilho (glow) -->
-    <div class="text-center space-y-4">
-      <div class="relative inline-flex items-center justify-center">
-        <div class="absolute w-24 h-24 rounded-full bg-amber-500/10 blur-xl"></div>
-        <div class="relative w-20 h-20 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl flex items-center justify-center p-2.5 overflow-hidden">
-          <img src="icone-app.png" alt="Nosso Bolso" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
-        </div>
+  <div class="w-full max-w-md bg-[#0b132b] p-8 rounded-3xl border border-slate-800 shadow-xl space-y-6">
+    <div class="text-center space-y-2">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600/10 text-blue-500 text-2xl font-black mb-2">
+        <i class="fa-solid fa-wallet"></i>
       </div>
-      <h2 id="tituloForm" class="text-sm font-medium tracking-wide text-slate-300">Acesse sua conta</h2>
+      <h1 class="text-2xl font-black text-white">Nosso Bolso</h1>
+      <p class="text-xs text-slate-400">Controlo financeiro partilhado</p>
     </div>
 
-    <!-- FORMULÁRIO DE LOGIN -->
-    <form id="formLogin" onsubmit="fazerLogin(event)" class="space-y-5">
-      <!-- Campo E-mail -->
-      <div class="relative border-b border-slate-800 focus-within:border-amber-500 transition pb-1">
-        <div class="flex items-center">
-          <span class="text-slate-500 pr-3 text-xs">
-            <i class="fa-solid fa-dollar-sign"></i>
-          </span>
-          <input type="email" id="loginEmail" required class="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none py-2 autofill:bg-transparent" placeholder="E-mail">
-        </div>
+    <!-- Formulário de Autenticação -->
+    <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 mb-1">E-mail</label>
+        <input type="email" id="authEmail" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold text-slate-400 mb-1">Palavra-passe</label>
+        <input type="password" id="authPassword" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
       </div>
 
-      <!-- Campo Senha -->
-      <div class="relative border-b border-slate-800 focus-within:border-amber-500 transition pb-1">
-        <div class="flex items-center">
-          <span class="text-slate-500 pr-3 text-xs">
-            <i class="fa-solid fa-lock"></i>
-          </span>
-          <input type="password" id="loginPassword" required class="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none py-2" placeholder="Senha">
-          <button type="button" onclick="toggleSenha('loginPassword', 'eyeIconLogin')" class="text-slate-600 hover:text-slate-400 px-2 transition">
-            <i id="eyeIconLogin" class="fa-solid fa-eye-slash text-xs"></i>
-          </button>
-        </div>
-      </div>
+      <div id="authErrorMsg" class="hidden text-xs text-rose-500 font-bold bg-rose-500/1 p-2.5 rounded-xl border border-rose-500/20 text-center"></div>
 
-      <div id="msgFeedbackLogin" class="text-xs font-bold text-rose-500 text-center hidden"></div>
-
-      <!-- Botão Laranja -->
-      <div class="pt-2">
-        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3.5 rounded-full transition shadow-lg shadow-amber-500/20 uppercase tracking-widest">
-          Entrar
-        </button>
-      </div>
-
-      <!-- Link Criar Conta -->
-      <div class="text-center pt-3">
-        <button type="button" onclick="mudarParaRegisto()" class="text-[11px] text-amber-500/90 hover:text-amber-400 transition underline underline-offset-4">
-          Criar Conta
-        </button>
-      </div>
+      <button type="submit" id="btnSubmitAuth" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs py-3 rounded-xl transition shadow-lg shadow-blue-600/20 active:scale-95">
+        Entrar / Registar
+      </button>
     </form>
-
-    <!-- FORMULÁRIO DE REGISTO (Oculto por padrão) -->
-    <form id="formRegisto" onsubmit="registarUtilizador(event)" class="space-y-5 hidden">
-      <div class="relative border-b border-slate-800 focus-within:border-amber-500 transition pb-1">
-        <div class="flex items-center">
-          <span class="text-slate-500 pr-3 text-xs">
-            <i class="fa-solid fa-envelope"></i>
-          </span>
-          <input type="email" id="regEmail" required class="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none py-2" placeholder="Seu e-mail">
-        </div>
-      </div>
-
-      <div class="relative border-b border-slate-800 focus-within:border-amber-500 transition pb-1">
-        <div class="flex items-center">
-          <span class="text-slate-500 pr-3 text-xs">
-            <i class="fa-solid fa-lock"></i>
-          </span>
-          <input type="password" id="regPassword" required class="w-full bg-transparent text-xs text-white placeholder-slate-600 focus:outline-none py-2" placeholder="Crie uma senha">
-        </div>
-      </div>
-
-      <div id="msgFeedbackReg" class="text-xs font-bold text-rose-500 text-center hidden"></div>
-      <div id="msgSucessoReg" class="text-xs font-bold text-emerald-400 text-center hidden"></div>
-
-      <div class="pt-2">
-        <button type="submit" id="btnRegistar" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3.5 rounded-full transition shadow-lg shadow-amber-500/20 uppercase tracking-widest">
-          Registar Conta
-        </button>
-      </div>
-
-      <div class="text-center pt-3">
-        <button type="button" onclick="mudarParaLogin()" class="text-[11px] text-slate-400 hover:text-slate-300 transition flex items-center justify-center mx-auto gap-1">
-          <i class="fa-solid fa-arrow-left text-[10px]"></i> Voltar ao Login
-        </button>
-      </div>
-    </form>
-
   </div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDMR6Aq9KoDGPkZLZueBgIo7AhNx5Gj08Q",
-      authDomain: "nosso-bolso-c8d29.firebaseapp.com",
-      projectId: "nosso-bolso-c8d29",
-      storageBucket: "nosso-bolso-c8d29.firebasestorage.app",
-      messagingSenderId: "812166717623",
-      appId: "1:812166717623:web:ba3a4c0db18484be47ad32"
-    };
-
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    function toggleSenha(idInput, idIcon) {
-      const input = document.getElementById(idInput);
-      const icon = document.getElementById(idIcon);
-      if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-      } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-      }
-    }
-
-    function mudarParaRegisto() {
-      document.getElementById('formLogin').classList.add('hidden');
-      document.getElementById('formRegisto').classList.remove('hidden');
-      document.getElementById('tituloForm').innerText = 'Criar Nova Conta';
-    }
-
-    function mudarParaLogin() {
-      document.getElementById('formRegisto').classList.add('hidden');
-      document.getElementById('formLogin').classList.remove('hidden');
-      document.getElementById('tituloForm').innerText = 'Acesse sua conta';
-    }
-
-    async function fazerLogin(e) {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
-      const feedback = document.getElementById('msgFeedbackLogin');
-      feedback.classList.add('hidden');
-
-      try {
-        const userCred = await auth.signInWithEmailAndPassword(email, password);
-        const user = userCred.user;
-
-        const adminDoc = await db.collection('ADMIN_UID').doc(user.uid).get();
-
-        if (adminDoc.exists) {
-            window.location.replace('admin.html');
-        } else {
-            window.location.replace('painel.html');
-        }
-      } catch (err) {
-        console.error(err);
-        feedback.innerText = 'Erro ao entrar: Verifique seu e-mail e senha.';
-        feedback.classList.remove('hidden');
-      }
-    }
-
-    async function registarUtilizador(e) {
-      e.preventDefault();
-      const email = document.getElementById('regEmail').value.trim();
-      const password = document.getElementById('regPassword').value.trim();
-      const feedback = document.getElementById('msgFeedbackReg');
-      const sucesso = document.getElementById('msgSucessoReg');
-      const btn = document.getElementById('btnRegistar');
-
-      feedback.classList.add('hidden');
-      sucesso.classList.add('hidden');
-
-      try {
-        btn.disabled = true;
-        btn.innerText = 'A criar conta...';
-
-        const userCred = await auth.createUserWithEmailAndPassword(email, password);
-        const user = userCred.user;
-
-        await db.collection('users').doc(user.uid).set({
-          email: email,
-          status: 'pending',
-          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        sucesso.innerText = 'Conta criada com sucesso! A redirecionar...';
-        sucesso.classList.remove('hidden');
-
-        setTimeout(async () => {
-          await auth.signOut();
-          btn.disabled = false;
-          btn.innerText = 'Registar Conta';
-          mudarParaLogin();
-        }, 2000);
-
-      } catch (err) {
-        console.error(err);
-        btn.disabled = false;
-        btn.innerText = 'Registar Conta';
-        feedback.innerText = 'Erro ao registar: ' + (err.message || 'Tente novamente.');
-        feedback.classList.remove('hidden');
-      }
-    }
-  </script>
+  <script src="auth.js"></script>
 </body>
 </html>
