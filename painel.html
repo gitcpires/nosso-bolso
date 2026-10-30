@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Nosso Bolso - Painel Financeiro</title>
 
-  <!-- Ícone e Configuração de Atalho para Telemóvel -->
   <link rel="apple-touch-icon" sizes="180x180" href="icone-app.png">
   <link rel="icon" type="image/png" sizes="32x32" href="icone-app.png">
   <link rel="icon" type="image/png" sizes="16x16" href="icone-app.png">
@@ -98,7 +97,6 @@
   <header class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 shadow-2xs">
     <div class="mx-auto max-w-md space-y-2">
       
-      <!-- Perfil com Indicador Online e Definições -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <div class="relative">
@@ -119,7 +117,6 @@
         </div>
       </div>
 
-      <!-- Seletor de Mês -->
       <div class="flex items-center justify-between bg-gradient-to-r from-slate-100/90 to-blue-50/50 px-3 py-2 rounded-2xl border border-slate-200 shadow-inner">
         <span class="text-xs font-bold text-slate-600">Mês de Referência:</span>
         <select id="selectMonth" onchange="changeActiveMonth(this.value)" class="bg-white border border-slate-200 text-xs font-black text-blue-900 rounded-xl px-3 py-1.5 focus:outline-none shadow-2xs">
@@ -144,10 +141,7 @@
   <!-- Conteúdo Principal por Abas -->
   <main class="mx-auto max-w-md px-4 pt-3 space-y-2.5">
 
-    <!-- ABAS: RESUMO -->
     <div id="tab-resumo" class="space-y-2.5">
-      
-      <!-- Cartões de Resumo Compactos -->
       <div class="grid grid-cols-3 gap-1.5">
         <div class="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-2xs space-y-0.5">
           <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-tight block">Entradas</span>
@@ -163,7 +157,6 @@
         </div>
       </div>
 
-      <!-- Card de Progresso de Metas -->
       <div class="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Progresso de Metas</h3>
@@ -172,7 +165,6 @@
         <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2"></div>
       </div>
 
-      <!-- Card de Distribuição de Gastos Compacto -->
       <div class="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5">
         <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Distribuição de Gastos</h3>
         <div class="grid grid-cols-2 gap-3 items-center">
@@ -182,7 +174,6 @@
       </div>
     </div>
 
-    <!-- ABAS: EXTRATO -->
     <div id="tab-extrato" class="space-y-3 hidden">
       <div class="flex gap-2">
         <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
@@ -204,10 +195,7 @@
       <div id="txListContainer" class="space-y-2"></div>
     </div>
 
-    <!-- ABAS: INVESTIMENTOS -->
     <div id="tab-invest" class="space-y-3 hidden">
-      
-      <!-- Dois Cartões: Mês Atual e Total Acumulado do Ano -->
       <div class="grid grid-cols-2 gap-2">
         <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-4 rounded-3xl text-white shadow-lg space-y-1">
           <span class="text-[9px] font-bold text-indigo-300 uppercase tracking-wider block">Investido no Mês</span>
@@ -218,11 +206,9 @@
           <div id="yearInvestTotalHeader" class="text-base sm:text-xl font-black text-white truncate">R$ 0,00</div>
         </div>
       </div>
-
       <div id="monthInvestmentsList" class="space-y-2"></div>
     </div>
 
-    <!-- ABAS: MURAL / LOUSA -->
     <div id="tab-mural" class="space-y-4 hidden">
       <div class="p-6 rounded-[2.5rem] shadow-xl border border-slate-200/60 papel-mural space-y-4 text-center relative overflow-hidden">
         <div class="absolute inset-0 bg-white/60 backdrop-blur-[1px]"></div>
@@ -256,37 +242,42 @@
 
   </main>
 
-  <!-- Botão Flutuante Redondo -->
   <div class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-40">
     <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition text-xl border-2 border-white">
       <i class="fa-solid fa-plus"></i>
     </button>
   </div>
 
-  <!-- Barra de Navegação Inferior -->
+  <!-- Barra de Navegação Inferior com os badges ID corretos -->
   <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2.5 shadow-lg">
     <div class="mx-auto max-w-md grid grid-cols-5 items-center">
+      
       <button onclick="switchTab('resumo')" id="bottomNavResumo" class="relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5">
         <span id="badgeResumo" class="absolute top-0 right-3 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full hidden"></span>
         <i class="fa-solid fa-chart-pie text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Resumo</span>
       </button>
+
       <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
         <span id="badgeExtrato" class="absolute top-0 right-3 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full hidden"></span>
         <i class="fa-solid fa-receipt text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Extrato</span>
       </button>
+
       <div></div>
+
       <button onclick="switchTab('invest')" id="bottomNavInvest" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
         <span id="badgeInvest" class="absolute top-0 right-3 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full hidden"></span>
         <i class="fa-solid fa-chart-line text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Invest</span>
       </button>
+
       <button onclick="switchTab('mural')" id="bottomNavMural" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
         <span id="badgeMural" class="absolute top-0 right-3 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full hidden"></span>
         <i class="fa-solid fa-note-sticky text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Mural</span>
       </button>
+
     </div>
   </nav>
 
@@ -299,7 +290,6 @@
       </div>
 
       <form id="txForm" onsubmit="handleSaveTransaction(event)" class="space-y-3">
-        <!-- Seletor de Tipo Original com Radio Buttons -->
         <div class="flex bg-slate-100 p-1 rounded-xl">
           <label id="labelTabEntrada" onclick="selecionarTipoTx('INCOME')" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition">
             <input type="radio" name="txType" value="INCOME" onchange="toggleTxTypeUI()" class="hidden" /> Entrada
@@ -342,11 +332,8 @@
     </div>
   </div>
 
-  <!-- Modal de Configurações Compacto e Otimizado -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-3 hidden backdrop-blur-md">
     <div class="w-full max-w-sm bg-white p-3.5 rounded-[2rem] space-y-2.5 shadow-2xl max-h-[92vh] overflow-y-auto">
-      
-      <!-- Cabeçalho do Modal -->
       <div class="flex items-center justify-between pb-1.5 border-b border-slate-100">
         <div class="flex items-center gap-2">
           <div class="w-6 h-6 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-[10px]">
@@ -357,7 +344,6 @@
         <button onclick="closeProfileModal()" class="w-6 h-6 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark text-[10px]"></i></button>
       </div>
 
-      <!-- Código de Convite Compacto -->
       <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center justify-between">
         <div>
           <span class="text-[8px] font-bold text-slate-400 uppercase tracking-tight block">Código de Convite</span>
@@ -368,7 +354,6 @@
         </button>
       </div>
 
-      <!-- Secção de Metas Compacta -->
       <div class="bg-blue-50/40 p-2.5 rounded-xl border border-blue-100 space-y-1.5">
         <div class="flex items-center justify-between">
           <h4 class="text-[10px] font-extrabold text-blue-900 uppercase">Definir Metas</h4>
@@ -402,7 +387,6 @@
             </div>
           </div>
 
-          <!-- Indicador de Soma Total -->
           <div class="text-center">
             <span id="metaTotalRestante" class="text-[9px] font-bold text-slate-500"></span>
           </div>
@@ -415,13 +399,11 @@
         </form>
       </div>
 
-      <!-- Membros do Grupo (Compacto) -->
       <div class="space-y-1">
         <span class="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider block">Membros do Grupo</span>
         <div id="workspaceMembersList" class="space-y-1 max-h-16 overflow-y-auto pr-1"></div>
       </div>
 
-      <!-- Botões Inferiores -->
       <div class="pt-1.5 border-t border-slate-100 flex gap-2">
         <button onclick="deixarGrupo()" class="w-1/2 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-[10px] font-bold transition">
           Sair do Grupo
