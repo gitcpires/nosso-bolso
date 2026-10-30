@@ -103,7 +103,6 @@
   <header class="sticky top-0 z-40 w-full bg-white/95 dark:bg-[#121c38]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 px-4 py-2.5 shadow-2xs transition-colors">
     <div class="mx-auto max-w-md space-y-2">
       
-      <!-- Perfil com Indicador Online, Botão de Tema (Lua/Sol) e Definições -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <div class="relative">
@@ -118,11 +117,9 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <!-- Botão Direto de Modo Escuro / Claro (Lua / Sol) -->
           <button onclick="alternarModoEscuro()" class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1a264a] text-slate-700 dark:text-amber-400 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Alternar Modo Escuro/Claro">
             <i id="themeIcon" class="fa-solid fa-moon text-xs"></i>
           </button>
-          <!-- Botão de Configurações -->
           <button onclick="openProfileModal()" class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1a264a] text-slate-700 dark:text-slate-200 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition">
             <i class="fa-solid fa-gear text-xs"></i>
           </button>
@@ -156,8 +153,6 @@
 
     <!-- ABAS: RESUMO -->
     <div id="tab-resumo" class="space-y-2.5">
-      
-      <!-- Cartões de Resumo Compactos -->
       <div class="grid grid-cols-3 gap-1.5">
         <div class="bg-white dark:bg-[#121c38] p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
           <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-tight block">Entradas</span>
@@ -173,7 +168,6 @@
         </div>
       </div>
 
-      <!-- Card de Progresso de Metas -->
       <div class="bg-white dark:bg-[#121c38] p-3.5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-2.5">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Progresso de Metas</h3>
@@ -182,7 +176,6 @@
         <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2"></div>
       </div>
 
-      <!-- Card de Distribuição de Gastos Compacto -->
       <div class="bg-white dark:bg-[#121c38] p-3.5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-2.5">
         <h3 class="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Distribuição de Gastos</h3>
         <div class="grid grid-cols-2 gap-3 items-center">
@@ -198,15 +191,18 @@
         <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-[#121c38] text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
       </div>
       <div class="flex gap-2">
-        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="w-1/2 bg-white dark:bg-[#121c38] text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
-          <option value="">👤 Todos os Membros</option>
+        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="w-1/3 bg-white dark:bg-[#121c38] text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-xl px-2 py-2 text-[11px] font-bold focus:outline-none">
+          <option value="">👤 Todos</option>
         </select>
-        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="w-1/2 bg-white dark:bg-[#121c38] text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
-          <option value="">🏷️ Todas Categorias</option>
+        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="w-1/3 bg-white dark:bg-[#121c38] text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-xl px-2 py-2 text-[11px] font-bold focus:outline-none">
+          <option value="">🏷️ Categorias</option>
           <option value="Gastos Fixos">Gastos Fixos</option>
           <option value="Gastos Gerais">Gastos Gerais</option>
           <option value="Lazer">Lazer</option>
           <option value="Investimentos">Investimentos</option>
+        </select>
+        <select id="filterSubcat" onchange="renderTransactionsList(transactions)" class="w-1/3 bg-white dark:bg-[#121c38] text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-xl px-2 py-2 text-[11px] font-bold focus:outline-none">
+          <option value="">💳 Subcat / Tag</option>
         </select>
       </div>
       <div id="txListContainer" class="space-y-2"></div>
@@ -268,17 +264,15 @@
     </button>
   </div>
 
-  <!-- Barra de Navegação Inferior com Bolinha Vermelha Exata em cima dos ícones -->
+  <!-- Barra de Navegação Inferior -->
   <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#121c38]/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-3 py-2.5 shadow-lg transition-colors">
     <div class="mx-auto max-w-md grid grid-cols-5 items-center">
       
-      <!-- Resumo -->
       <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 transition active:scale-95 py-0.5">
         <i class="fa-solid fa-chart-pie text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Resumo</span>
       </button>
 
-      <!-- Extrato (Bolinha no canto superior direito exato do ícone) -->
       <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
         <div class="relative inline-block">
           <i class="fa-solid fa-receipt text-base"></i>
@@ -289,13 +283,11 @@
 
       <div></div>
 
-      <!-- Invest -->
       <button onclick="switchTab('invest')" id="bottomNavInvest" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
         <i class="fa-solid fa-chart-line text-base"></i>
         <span class="text-[10px] font-extrabold mt-1">Invest</span>
       </button>
 
-      <!-- Mural (Bolinha no canto superior direito exato do ícone) -->
       <button onclick="switchTab('mural')" id="bottomNavMural" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
         <div class="relative inline-block">
           <i class="fa-solid fa-note-sticky text-base"></i>
@@ -351,6 +343,12 @@
           </select>
         </div>
 
+        <!-- NOVO: Subcategoria / Tag (ex: Cartão) -->
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1">Subcategoria / Tag (Opcional)</label>
+          <input type="text" id="txSubcat" placeholder="Ex: Cartão, Pix, Dinheiro..." class="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b132b] text-slate-900 dark:text-white px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
+        </div>
+
         <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-extrabold transition shadow-md">
           Guardar Lançamento
         </button>
@@ -358,20 +356,17 @@
     </div>
   </div>
 
-  <!-- Modal de Configurações Compacto -->
+  <!-- Modal de Configurações -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-3 hidden backdrop-blur-md">
     <div id="modalContainerTheme" class="w-full max-w-sm bg-white dark:bg-[#121c38] p-4 rounded-[2rem] space-y-3 shadow-2xl border border-slate-800 max-h-[90vh] flex flex-col transition-colors">
       
-      <!-- Cabeçalho do Modal -->
       <div class="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
         <h3 class="text-xs font-extrabold text-slate-900 dark:text-white uppercase">Configurações do Grupo</h3>
         <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-sm"></i></button>
       </div>
 
-      <!-- Conteúdo Compacto -->
       <div class="space-y-2.5 overflow-y-auto pr-1">
         
-        <!-- Código de Convite -->
         <div class="bg-slate-50 dark:bg-[#0b132b] p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 text-center space-y-1">
           <span class="text-[9px] font-bold text-slate-400 uppercase block">Código de Convite</span>
           <div class="flex items-center justify-center gap-2">
@@ -382,7 +377,6 @@
           </button>
         </div>
 
-        <!-- Secção Definir Metas com Ícones Coloridos -->
         <div class="bg-blue-50/40 dark:bg-[#0b132b]/60 p-2.5 rounded-2xl border border-blue-100 dark:border-slate-800 space-y-2">
           <div class="flex items-center justify-between">
             <h4 class="text-xs font-extrabold text-blue-900 dark:text-blue-300 uppercase">
@@ -397,48 +391,36 @@
           <form onsubmit="salvarMetasGrupoConfig(event)" class="space-y-2">
             <div class="grid grid-cols-2 gap-1.5">
               
-              <!-- Fixos -->
               <div class="bg-white dark:bg-[#121c38] p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
                 <div class="flex items-center gap-1">
-                  <div class="w-5 h-5 rounded-md bg-blue-500 text-white flex items-center justify-center text-[9px]">
-                    <i class="fa-solid fa-house"></i>
-                  </div>
+                  <div class="w-5 h-5 rounded-md bg-blue-500 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-house"></i></div>
                   <label class="text-[9px] font-extrabold text-slate-600 dark:text-slate-300">Fixos (<span id="labelUnidadeFixos">%</span>)</label>
                 </div>
                 <input type="number" step="0.01" id="cfgMetaFixos" required oninput="calcularConversaoMetas('fixos')" class="w-full bg-slate-50 dark:bg-[#0b132b] text-slate-900 dark:text-white rounded-lg border border-slate-200 dark:border-slate-700 px-2 py-0.5 text-xs font-extrabold text-center" />
                 <span id="subMetaFixos" class="text-[8px] text-slate-400 block text-center">--</span>
               </div>
 
-              <!-- Gerais -->
               <div class="bg-white dark:bg-[#121c38] p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
                 <div class="flex items-center gap-1">
-                  <div class="w-5 h-5 rounded-md bg-emerald-600 text-white flex items-center justify-center text-[9px]">
-                    <i class="fa-solid fa-cart-shopping"></i>
-                  </div>
+                  <div class="w-5 h-5 rounded-md bg-emerald-600 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-cart-shopping"></i></div>
                   <label class="text-[9px] font-extrabold text-slate-600 dark:text-slate-300">Gerais (<span id="labelUnidadeGerais">%</span>)</label>
                 </div>
                 <input type="number" step="0.01" id="cfgMetaGerais" required oninput="calcularConversaoMetas('gerais')" class="w-full bg-slate-50 dark:bg-[#0b132b] text-slate-900 dark:text-white rounded-lg border border-slate-200 dark:border-slate-700 px-2 py-0.5 text-xs font-extrabold text-center" />
                 <span id="subMetaGerais" class="text-[8px] text-slate-400 block text-center">--</span>
               </div>
 
-              <!-- Lazer -->
               <div class="bg-white dark:bg-[#121c38] p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
                 <div class="flex items-center gap-1">
-                  <div class="w-5 h-5 rounded-md bg-purple-600 text-white flex items-center justify-center text-[9px]">
-                    <i class="fa-solid fa-gamepad"></i>
-                  </div>
+                  <div class="w-5 h-5 rounded-md bg-purple-600 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-gamepad"></i></div>
                   <label class="text-[9px] font-extrabold text-slate-600 dark:text-slate-300">Lazer (<span id="labelUnidadeLazer">%</span>)</label>
                 </div>
                 <input type="number" step="0.01" id="cfgMetaLazer" required oninput="calcularConversaoMetas('lazer')" class="w-full bg-slate-50 dark:bg-[#0b132b] text-slate-900 dark:text-white rounded-lg border border-slate-200 dark:border-slate-700 px-2 py-0.5 text-xs font-extrabold text-center" />
                 <span id="subMetaLazer" class="text-[8px] text-slate-400 block text-center">--</span>
               </div>
 
-              <!-- Investimentos -->
               <div class="bg-white dark:bg-[#121c38] p-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-0.5">
                 <div class="flex items-center gap-1">
-                  <div class="w-5 h-5 rounded-md bg-amber-500 text-white flex items-center justify-center text-[9px]">
-                    <i class="fa-solid fa-chart-column"></i>
-                  </div>
+                  <div class="w-5 h-5 rounded-md bg-amber-500 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-chart-column"></i></div>
                   <label class="text-[9px] font-extrabold text-slate-600 dark:text-slate-300">Invest. (<span id="labelUnidadeInvest">%</span>)</label>
                 </div>
                 <input type="number" step="0.01" id="cfgMetaInvest" required oninput="calcularConversaoMetas('invest')" class="w-full bg-slate-50 dark:bg-[#0b132b] text-slate-900 dark:text-white rounded-lg border border-slate-200 dark:border-slate-700 px-2 py-0.5 text-xs font-extrabold text-center" />
@@ -455,7 +437,6 @@
           </form>
         </div>
 
-        <!-- Membros -->
         <div class="space-y-1">
           <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Membros</span>
           <div id="workspaceMembersList" class="space-y-1 max-h-16 overflow-y-auto"></div>
@@ -463,7 +444,6 @@
 
       </div>
 
-      <!-- Ações do Fundo (Fixas, visíveis sem rolar) -->
       <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex gap-2 shrink-0">
         <button onclick="deixarGrupo()" class="w-1/2 py-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900 rounded-xl text-xs font-bold transition">
           Sair do Grupo
