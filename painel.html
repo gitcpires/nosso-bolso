@@ -66,11 +66,14 @@
   <!-- Conteúdo Principal -->
   <div class="max-w-md mx-auto p-4 space-y-4">
     
-    <!-- Cabeçalho -->
+    <!-- Cabeçalho Original Restaurado -->
     <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-sm shadow-sm">
-          <i class="fa-solid fa-wallet"></i>
+        <div class="relative">
+          <div class="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-sm shadow-sm">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
         </div>
         <div>
           <h1 id="headerUserName" class="text-xs font-black text-slate-900">Utilizador</h1>
@@ -78,7 +81,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button onclick="openProfileModal()" class="w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl flex items-center justify-center transition" title="Configurações e Grupo">
+        <button onclick="openProfileModal()" class="w-9 h-9 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl flex items-center justify-center transition shadow-2xs" title="Configurações e Grupo">
           <i class="fa-solid fa-gear text-xs"></i>
         </button>
       </div>
@@ -132,14 +135,14 @@
         </div>
       </div>
 
-      <!-- Gráficos -->
+      <!-- Gráficos Lado a Lado Restaurados -->
       <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
         <h2 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Gráficos de Gastos</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="h-48 relative flex items-center justify-center">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="h-44 relative flex items-center justify-center">
             <canvas id="categoryPieChart"></canvas>
           </div>
-          <div class="h-48 relative flex items-center justify-center">
+          <div class="h-44 relative flex items-center justify-center">
             <canvas id="categoryBarChart"></canvas>
           </div>
         </div>
