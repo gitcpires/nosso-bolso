@@ -246,7 +246,6 @@ async function handleSaveTransaction(e) {
   const valor = parseFloat(document.getElementById('txAmount').value);
   const data = document.getElementById('txDate').value;
   const categoria = document.getElementById('txCat').value;
-  const subcategoria = document.getElementById('txSubcat').value;
 
   try {
     await db.collection('transacoes').add({
@@ -258,7 +257,6 @@ async function handleSaveTransaction(e) {
       valor,
       data,
       categoria,
-      subcategoria,
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
     closeNewTxModal();
@@ -319,14 +317,12 @@ function renderTransactionsList(lista) {
   const termoPesquisa = document.getElementById('searchExpense')?.value.toLowerCase() || '';
   const filtroMembro = document.getElementById('filterMember')?.value || '';
   const filtroCat = document.getElementById('filterCategory')?.value || '';
-  const filtroSubcat = document.getElementById('filterSubcat')?.value || '';
 
   const filtradas = lista.filter(t => {
     const matchPesquisa = t.descricao.toLowerCase().includes(termoPesquisa);
     const matchMembro = filtroMembro ? t.membroId === filtroMembro : true;
     const matchCat = filtroCat ? t.categoria === filtroCat : true;
-    const matchSubcat = filtroSubcat ? t.subcategoria === filtroSubcat : true;
-    return matchPesquisa && matchMembro && matchCat && matchSubcat;
+    return matchPesquisa && matchMembro && matchCat;
   });
 
   container.innerHTML = '';
@@ -336,14 +332,13 @@ function renderTransactionsList(lista) {
   }
 
   filtradas.forEach(tx => {
-    const tagSubcat = tx.subcategoria ? `<span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md text-[9px] font-extrabold ml-1">${tx.subcategoria}</span>` : '';
     const emailMembro = membrosDoGrupo[tx.membroId] ? membrosDoGrupo[tx.membroId].split('@')[0] : 'Membro';
 
     container.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-[#121c38] p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
         <div>
-          <div class="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-1">
-            ${tx.descricao} ${tagSubcat}
+          <div class="text-xs font-extrabold text-slate-900 dark:text-white">
+            ${tx.descricao}
           </div>
           <div class="text-[10px] text-slate-400">${tx.data} • ${tx.categoria} • <span class="text-blue-500 font-bold">${emailMembro}</span></div>
         </div>
@@ -466,7 +461,7 @@ function carregarMural() {
       autorNome.innerText = membrosDoGrupo[data.autorId] ? membrosDoGrupo[data.autorId].split('@')[0] : 'Membro';
       autorContainer.classList.remove('hidden');
     }
-    if (btnLimpar) btnLimpar.classList.remove('hidden');
+    if (btnLimpar) btnLimpar.classList.add('hidden');
   });
 }
 
