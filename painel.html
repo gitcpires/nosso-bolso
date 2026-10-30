@@ -163,7 +163,7 @@
         </div>
       </div>
 
-      <!-- Card de Progresso de Metas (Com Fundo Claro) -->
+      <!-- Card de Progresso de Metas -->
       <div class="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Progresso de Metas</h3>
@@ -172,12 +172,12 @@
         <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2"></div>
       </div>
 
-      <!-- Card Unificado de Gráficos -->
+      <!-- Card Unificado de Gráficos (Lado a Lado) -->
       <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs space-y-3">
         <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Distribuição de Gastos</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-          <div class="h-44 relative"><canvas id="categoryPieChart"></canvas></div>
-          <div class="h-44 relative"><canvas id="categoryBarChart"></canvas></div>
+        <div class="grid grid-cols-2 gap-2 items-center">
+          <div class="h-36 relative"><canvas id="categoryPieChart"></canvas></div>
+          <div class="h-36 relative"><canvas id="categoryBarChart"></canvas></div>
         </div>
       </div>
     </div>
@@ -368,7 +368,7 @@
             </div>
             <div class="bg-white p-2 rounded-xl border border-slate-200 shadow-2xs">
               <label class="block text-[9px] font-bold text-slate-500">Lazer (<span id="labelUnidadeLazer">%</span>)</label>
-              <input type="number" step="0.01" id="cfgMetaLazer" required oninput="calcularConversaoMetas('lazer')" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-2 py-1 text-xs font-extrabold text-center mt-1" />
+              <input type="number" step="0.01" id="cfgMetaLazer" required oninput="calcularConversaoMetas('gerais')" class="w-full bg-slate-50 rounded-lg border border-slate-200 px-2 py-1 text-xs font-extrabold text-center mt-1" />
               <span id="subMetaLazer" class="text-[9px] text-slate-400 block text-center mt-0.5">--</span>
             </div>
             <div class="bg-white p-2 rounded-xl border border-slate-200 shadow-2xs">
