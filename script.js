@@ -59,7 +59,7 @@ auth.onAuthStateChanged(async (user) => {
   try {
     const userDoc = await db.collection('users').doc(user.uid).get();
     
-    // Garante sempre a remoção do ecrã de carregamento para nunca travar a tela
+    // Esconde o ecrã de carregamento para nunca travar a tela
     document.getElementById('loadingScreen')?.classList.add('hidden');
 
     if (!userDoc.exists) {
