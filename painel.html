@@ -2,402 +2,430 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Nosso Bolso - Painel Financeiro</title>
-  <!-- Tailwind CSS -->
+
+  <!-- Ícone e Configuração de Atalho para Telemóvel -->
+  <link rel="apple-touch-icon" sizes="180x180" href="icone-app.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icone-app.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icone-app.png">
+  <meta name="theme-color" content="#090d16">
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Chart.js -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap');
+    * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     .fonte-manuscrita { font-family: 'Caveat', cursive; }
+    .papel-mural {
+      background-image: url('papel.jpg?v=2');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen pb-24">
+<body class="bg-slate-100 text-slate-900 pb-28 antialiased selection:bg-blue-600 selection:text-white">
 
   <!-- Ecrã de Carregamento -->
-  <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white text-slate-700 space-y-4">
-    <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+  <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-white space-y-4">
+    <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
     <p class="text-xs font-bold tracking-wider">A carregar o seu Nosso Bolso...</p>
   </div>
 
-  <!-- Ecrã de Conta Pendente -->
-  <div id="pendingScreen" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-white p-6 text-center space-y-4">
-    <div class="w-16 h-16 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center text-2xl border border-amber-500/30">
-      <i class="fa-solid fa-clock-rotate-left"></i>
+  <!-- Ecrã de Pendente -->
+  <div id="pendingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4 hidden">
+    <div class="w-full max-w-sm bg-white p-8 rounded-[2.5rem] text-center space-y-4 shadow-2xl">
+      <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mx-auto text-2xl">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+      </div>
+      <h3 class="text-base font-extrabold text-slate-900">Acesso Pendente</h3>
+      <p class="text-xs text-slate-500 leading-relaxed">A sua conta foi criada mas ainda precisa de ser aprovada pelo administrador do sistema.</p>
+      <button onclick="logout()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition">
+        Sair / Voltar ao Login
+      </button>
     </div>
-    <h2 class="text-lg font-black">Conta Pendente de Aprovação</h2>
-    <p class="text-xs text-slate-400 max-w-xs">O administrador do sistema precisa aprovar o seu acesso antes de utilizar o grupo financeiro.</p>
-    <button onclick="logout()" class="bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Sair da Conta</button>
   </div>
 
-  <!-- Modal de Configuração / Criação de Workspace -->
-  <div id="setupWorkspaceModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-xs p-4">
-    <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-xl border border-slate-200">
-      <div class="text-center space-y-1">
-        <h3 class="text-base font-black text-slate-900">Grupo Familiar / Sócio</h3>
-        <p class="text-xs text-slate-500">Crie um novo grupo ou entre num existente com o código de 4 dígitos.</p>
+  <!-- Modal de Configuração / Criação de Grupo -->
+  <div id="setupWorkspaceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-6 shadow-2xl">
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-xl">
+          <i class="fa-solid fa-house-user"></i>
+        </div>
+        <h3 class="text-base font-extrabold text-slate-900">Configure o seu Espaço</h3>
+        <p class="text-xs text-slate-500">Como deseja iniciar o seu controle financeiro?</p>
       </div>
-      <div class="space-y-3 pt-2">
-        <button onclick="criarNovoWorkspace()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl text-xs font-extrabold transition shadow-sm">
-          <i class="fa-solid fa-plus mr-1.5"></i> Criar Novo Grupo
+
+      <div class="space-y-3">
+        <button onclick="criarNovoWorkspace()" class="w-full p-4 rounded-2xl border-2 border-blue-500/35 hover:border-blue-600 bg-blue-50/40 hover:bg-blue-50 text-left transition space-y-1 group">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-blue-900">Criar um Novo Grupo</span>
+            <i class="fa-solid fa-circle-plus text-blue-600"></i>
+          </div>
+          <p class="text-[10px] text-slate-500">Gerar um novo espaço exclusivo e código próprio.</p>
         </button>
-        <div class="relative flex py-2 items-center">
+
+        <div class="relative flex py-1 items-center">
           <div class="flex-grow border-t border-slate-200"></div>
-          <span class="flex-shrink mx-3 text-[10px] text-slate-400 font-bold uppercase">ou entrar num grupo</span>
+          <span class="flex-shrink mx-4 text-[10px] text-slate-400 font-bold uppercase">ou</span>
           <div class="flex-grow border-t border-slate-200"></div>
         </div>
-        <div class="space-y-2">
-          <input type="text" id="inputWorkspaceCode" maxlength="4" placeholder="Código de 4 dígitos" class="w-full bg-slate-50 border border-slate-300 rounded-2xl px-4 py-3 text-xs font-bold text-center tracking-widest text-slate-800 focus:outline-none focus:border-blue-600" />
-          <button onclick="entrarGrupoExistente()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-2xl text-xs font-extrabold transition shadow-sm">
-            Entrar no Grupo
+
+        <div class="p-4 rounded-2xl border border-slate-200 space-y-3 bg-slate-50/50">
+          <span class="text-xs font-extrabold text-slate-800 block">Entrar com Código de Convite</span>
+          <div class="flex gap-2">
+            <input type="text" id="inputWorkspaceCode" maxlength="4" placeholder="Ex: 8660" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-bold tracking-widest text-center focus:outline-none focus:border-blue-600" />
+            <button onclick="entrarGrupoExistente()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition">Entrar</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="setupMsg" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- Cabeçalho Principal Unificado -->
+  <header class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 shadow-2xs">
+    <div class="mx-auto max-w-md space-y-2">
+      
+      <!-- Perfil com Indicador Online e Definições -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="relative">
+            <div class="w-9 h-9 rounded-xl overflow-hidden shadow-md bg-slate-900 flex items-center justify-center">
+              <img src="icone-app.png" alt="Nosso Bolso" class="h-full w-full object-cover">
+            </div>
+            <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+          </div>
+          <div>
+            <h1 id="headerUserName" class="text-xs font-extrabold text-slate-900 truncate">Utilizador</h1>
+            <p id="headerWelcomeMsg" class="text-[10px] text-slate-500 font-bold">Grupo: ----</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openProfileModal()" class="w-9 h-9 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 flex items-center justify-center hover:bg-slate-100 transition">
+            <i class="fa-solid fa-gear text-xs"></i>
           </button>
         </div>
       </div>
-      <div id="setupMsg" class="hidden"></div>
-      <div class="text-center pt-2">
-        <button onclick="logout()" class="text-xs text-rose-600 font-bold hover:underline">Terminar Sessão</button>
+
+      <!-- Seletor de Mês -->
+      <div class="flex items-center justify-between bg-gradient-to-r from-slate-100/90 to-blue-50/50 px-3 py-2 rounded-2xl border border-slate-200 shadow-inner">
+        <span class="text-xs font-bold text-slate-600">Mês de Referência:</span>
+        <select id="selectMonth" onchange="changeActiveMonth(this.value)" class="bg-white border border-slate-200 text-xs font-black text-blue-900 rounded-xl px-3 py-1.5 focus:outline-none shadow-2xs">
+          <option value="Janeiro 2026">Janeiro 2026</option>
+          <option value="Fevereiro 2026">Fevereiro 2026</option>
+          <option value="Março 2026">Março 2026</option>
+          <option value="Abril 2026">Abril 2026</option>
+          <option value="Maio 2026">Maio 2026</option>
+          <option value="Junho 2026">Junho 2026</option>
+          <option value="Julho 2026">Julho 2026</option>
+          <option value="Agosto 2026">Agosto 2026</option>
+          <option value="Setembro 2026">Setembro 2026</option>
+          <option value="Outubro 2026" selected>Outubro 2026</option>
+          <option value="Novembro 2026">Novembro 2026</option>
+          <option value="Dezembro 2026">Dezembro 2026</option>
+        </select>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal por Abas -->
+  <main class="mx-auto max-w-md px-4 pt-3 space-y-2.5">
+
+    <!-- ABAS: RESUMO -->
+    <div id="tab-resumo" class="space-y-2.5">
+      
+      <!-- Cartões de Resumo Compactos -->
+      <div class="grid grid-cols-3 gap-1.5">
+        <div class="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-2xs space-y-0.5">
+          <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-tight block">Entradas</span>
+          <div id="statIncome" class="text-xs sm:text-base font-black text-emerald-600 tracking-tight truncate">R$ 0,00</div>
+        </div>
+        <div class="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-2xs space-y-0.5">
+          <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-tight block">Saídas</span>
+          <div id="statExpense" class="text-xs sm:text-base font-black text-rose-600 tracking-tight truncate">R$ 0,00</div>
+        </div>
+        <div class="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-2xs space-y-0.5">
+          <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-tight block">Saldo</span>
+          <div id="statBalance" class="text-xs sm:text-base font-black text-slate-900 tracking-tight truncate">R$ 0,00</div>
+        </div>
+      </div>
+
+      <!-- Card de Progresso de Metas -->
+      <div class="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Progresso de Metas</h3>
+          <span class="text-[10px] text-slate-400 font-semibold"><i class="fa-solid fa-gear mr-1"></i>Gerir nas Configurações</span>
+        </div>
+        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2"></div>
+      </div>
+
+      <!-- Card de Distribuição de Gastos Compacto -->
+      <div class="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-2xs space-y-2.5">
+        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Distribuição de Gastos</h3>
+        <div class="grid grid-cols-2 gap-3 items-center">
+          <div class="h-36 relative"><canvas id="categoryPieChart"></canvas></div>
+          <div class="h-36 relative"><canvas id="categoryBarChart"></canvas></div>
+        </div>
       </div>
     </div>
+
+    <!-- ABAS: EXTRATO -->
+    <div id="tab-extrato" class="space-y-3 hidden">
+      <div class="flex gap-2">
+        <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
+      </div>
+      <div class="flex gap-2">
+        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
+          <option value="">👤 Todos os Membros</option>
+        </select>
+        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
+          <option value="">🏷️ Todas Categorias</option>
+          <option value="Gastos Fixos">Gastos Fixos</option>
+          <option value="Gastos Gerais">Gastos Gerais</option>
+          <option value="Lazer">Lazer</option>
+          <option value="Investimentos">Investimentos</option>
+        </select>
+      </div>
+      <div id="txListContainer" class="space-y-2"></div>
+    </div>
+
+    <!-- ABAS: INVESTIMENTOS -->
+    <div id="tab-invest" class="space-y-3 hidden">
+      
+      <!-- Dois Cartões: Mês Atual e Total Acumulado do Ano -->
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-4 rounded-3xl text-white shadow-lg space-y-1">
+          <span class="text-[9px] font-bold text-indigo-300 uppercase tracking-wider block">Investido no Mês</span>
+          <div id="monthInvestTotalHeader" class="text-base sm:text-xl font-black text-emerald-400 truncate">R$ 0,00</div>
+        </div>
+        <div class="bg-gradient-to-br from-emerald-900 to-teal-950 p-4 rounded-3xl text-white shadow-lg space-y-1">
+          <span class="text-[9px] font-bold text-emerald-300 uppercase tracking-wider block">Total Acumulado (Ano)</span>
+          <div id="yearInvestTotalHeader" class="text-base sm:text-xl font-black text-white truncate">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div id="monthInvestmentsList" class="space-y-2"></div>
+    </div>
+
+    <!-- ABAS: MURAL / LOUSA -->
+    <div id="tab-mural" class="space-y-4 hidden">
+      <div class="p-6 rounded-[2.5rem] shadow-xl border border-slate-200/60 papel-mural space-y-4 text-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-white/60 backdrop-blur-[1px]"></div>
+        <div class="relative z-10 space-y-4">
+          <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider"><i class="fa-solid fa-note-sticky text-amber-500 mr-1.5"></i>Mural do Grupo</h3>
+          
+          <div id="lousaConteudo" class="py-2">
+            <p class="text-xs text-slate-500 italic">Mural limpo. Escreva um recado!</p>
+          </div>
+
+          <div id="lousaAutorContainer" class="text-[10px] text-slate-600 font-semibold hidden">
+            Deixado por: <span id="lousaAutorNome" class="font-bold text-slate-900"></span>
+          </div>
+
+          <form onsubmit="escreverNaLousa(event)" class="space-y-2 pt-2 border-t border-slate-300/60">
+            <div class="relative">
+              <input type="text" id="inputLousaTexto" maxlength="25" oninput="atualizarContador(this)" placeholder="Deixe um recado (máx. 25 carac.)" class="w-full bg-white/90 border border-slate-300 rounded-2xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-blue-600 shadow-2xs" />
+            </div>
+            <div class="flex items-center justify-between px-1">
+              <span id="charCount" class="text-[9px] text-slate-600 font-semibold">25 restantes</span>
+              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-md">Fixar Recado</button>
+            </div>
+          </form>
+
+          <button id="btnLimparLousa" onclick="apagarLousa()" class="text-rose-600 hover:text-rose-800 text-[10px] font-bold hidden pt-1">
+            <i class="fa-solid fa-trash-can mr-1"></i>Limpar Mural
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Botão Flutuante Redondo -->
+  <div class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-40">
+    <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition text-xl border-2 border-white">
+      <i class="fa-solid fa-plus"></i>
+    </button>
   </div>
 
-  <!-- Conteúdo Principal -->
-  <div class="max-w-md mx-auto p-4 space-y-4">
-    
-    <!-- Cabeçalho Exatamente como no Original -->
-    <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-      <div class="flex items-center gap-3">
-        <div class="relative w-11 h-11 bg-slate-900 rounded-2xl flex items-center justify-center text-emerald-400 shadow-sm border border-slate-800">
-          <i class="fa-solid fa-circle-dollar-to-slot text-base"></i>
-          <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
-        </div>
-        <div>
-          <h1 id="headerUserName" class="text-xs font-black text-slate-900">Utilizador</h1>
-          <p id="headerWelcomeMsg" class="text-[10px] text-slate-500 font-bold">Grupo: ----</p>
-        </div>
-      </div>
-      <button onclick="openProfileModal()" class="w-10 h-10 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-2xl flex items-center justify-center transition border border-slate-200 shadow-2xs" title="Configurações e Grupo">
-        <i class="fa-solid fa-gear text-xs"></i>
+  <!-- Barra de Navegação Inferior -->
+  <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2.5 shadow-lg">
+    <div class="mx-auto max-w-md grid grid-cols-5 items-center">
+      <button onclick="switchTab('resumo')" id="bottomNavResumo" class="flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5">
+        <i class="fa-solid fa-chart-pie text-base"></i>
+        <span class="text-[10px] font-extrabold mt-1">Resumo</span>
+      </button>
+      <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+        <i class="fa-solid fa-receipt text-base"></i>
+        <span class="text-[10px] font-extrabold mt-1">Extrato</span>
+      </button>
+      <div></div>
+      <button onclick="switchTab('invest')" id="bottomNavInvest" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+        <i class="fa-solid fa-chart-line text-base"></i>
+        <span class="text-[10px] font-extrabold mt-1">Invest</span>
+      </button>
+      <button onclick="switchTab('mural')" id="bottomNavMural" class="flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
+        <i class="fa-solid fa-note-sticky text-base"></i>
+        <span class="text-[10px] font-extrabold mt-1">Mural</span>
       </button>
     </div>
+  </nav>
 
-    <!-- Seletor de Mês -->
-    <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
-      <span class="text-[11px] font-extrabold text-slate-500 uppercase">Mês de Referência:</span>
-      <select id="selectMonth" onchange="changeActiveMonth(this.value)" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-black text-slate-800 focus:outline-none focus:border-blue-600">
-        <option value="Janeiro 2026">Janeiro 2026</option>
-        <option value="Fevereiro 2026">Fevereiro 2026</option>
-        <option value="Março 2026">Março 2026</option>
-        <option value="Abril 2026">Abril 2026</option>
-        <option value="Maio 2026">Maio 2026</option>
-        <option value="Junho 2026">Junho 2026</option>
-        <option value="Julho 2026">Julho 2026</option>
-        <option value="Agosto 2026">Agosto 2026</option>
-        <option value="Setembro 2026">Setembro 2026</option>
-        <option value="Outubro 2026">Outubro 2026</option>
-        <option value="Novembro 2026">Novembro 2026</option>
-        <option value="Dezembro 2026">Dezembro 2026</option>
-      </select>
-    </div>
-
-    <!-- ABA 1: RESUMO -->
-    <div id="tab-resumo" class="space-y-4">
-      <!-- Visão Geral de Saldos -->
-      <div class="grid grid-cols-3 gap-2">
-        <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-0.5">
-          <span class="text-[9px] font-extrabold text-slate-400 uppercase">Entradas</span>
-          <div id="statIncome" class="text-xs sm:text-sm font-black text-emerald-600 truncate">R$ 0,00</div>
-        </div>
-        <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-0.5">
-          <span class="text-[9px] font-extrabold text-slate-400 uppercase">Saídas</span>
-          <div id="statExpense" class="text-xs sm:text-sm font-black text-rose-600 truncate">R$ 0,00</div>
-        </div>
-        <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-0.5">
-          <span class="text-[9px] font-extrabold text-slate-400 uppercase">Saldo</span>
-          <div id="statBalance" class="text-xs sm:text-sm font-black text-blue-600 truncate">R$ 0,00</div>
-        </div>
+  <!-- Modais -->
+  <div id="newTxModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm bg-white p-6 rounded-[2.5rem] space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="text-xs font-extrabold text-slate-900 uppercase">Novo Lançamento</h3>
+        <button onclick="closeNewTxModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <!-- Progresso das Metas por Categoria -->
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Progresso das Metas</h2>
-          <span class="text-[10px] text-slate-400 font-bold">Baseado nas Entradas</span>
+      <form id="txForm" onsubmit="handleSaveTransaction(event)" class="space-y-3">
+        <div class="flex bg-slate-100 p-1 rounded-xl">
+          <label id="labelTabEntrada" onclick="selecionarTipoTx('INCOME')" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition">
+            <input type="radio" name="txType" value="INCOME" onchange="toggleTxTypeUI()" class="hidden" /> Entrada
+          </label>
+          <label id="labelTabSaida" onclick="selecionarTipoTx('EXPENSE')" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition">
+            <input type="radio" name="txType" value="EXPENSE" checked onchange="toggleTxTypeUI()" class="hidden" /> Saída
+          </label>
         </div>
-        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2.5">
-          <!-- Preenchido via JS -->
-        </div>
-      </div>
 
-      <!-- Gráficos Lado a Lado -->
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-        <h2 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Gráficos de Gastos</h2>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="h-44 relative flex items-center justify-center">
-            <canvas id="categoryPieChart"></canvas>
-          </div>
-          <div class="h-44 relative flex items-center justify-center">
-            <canvas id="categoryBarChart"></canvas>
-          </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1">Descrição</label>
+          <input type="text" id="txDesc" required placeholder="Ex: Supermercado" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
         </div>
-      </div>
-    </div>
 
-    <!-- ABA 2: EXTRATO -->
-    <div id="tab-extrato" class="hidden space-y-3">
-      <!-- Filtros de Extrato -->
-      <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
-        <div class="relative">
-          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-magnifying-glass text-xs"></i></span>
-          <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions.filter(t => t.month === activeMonth))" placeholder="Pesquisar lançamento..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
-        </div>
         <div class="grid grid-cols-2 gap-2">
-          <select id="filterMember" onchange="renderTransactionsList(transactions.filter(t => t.month === activeMonth))" class="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-700 focus:outline-none">
-            <option value="">👤 Todos os Membros</option>
-          </select>
-          <select id="filterCategory" onchange="renderTransactionsList(transactions.filter(t => t.month === activeMonth))" class="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-700 focus:outline-none">
-            <option value="">🏷️ Todas Categorias</option>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Valor (R$)</label>
+            <input type="number" step="0.01" id="txAmount" required placeholder="0,00" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Data</label>
+            <input type="date" id="txDate" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1">Categoria</label>
+          <select id="txCat" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white">
             <option value="Gastos Fixos">Gastos Fixos</option>
             <option value="Gastos Gerais">Gastos Gerais</option>
             <option value="Lazer">Lazer</option>
             <option value="Investimentos">Investimentos</option>
-            <option value="Salário">Salário</option>
-            <option value="Renda Extra">Renda Extra</option>
           </select>
         </div>
-      </div>
 
-      <!-- Lista de Movimentações -->
-      <div id="txListContainer" class="space-y-2">
-        <!-- Preenchido via JS -->
-      </div>
-    </div>
-
-    <!-- ABA 3: INVESTIMENTOS -->
-    <div id="tab-invest" class="hidden space-y-3">
-      <div class="grid grid-cols-2 gap-2">
-        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-          <span class="text-[9px] font-extrabold text-slate-400 uppercase">Investido no Mês</span>
-          <div id="monthInvestTotalHeader" class="text-sm font-black text-emerald-600">R$ 0,00</div>
-        </div>
-        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-          <span class="text-[9px] font-extrabold text-slate-400 uppercase">Total no Ano (2026)</span>
-          <div id="yearInvestTotalHeader" class="text-sm font-black text-blue-600">R$ 0,00</div>
-        </div>
-      </div>
-      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-        <h2 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Aportes do Mês</h2>
-        <div id="monthInvestmentsList" class="space-y-2">
-          <!-- Preenchido via JS -->
-        </div>
-      </div>
-    </div>
-
-    <!-- ABA 4: MURAL DE RECADOS -->
-    <div id="tab-mural" class="hidden space-y-3">
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs text-center space-y-3">
-        <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-2xl mx-auto flex items-center justify-center text-sm shadow-2xs">
-          <i class="fa-solid fa-note-sticky"></i>
-        </div>
-        <h2 class="text-xs font-black text-slate-800 uppercase tracking-wider">Mural do Grupo</h2>
-        
-        <div id="lousaConteudo" class="py-2">
-          <p class="text-xs text-slate-400 italic">A carregar recado...</p>
-        </div>
-
-        <div id="lousaAutorContainer" class="hidden text-[10px] text-slate-500 font-bold">
-          De: <span id="lousaAutorNome" class="text-blue-600 font-black">Membro</span>
-        </div>
-
-        <form onsubmit="escreverNaLousa(event)" class="space-y-2 pt-2 border-t border-slate-100">
-          <div class="relative">
-            <input type="text" id="inputLousaTexto" maxlength="25" oninput="atualizarContador(this)" placeholder="Escreva um recado (máx. 25 chars)..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600 pr-16" />
-            <span id="charCount" class="absolute right-2.5 top-2.5 text-[9px] text-slate-400 font-bold">25 restantes</span>
-          </div>
-          <div class="flex gap-2">
-            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-xs font-extrabold transition shadow-xs">
-              Publicar Recado
-            </button>
-            <button type="button" id="btnLimparLousa" onclick="apagarLousa()" class="hidden bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-xl text-xs font-extrabold transition">
-              Limpar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Menu Inferior Fixo -->
-  <div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2 flex items-center justify-around z-40 max-w-md mx-auto shadow-lg">
-    <button onclick="switchTab('resumo')" id="bottomNavResumo" class="relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5">
-      <i class="fa-solid fa-chart-pie text-base mb-0.5"></i>
-      <span class="text-[10px] font-extrabold">Resumo</span>
-    </button>
-    <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
-      <i class="fa-solid fa-receipt text-base mb-0.5"></i>
-      <span class="text-[10px] font-extrabold">Extrato</span>
-    </button>
-    <button onclick="openNewTxModal()" class="relative -top-4 w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg transition active:scale-95">
-      <i class="fa-solid fa-plus text-lg"></i>
-    </button>
-    <button onclick="switchTab('invest')" id="bottomNavInvest" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
-      <i class="fa-solid fa-chart-line text-base mb-0.5"></i>
-      <span class="text-[10px] font-extrabold">Invest</span>
-    </button>
-    <button onclick="switchTab('mural')" id="bottomNavMural" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5">
-      <i class="fa-solid fa-note-sticky text-base mb-0.5"></i>
-      <span class="text-[10px] font-extrabold">Mural</span>
-    </button>
-  </div>
-
-  <!-- Modal Novo Lançamento -->
-  <div id="newTxModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 backdrop-blur-xs p-0 sm:p-4">
-    <div class="bg-white rounded-t-3xl sm:rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-xl border border-slate-200 animate-in slide-in-from-bottom duration-200">
-      <div class="flex items-center justify-between">
-        <h3 class="text-sm font-black text-slate-900">Novo Lançamento</h3>
-        <button onclick="closeNewTxModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <!-- Tipo (Entrada / Saída) -->
-      <div class="flex bg-slate-100 p-1 rounded-xl">
-        <label id="labelTabSaida" onclick="selecionarTipoTx('EXPENSE')" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition">Saída</label>
-        <label id="labelTabEntrada" onclick="selecionarTipoTx('INCOME')" class="w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition">Entrada</label>
-        <input type="radio" name="txType" value="EXPENSE" checked class="hidden">
-        <input type="radio" name="txType" value="INCOME" class="hidden">
-      </div>
-
-      <form id="txForm" onsubmit="handleSaveTransaction(event)" class="space-y-3">
-        <div class="space-y-1">
-          <label class="text-[10px] font-bold text-slate-500 uppercase">Descrição</label>
-          <input type="text" id="txDesc" required placeholder="Ex: Supermercado, Aluguer..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-500 uppercase">Valor (R$)</label>
-            <input type="number" step="0.01" id="txAmount" required placeholder="0,00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-500 uppercase">Data</label>
-            <input type="date" id="txDate" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600" />
-          </div>
-        </div>
-        <div class="space-y-1">
-          <label class="text-[10px] font-bold text-slate-500 uppercase">Categoria</label>
-          <select id="txCat" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-600">
-            <option value="Gastos Fixos">🏠 Gastos Fixos</option>
-            <option value="Gastos Gerais">🛒 Gastos Gerais</option>
-            <option value="Lazer">🎉 Lazer</option>
-            <option value="Investimentos">📈 Investimentos</option>
-          </select>
-        </div>
-        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-xs font-extrabold transition shadow-sm mt-2">
+        <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-extrabold transition shadow-md">
           Guardar Lançamento
         </button>
       </form>
     </div>
   </div>
 
-  <!-- Modal de Configurações / Perfil / Membros / Metas -->
-  <div id="profileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-xs p-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-5 shadow-xl border border-slate-200 my-auto">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="text-sm font-black text-slate-900"><i class="fa-solid fa-gear text-blue-600 mr-2"></i>Gestão do Grupo</h3>
-        <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
+  <!-- Modal de Configurações Compacto e Otimizado -->
+  <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-3 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm bg-white p-3.5 rounded-[2rem] space-y-2.5 shadow-2xl max-h-[92vh] overflow-y-auto">
+      
+      <!-- Cabeçalho do Modal -->
+      <div class="flex items-center justify-between pb-1.5 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-[10px]">
+            <i class="fa-solid fa-gear"></i>
+          </div>
+          <h3 class="text-[11px] font-black text-slate-900 uppercase tracking-wider">Configurações do Grupo</h3>
+        </div>
+        <button onclick="closeProfileModal()" class="w-6 h-6 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark text-[10px]"></i></button>
       </div>
 
-      <!-- Código do Grupo -->
-      <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between">
+      <!-- Código de Convite Compacto -->
+      <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center justify-between">
         <div>
-          <span class="text-[9px] font-extrabold text-slate-400 uppercase block">Código do Grupo</span>
-          <span id="profileWorkspaceCodeDisplay" class="text-base font-black text-slate-900 tracking-wider">----</span>
+          <span class="text-[8px] font-bold text-slate-400 uppercase tracking-tight block">Código de Convite</span>
+          <div id="profileWorkspaceCodeDisplay" class="text-sm font-black text-blue-600 tracking-widest">----</div>
         </div>
-        <button onclick="copyWorkspaceCountCode()" class="bg-blue-600 text-white px-3 py-1.5 rounded-xl text-[10px] font-extrabold transition">Copiar</button>
+        <button onclick="copyWorkspaceCountCode()" class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold transition shadow-xs flex items-center gap-1">
+          <i class="fa-solid fa-copy"></i> Copiar
+        </button>
       </div>
 
-      <!-- Membros do Grupo -->
-      <div class="space-y-2">
-        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Membros do Grupo</span>
-        <div id="workspaceMembersList" class="space-y-1.5 max-h-32 overflow-y-auto pr-1">
-          <div class="text-slate-400 text-center text-xs py-1">A carregar membros...</div>
-        </div>
-      </div>
-
-      <!-- Configuração de Metas -->
-      <div class="space-y-3 pt-2 border-t border-slate-100">
+      <!-- Secção de Metas Compacta -->
+      <div class="bg-blue-50/40 p-2.5 rounded-xl border border-blue-100 space-y-1.5">
         <div class="flex items-center justify-between">
-          <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Configurar Metas (%)</span>
-          <div class="flex bg-slate-100 p-0.5 rounded-lg">
-            <button type="button" id="btnModoPerc" onclick="mudarModoMetas('perc')" class="px-2.5 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition"> % </button>
-            <button type="button" id="btnModoDinheiro" onclick="mudarModoMetas('dinheiro')" class="px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 transition"> R$ </button>
+          <h4 class="text-[10px] font-extrabold text-blue-900 uppercase">Definir Metas</h4>
+          <div class="flex bg-white p-0.5 rounded-md border border-slate-200 shadow-2xs">
+            <button type="button" onclick="mudarModoMetas('perc')" id="btnModoPerc" class="px-2 py-0.5 text-[9px] font-bold rounded bg-blue-600 text-white transition">%</button>
+            <button type="button" onclick="mudarModoMetas('dinheiro')" id="btnModoDinheiro" class="px-2 py-0.5 text-[9px] font-bold rounded text-slate-600 transition">R$</button>
           </div>
         </div>
-        
-        <form onsubmit="salvarMetasGrupoConfig(event)" class="space-y-2.5">
-          <div class="grid grid-cols-2 gap-2">
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1">
-              <div class="flex justify-between items-center">
-                <span class="text-[10px] font-extrabold text-slate-600">Fixos</span>
-                <span id="labelUnidadeFixos" class="text-[10px] font-bold text-blue-600">%</span>
-              </div>
-              <input type="number" step="0.1" id="cfgMetaFixos" oninput="calcularConversaoMetas('fixos')" required class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-black text-slate-800" />
-              <div id="subMetaFixos" class="text-[9px] text-slate-400 font-bold">= R$ 0,00</div>
+
+        <form onsubmit="salvarMetasGrupoConfig(event)" class="space-y-1.5">
+          <div class="grid grid-cols-2 gap-1.5">
+            <div class="bg-white p-1.5 rounded-lg border border-slate-200 shadow-2xs space-y-0.2">
+              <label class="block text-[8px] font-bold text-slate-500">Fixos (<span id="labelUnidadeFixos">%</span>)</label>
+              <input type="number" step="0.01" id="cfgMetaFixos" required oninput="calcularConversaoMetas('fixos')" class="w-full bg-slate-50 rounded border border-slate-200 px-1.5 py-0.5 text-[11px] font-extrabold text-center" />
+              <span id="subMetaFixos" class="text-[7px] text-slate-400 block text-center truncate">--</span>
             </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1">
-              <div class="flex justify-between items-center">
-                <span class="text-[10px] font-extrabold text-slate-600">Gerais</span>
-                <span id="labelUnidadeGerais" class="text-[10px] font-bold text-blue-600">%</span>
-              </div>
-              <input type="number" step="0.1" id="cfgMetaGerais" oninput="calcularConversaoMetas('gerais')" required class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-black text-slate-800" />
-              <div id="subMetaGerais" class="text-[9px] text-slate-400 font-bold">= R$ 0,00</div>
+            <div class="bg-white p-1.5 rounded-lg border border-slate-200 shadow-2xs space-y-0.2">
+              <label class="block text-[8px] font-bold text-slate-500">Gerais (<span id="labelUnidadeGerais">%</span>)</label>
+              <input type="number" step="0.01" id="cfgMetaGerais" required oninput="calcularConversaoMetas('gerais')" class="w-full bg-slate-50 rounded border border-slate-200 px-1.5 py-0.5 text-[11px] font-extrabold text-center" />
+              <span id="subMetaGerais" class="text-[7px] text-slate-400 block text-center truncate">--</span>
             </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1">
-              <div class="flex justify-between items-center">
-                <span class="text-[10px] font-extrabold text-slate-600">Lazer</span>
-                <span id="labelUnidadeLazer" class="text-[10px] font-bold text-blue-600">%</span>
-              </div>
-              <input type="number" step="0.1" id="cfgMetaLazer" oninput="calcularConversaoMetas('lazer')" required class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-black text-slate-800" />
-              <div id="subMetaLazer" class="text-[9px] text-slate-400 font-bold">= R$ 0,00</div>
+            <div class="bg-white p-1.5 rounded-lg border border-slate-200 shadow-2xs space-y-0.2">
+              <label class="block text-[8px] font-bold text-slate-500">Lazer (<span id="labelUnidadeLazer">%</span>)</label>
+              <input type="number" step="0.01" id="cfgMetaLazer" required oninput="calcularConversaoMetas('lazer')" class="w-full bg-slate-50 rounded border border-slate-200 px-1.5 py-0.5 text-[11px] font-extrabold text-center" />
+              <span id="subMetaLazer" class="text-[7px] text-slate-400 block text-center truncate">--</span>
             </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1">
-              <div class="flex justify-between items-center">
-                <span class="text-[10px] font-extrabold text-slate-600">Invest.</span>
-                <span id="labelUnidadeInvest" class="text-[10px] font-bold text-blue-600">%</span>
-              </div>
-              <input type="number" step="0.1" id="cfgMetaInvest" oninput="calcularConversaoMetas('invest')" required class="w-full bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-black text-slate-800" />
-              <div id="subMetaInvest" class="text-[9px] text-slate-400 font-bold">= R$ 0,00</div>
+            <div class="bg-white p-1.5 rounded-lg border border-slate-200 shadow-2xs space-y-0.2">
+              <label class="block text-[8px] font-bold text-slate-500">Invest. (<span id="labelUnidadeInvest">%</span>)</label>
+              <input type="number" step="0.01" id="cfgMetaInvest" required oninput="calcularConversaoMetas('invest')" class="w-full bg-slate-50 rounded border border-slate-200 px-1.5 py-0.5 text-[11px] font-extrabold text-center" />
+              <span id="subMetaInvest" class="text-[7px] text-slate-400 block text-center truncate">--</span>
             </div>
           </div>
 
-          <div class="flex items-center justify-between text-xs px-1">
-            <span class="text-slate-500 font-bold">Total:</span>
-            <span id="metaTotalRestante" class="font-black text-emerald-600">✓ Total: 100%</span>
+          <!-- Indicador de Soma Total -->
+          <div class="text-center">
+            <span id="metaTotalRestante" class="text-[9px] font-bold text-slate-500"></span>
           </div>
 
-          <div id="metaConfigErrorMsg" class="hidden text-[10px] font-bold text-rose-600 bg-rose-50 p-2 rounded-xl border border-rose-200 text-center"></div>
+          <div id="metaConfigErrorMsg" class="text-[9px] font-bold text-rose-600 bg-rose-50 p-1 rounded-lg text-center hidden"></div>
 
-          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl text-xs font-extrabold transition shadow-sm">
+          <button type="submit" class="w-full py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold transition shadow-xs">
             Guardar Novas Metas
           </button>
         </form>
       </div>
 
-      <!-- Ações de Conta -->
-      <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-        <button onclick="deixarGrupo()" class="text-xs text-amber-600 font-bold hover:underline">Deixar Grupo</button>
-        <button onclick="logout()" class="text-xs text-rose-600 font-bold hover:underline">Terminar Sessão</button>
+      <!-- Membros do Grupo (Compacto) -->
+      <div class="space-y-1">
+        <span class="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider block">Membros do Grupo</span>
+        <div id="workspaceMembersList" class="space-y-1 max-h-16 overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- Botões Inferiores -->
+      <div class="pt-1.5 border-t border-slate-100 flex gap-2">
+        <button onclick="deixarGrupo()" class="w-1/2 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-[10px] font-bold transition">
+          Sair do Grupo
+        </button>
+        <button onclick="logout()" class="w-1/2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[10px] font-bold transition">
+          Terminar Sessão
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-  <!-- Script Principal -->
   <script src="script.js"></script>
 </body>
 </html>
