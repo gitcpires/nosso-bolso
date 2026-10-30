@@ -22,6 +22,7 @@ let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
 let lousaDocId = null;
 let modoMetasAtual = 'perc';
+let editingTxId = null; // Variável para controlar se estamos a editar uma transação existente
 
 auth.onAuthStateChanged(async (userAuth) => {
   if (!userAuth) {
@@ -382,7 +383,6 @@ function initUserSession() {
   document.getElementById('headerWelcomeMsg').innerText = `Grupo: ${currentWorkspace.code}`;
   document.getElementById('profileWorkspaceCodeDisplay').innerText = currentWorkspace.code;
 
-  // Garante que as bolinhas de notificação do menu inferior ficam escondidas
   ['badgeExtrato', 'badgeInvest', 'badgeMural'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
@@ -541,6 +541,48 @@ function carregarDadosDoBanco() {
     });
 }
 
+function openNewTxModal() { 
+  editingTxId = null; // Assegura que é um novo registo
+  const modalTitle = document.getElementById('modalTxTitle');
+  if (modalTitle) modalTitle.innerText = "Novo Lançamento";
+
+  const txDate = document.getElementById('txDate');
+  if (txDate) txDate.value = new Date().toISOString().split('T')[0];
+
+  document.getElementById('txDesc').value = '';
+  document.getElementById('txAmount').value = '';
+
+  selecionarTipoTx('EXPENSE'); 
+  document.getElementById('newTxModal').classList.remove('hidden'); 
+}
+
+function openEditTransaction(id) {
+  const tx = transactions.find(t => t.id === id);
+  if (!tx) return;
+
+  editingTxId = id;
+  const modalTitle = document.getElementById('modalTxTitle');
+  if (modalTitle) modalTitle.innerText = "Editar Lançamento";
+
+  document.getElementById('txDesc').value = tx.desc;
+  document.getElementById('txAmount').value = tx.amount;
+  document.getElementById('txDate').value = tx.date || '';
+
+  const isIncome = tx.type === 'INCOME' || tx.cat === 'Salário' || tx.cat === 'Renda Extra';
+  selecionarTipoTx(isIncome ? 'INCOME' : 'EXPENSE');
+
+  setTimeout(() => {
+    document.getElementById('txCat').value = tx.cat;
+  }, 50);
+
+  document.getElementById('newTxModal').classList.remove('hidden');
+}
+
+function closeNewTxModal() { 
+  document.getElementById('newTxModal').classList.add('hidden'); 
+  editingTxId = null;
+}
+
 async function handleSaveTransaction(e) {
   e.preventDefault();
   const radioChecked = document.querySelector('input[name="txType"]:checked');
@@ -555,19 +597,28 @@ async function handleSaveTransaction(e) {
   const mesIndex = parseInt(partesData[1], 10) - 1;
   const mesCalculado = `${mesesNomes[mesIndex]} ${ano}`;
 
-  const newTx = {
+  const txData = {
     desc, amount, type, cat,
-    userId: currentUser.id,
-    userEmail: currentUser.email,
-    workspaceId: currentWorkspace.id,
     month: mesCalculado,
     date: dateStr,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
-  await db.collection('transacoes').add(newTx);
+  if (editingTxId) {
+    // Atualiza o documento existente
+    await db.collection('transacoes').doc(editingTxId).update(txData);
+  } else {
+    // Cria novo documento
+    txData.userId = currentUser.id;
+    txData.userEmail = currentUser.email;
+    txData.workspaceId = currentWorkspace.id;
+    txData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    await db.collection('transacoes').add(txData);
+  }
+
   closeNewTxModal();
   document.getElementById('txForm').reset();
+  editingTxId = null;
 }
 
 async function deleteTransaction(id) {
@@ -820,10 +871,11 @@ function renderTransactionsList(currentTx) {
             <span class="text-[9px] text-emerald-700 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">✓ Registado</span>
           </div>
         </div>
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2">
           <span class="text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">
             ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
           </span>
+          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
           <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
@@ -873,6 +925,7 @@ function renderInvestments(currentTx) {
         </div>
         <div class="flex items-center gap-2">
           <span class="text-xs font-black text-rose-600">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
+          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
           <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
@@ -903,12 +956,5 @@ function switchTab(tab) {
   if (tab === 'resumo') renderAll();
 }
 
-function openNewTxModal() { 
-  const txDate = document.getElementById('txDate');
-  if (txDate) txDate.value = new Date().toISOString().split('T')[0];
-  selecionarTipoTx('EXPENSE'); 
-  document.getElementById('newTxModal').classList.remove('hidden'); 
-}
-function closeNewTxModal() { document.getElementById('newTxModal').classList.add('hidden'); }
 function copyWorkspaceCountCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
 function logout() { auth.signOut().then(() => window.location.replace('index.html')); }
