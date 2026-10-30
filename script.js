@@ -35,11 +35,6 @@ auth.onAuthStateChanged(async (userAuth) => {
   currentUser.email = email;
   currentUser.name = email.split('@')[0];
 
-  if (email === 'c.pirespm@gmail.com') {
-    window.location.replace("admin.html");
-    return;
-  }
-
   try {
     const userDocRef = db.collection('users').doc(uid);
     let userDoc = await userDocRef.get();
@@ -275,7 +270,6 @@ async function deixarGrupo() {
 
     if (éOUltimo) {
       const batch = db.batch();
-
       const txsQuery = await db.collection('transacoes').where('workspaceId', '==', wsIdAtual).get();
       txsQuery.forEach(doc => batch.delete(doc.ref));
 
@@ -642,7 +636,6 @@ function toggleTxTypeUI() {
 function renderAll() {
   const currentTx = transactions.filter(t => t.month === activeMonth);
   
-  // Bolinha vermelha do Extrato: Apenas transações pendentes DO MÊS ATIVO criadas por outro utilizador
   const temPendentesOutro = currentTx.some(t => t.confirmado === false && t.userId !== currentUser.id);
   const dotExtrato = document.getElementById('dotExtrato');
   if (dotExtrato) {
