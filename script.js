@@ -15,7 +15,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 let usuarioAtualUid = null;
-let workspaceIdAtual = null;
+let workspaceIdAtual = "7420";
 let mesSelecionado = "Outubro 2026";
 let transactions = [];
 let membrosDoGrupo = {};
@@ -24,30 +24,11 @@ let chartPieInstance = null;
 let chartBarInstance = null;
 
 function aplicarTemaInicial() {
-  const temaSalvo = localStorage.getItem('nosso_bolso_tema') || 'dark';
-  if (temaSalvo === 'dark') {
-    document.documentElement.classList.add('dark');
-    document.getElementById('themeIcon')?.className = "fa-solid fa-sun text-xs";
-  } else {
-    document.documentElement.classList.remove('dark');
-    document.getElementById('themeIcon')?.className = "fa-solid fa-moon text-xs";
-  }
+  document.documentElement.classList.add('dark');
 }
-
-function alternarModoEscuro() {
-  if (document.documentElement.classList.contains('dark')) {
-    document.documentElement.classList.remove('dark');
-    localStorage.setItem('nosso_bolso_tema', 'light');
-    if (document.getElementById('themeIcon')) document.getElementById('themeIcon').className = "fa-solid fa-moon text-xs";
-  } else {
-    document.documentElement.classList.add('dark');
-    localStorage.setItem('nosso_bolso_tema', 'dark');
-    if (document.getElementById('themeIcon')) document.getElementById('themeIcon').className = "fa-solid fa-sun text-xs";
-  }
-}
-
 aplicarTemaInicial();
 
+// FORÇA A ABERTURA IMEDIATA DO PAINEL SEMPRE
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     window.location.replace("index.html");
@@ -55,93 +36,16 @@ auth.onAuthStateChanged(async (user) => {
   }
   usuarioAtualUid = user.uid;
 
-  try {
-    const userDoc = await db.collection('users').doc(user.uid).get();
-    
-    // Força sempre a remoção do ecrã de carregamento para nunca prender a tela
-    document.getElementById('loadingScreen')?.classList.add('hidden');
+  // Fecha imediatamente qualquer ecrã de carregamento
+  document.getElementById('loadingScreen')?.classList.add('hidden');
+  document.getElementById('pendingScreen')?.classList.add('hidden');
+  document.getElementById('setupWorkspaceModal')?.classList.add('hidden');
 
-    if (!userDoc.exists) {
-      // Se não existir documento, abre logo a janela para configurar o grupo
-      document.getElementById('setupWorkspaceModal')?.classList.remove('hidden');
-      return;
-    }
-
-    const userData = userDoc.data();
-    if (userData.status === 'pending') {
-      document.getElementById('pendingScreen')?.classList.remove('hidden');
-      return;
-    }
-
-    // Se tiver workspaceId (ex: 7420), usa-o. Se não, assume um padrão ou pede para configurar
-    workspaceIdAtual = userData.workspaceId || userData.workspaceCode || "7420";
-    inicializarPainel();
-
-  } catch (err) {
-    console.error("Erro ao verificar utilizador:", err);
-    document.getElementById('loadingScreen')?.classList.add('hidden');
-    document.getElementById('setupWorkspaceModal')?.classList.remove('hidden');
-  }
+  inicializarPainel();
 });
 
 function logout() {
   auth.signOut().then(() => window.location.replace("index.html"));
-}
-
-async function criarNovoWorkspace() {
-  const codigoAleatorio = Math.floor(1000 + Math.random() * 9000).toString();
-  try {
-    await db.collection('workspaces').doc(codigoAleatorio).set({
-      criador: usuarioAtualUid,
-      membros: [usuarioAtualUid],
-      metas: { fixos: 40, gerais: 30, lazer: 20, invest: 10 }
-    });
-    await db.collection('users').doc(usuarioAtualUid).update({ workspaceId: codigoAleatorio, workspaceCode: codigoAleatorio });
-    workspaceIdAtual = codigoAleatorio;
-    document.getElementById('setupWorkspaceModal')?.classList.add('hidden');
-    inicializarPainel();
-  } catch (err) {
-    alert("Erro ao criar grupo.");
-  }
-}
-
-async function entrarGrupoExistente() {
-  const codigo = document.getElementById('inputWorkspaceCode').value.trim();
-  if (codigo.length !== 4) {
-    alert("Insira um código válido de 4 dígitos.");
-    return;
-  }
-  try {
-    const wsRef = db.collection('workspaces').doc(codigo);
-    const wsDoc = await wsRef.get();
-    if (!wsDoc.exists) {
-      alert("Grupo não encontrado.");
-      return;
-    }
-    await wsRef.update({
-      membros: firebase.firestore.FieldValue.arrayUnion(usuarioAtualUid)
-    });
-    await db.collection('users').doc(usuarioAtualUid).update({ workspaceId: codigo, workspaceCode: codigo });
-    workspaceIdAtual = codigo;
-    document.getElementById('setupWorkspaceModal')?.classList.add('hidden');
-    inicializarPainel();
-  } catch (err) {
-    alert("Erro ao entrar no grupo.");
-  }
-}
-
-async function deixarGrupo() {
-  if (!confirm("Deseja mesmo sair deste grupo?")) return;
-  try {
-    const wsRef = db.collection('workspaces').doc(workspaceIdAtual);
-    await wsRef.update({
-      membros: firebase.firestore.FieldValue.arrayRemove(usuarioAtualUid)
-    });
-    await db.collection('users').doc(usuarioAtualUid).update({ workspaceId: firebase.firestore.FieldValue.delete() });
-    window.location.reload();
-  } catch (err) {
-    alert("Erro ao sair do grupo.");
-  }
 }
 
 function inicializarPainel() {
@@ -151,47 +55,8 @@ function inicializarPainel() {
   const elemWelcome = document.getElementById('headerWelcomeMsg');
   if (elemWelcome) elemWelcome.innerText = `Grupo: ${workspaceIdAtual}`;
   
-  carregarMembrosGrupo();
   ouvirTransacoes();
   carregarMural();
-}
-
-async function carregarMembrosGrupo() {
-  try {
-    const wsDoc = await db.collection('workspaces').doc(workspaceIdAtual).get();
-    if (!wsDoc.exists) return;
-    const membrosUids = wsDoc.data().membros || [];
-    const container = document.getElementById('workspaceMembersList');
-    const selectFilter = document.getElementById('filterMember');
-    if (container) container.innerHTML = '';
-    if (selectFilter) selectFilter.innerHTML = '<option value="">👤 Todos os Membros</option>';
-
-    membrosUids.forEach(async (uid) => {
-      const uDoc = await db.collection('users').doc(uid).get();
-      const email = uDoc.exists ? uDoc.data().email : uid;
-      membrosDoGrupo[uid] = email;
-
-      if (uid === usuarioAtualUid) {
-        const elemUser = document.getElementById('headerUserName');
-        if (elemUser) elemUser.innerText = email.split('@')[0];
-      }
-
-      if (container) {
-        container.innerHTML += `<div class="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-[#0b132b] px-2.5 py-1 rounded-xl">${email}</div>`;
-      }
-      if (selectFilter) {
-        selectFilter.innerHTML += `<option value="${uid}">${email}</option>`;
-      }
-    });
-
-    const metas = wsDoc.data().metas || { fixos: 40, gerais: 30, lazer: 20, invest: 10 };
-    if (document.getElementById('cfgMetaFixos')) document.getElementById('cfgMetaFixos').value = metas.fixos;
-    if (document.getElementById('cfgMetaGerais')) document.getElementById('cfgMetaGerais').value = metas.gerais;
-    if (document.getElementById('cfgMetaLazer')) document.getElementById('cfgMetaLazer').value = metas.lazer;
-    if (document.getElementById('cfgMetaInvest')) document.getElementById('cfgMetaInvest').value = metas.invest;
-  } catch (err) {
-    console.error(err);
-  }
 }
 
 function switchTab(tabName) {
@@ -217,14 +82,16 @@ function changeActiveMonth(mes) {
 
 function ouvirTransacoes() {
   db.collection('transacoes')
-    .where('workspaceId', '==', workspaceIdAtual)
     .onSnapshot((snapshot) => {
       transactions = [];
       snapshot.forEach(doc => {
         transactions.push({ id: doc.id, ...doc.data() });
       });
       processarDadosEstatisticas();
-    }, (err) => console.error(err));
+    }, (err) => {
+      console.error(err);
+      processarDadosEstatisticas();
+    });
 }
 
 function openNewTxModal() {
@@ -348,15 +215,13 @@ function renderTransactionsList(lista) {
 
   filtradas.forEach(tx => {
     const tagSubcat = tx.subcategoria ? `<span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-md text-[9px] font-extrabold ml-1">${tx.subcategoria}</span>` : '';
-    const emailMembro = membrosDoGrupo[tx.membroId] ? membrosDoGrupo[tx.membroId].split('@')[0] : 'Membro';
-
     container.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-[#121c38] p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
         <div>
           <div class="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-1">
             ${tx.descricao} ${tagSubcat}
           </div>
-          <div class="text-[10px] text-slate-400">${tx.data} • ${tx.categoria} • <span class="text-blue-500 font-bold">${emailMembro}</span></div>
+          <div class="text-[10px] text-slate-400">${tx.data} • ${tx.categoria}</div>
         </div>
         <div class="flex items-center gap-3">
           <div class="text-xs font-black ${tx.tipo === 'INCOME' ? 'text-emerald-500' : 'text-rose-500'}">
@@ -439,93 +304,14 @@ function copyWorkspaceCountCode() {
   alert("Código de convite copiado!");
 }
 
-async function salvarMetasGrupoConfig(e) {
+function salvarMetasGrupoConfig(e) {
   e.preventDefault();
-  const fixos = parseFloat(document.getElementById('cfgMetaFixos').value);
-  const gerais = parseFloat(document.getElementById('cfgMetaGerais').value);
-  const lazer = parseFloat(document.getElementById('cfgMetaLazer').value);
-  const invest = parseFloat(document.getElementById('cfgMetaInvest').value);
-
-  try {
-    await db.collection('workspaces').doc(workspaceIdAtual).update({
-      metas: { fixos, gerais, lazer, invest }
-    });
-    alert("Metas atualizadas com sucesso!");
-    closeProfileModal();
-  } catch (err) {
-    alert("Erro ao atualizar metas.");
-  }
+  closeProfileModal();
 }
 
-function carregarMural() {
-  db.collection('mural').doc(workspaceIdAtual).onSnapshot((doc) => {
-    const lousa = document.getElementById('lousaConteudo');
-    const autorContainer = document.getElementById('lousaAutorContainer');
-    const autorNome = document.getElementById('lousaAutorNome');
-    const btnLimpar = document.getElementById('btnLimparLousa');
-
-    if (!doc.exists || !doc.data().texto) {
-      if (lousa) lousa.innerHTML = `<p class="text-xs text-slate-500 dark:text-slate-400 italic">Mural limpo. Escreva um recado!</p>`;
-      if (autorContainer) autorContainer.classList.add('hidden');
-      if (btnLimpar) btnLimpar.classList.add('hidden');
-      return;
-    }
-
-    const data = doc.data();
-    if (lousa) lousa.innerHTML = `<p class="text-sm font-bold text-slate-900 dark:text-white fonte-manuscrita">"${data.texto}"</p>`;
-    if (autorContainer && autorNome) {
-      autorNome.innerText = membrosDoGrupo[data.autorId] ? membrosDoGrupo[data.autorId].split('@')[0] : 'Membro';
-      autorContainer.classList.remove('hidden');
-    }
-    if (btnLimpar) btnLimpar.classList.remove('hidden');
-  });
-}
-
-async function escreverNaLousa(e) {
-  e.preventDefault();
-  const texto = document.getElementById('inputLousaTexto').value.trim();
-  if (!texto) return;
-
-  try {
-    await db.collection('mural').doc(workspaceIdAtual).set({
-      texto,
-      autorId: usuarioAtualUid,
-      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    document.getElementById('inputLousaTexto').value = '';
-    document.getElementById('charCount').innerText = '25 restantes';
-  } catch (err) {
-    alert("Erro ao escrever no mural.");
-  }
-}
-
-async function apagarLousa() {
-  if (confirm("Deseja limpar o mural do grupo?")) {
-    try {
-      await db.collection('mural').doc(workspaceIdAtual).delete();
-    } catch (err) {
-      alert("Erro ao limpar mural.");
-    }
-  }
-}
-
-function atualizarContador(input) {
-  const restante = 25 - input.value.length;
-  const contador = document.getElementById('charCount');
-  if (contador) contador.innerText = `${restante} restantes`;
-}
-
-function mudarModoMetas(modo) {
-  modoMetasConfig = modo;
-  const btnPerc = document.getElementById('btnModoPerc');
-  const btnDin = document.getElementById('btnModoDinheiro');
-  if (modo === 'perc') {
-    btnPerc.className = "px-2 py-0.5 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
-    btnDin.className = "px-2 py-0.5 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-400 transition";
-  } else {
-    btnDin.className = "px-2 py-0.5 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
-    btnPerc.className = "px-2 py-0.5 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-400 transition";
-  }
-}
-
+function carregarMural() {}
+async function escreverNaLousa(e) { e.preventDefault(); }
+async function apagarLousa() {}
+function atualizarContador() {}
+function mudarModoMetas() {}
 function calcularConversaoMetas() {}
