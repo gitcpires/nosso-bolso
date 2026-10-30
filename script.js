@@ -459,9 +459,14 @@ function ouvinteLousaGrupo() {
       const dados = docLousa.data();
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
+      // Verifica se há novo recado do outro membro após a última leitura guardada
       if (dados.userId && dados.userId !== currentUser.id) {
-        naoLidoMural = true;
-        atualizarBadgesNavegacao();
+        const muralTime = dados.createdAt ? (dados.createdAt.toMillis ? dados.createdAt.toMillis() : dados.createdAt) : 0;
+        const lastMuralView = parseInt(localStorage.getItem('lastMuralView_' + currentUser.id) || '0');
+        if (muralTime > lastMuralView) {
+          naoLidoMural = true;
+          atualizarBadgesNavegacao();
+        }
       }
 
       lousaConteudo.innerHTML = `
@@ -497,6 +502,7 @@ async function escreverNaLousa(e) {
         texto: texto,
         userId: currentUser.id,
         userEmail: currentUser.email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     } else {
@@ -535,15 +541,19 @@ function carregarDadosDoBanco() {
     .where('workspaceId', '==', currentWorkspace.id)
     .onSnapshot((snapshot) => {
       transactions = [];
+      const lastExtratoView = parseInt(localStorage.getItem('lastExtratoView_' + currentUser.id) || '0');
+      const lastInvestView = parseInt(localStorage.getItem('lastInvestView_' + currentUser.id) || '0');
+
       snapshot.forEach((doc) => {
         const data = doc.data();
         transactions.push({ id: doc.id, ...data });
 
         if (data.userId && data.userId !== currentUser.id) {
+          const txTime = data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : data.createdAt) : 0;
           if (data.cat === 'Investimentos') {
-            naoLidoInvest = true;
+            if (txTime > lastInvestView) naoLidoInvest = true;
           } else {
-            naoLidoExtrato = true;
+            if (txTime > lastExtratoView) naoLidoExtrato = true;
           }
         }
       });
@@ -568,7 +578,8 @@ async function handleSaveTransaction(e) {
     workspaceId: currentWorkspace.id,
     month: activeMonth,
     date,
-    confirmado: false 
+    confirmado: false,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
   await db.collection('transacoes').add(newTx);
@@ -924,9 +935,19 @@ function switchTab(tab) {
   const activeEl = document.getElementById(`tab-${tab}`);
   if (activeEl) activeEl.classList.remove('hidden');
 
-  if (tab === 'extrato') { naoLidoExtrato = false; renderTransactionsList(transactions.filter(t => t.month === activeMonth)); }
-  if (tab === 'invest') { naoLidoInvest = false; }
-  if (tab === 'mural') { naoLidoMural = false; }
+  if (tab === 'extrato') {
+    naoLidoExtrato = false;
+    localStorage.setItem('lastExtratoView_' + currentUser.id, Date.now());
+    renderTransactionsList(transactions.filter(t => t.month === activeMonth));
+  }
+  if (tab === 'invest') {
+    naoLidoInvest = false;
+    localStorage.setItem('lastInvestView_' + currentUser.id, Date.now());
+  }
+  if (tab === 'mural') {
+    naoLidoMural = false;
+    localStorage.setItem('lastMuralView_' + currentUser.id, Date.now());
+  }
   atualizarBadgesNavegacao();
 
   ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
