@@ -548,7 +548,7 @@ function carregarDadosDoBanco() {
         transactions.push({ id: doc.id, ...data });
 
         if (data.userId && data.userId !== currentUser.id) {
-          const txTime = data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : data.createdAt) : 0;
+          const txTime = data.createdAt ? (data.createdAt.toMillis ? data.createdAt.toMillis() : dados.createdAt) : 0;
           if (data.cat === 'Investimentos') {
             if (txTime > lastInvestView) naoLidoInvest = true;
           } else {
@@ -567,16 +567,22 @@ async function handleSaveTransaction(e) {
   const type = radioChecked ? radioChecked.value : 'EXPENSE';
   const desc = document.getElementById('txDesc').value.trim();
   const amount = parseFloat(document.getElementById('txAmount').value);
-  const date = document.getElementById('txDate').value;
+  const dateStr = document.getElementById('txDate').value; // Ex: "2026-11-01"
   const cat = document.getElementById('txCat').value;
+
+  // Converte a data escolhida para extrair o mês dinamicamente (ex: "Novembro 2026")
+  const partesData = dateStr.split('-');
+  const ano = partesData[0];
+  const mesIndex = parseInt(partesData[1], 10) - 1;
+  const mesCalculado = `${mesesNomes[mesIndex]} ${ano}`;
 
   const newTx = {
     desc, amount, type, cat,
     userId: currentUser.id,
     userEmail: currentUser.email,
     workspaceId: currentWorkspace.id,
-    month: activeMonth,
-    date,
+    month: mesCalculado, // Atribui automaticamente o mês baseado na data selecionada!
+    date: dateStr,
     confirmado: false,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
@@ -817,7 +823,6 @@ function renderTransactionsList(currentTx) {
     return matchSearch && matchMembro && matchCat;
   });
 
-  // Ordenação corrigida: do mais recente para o topo (tempo maior no topo)
   filtered.sort((a, b) => {
     const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
     const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
@@ -966,7 +971,7 @@ function switchTab(tab) {
   atualizarBadgesNavegacao();
 
   ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
-    const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
+    const_btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     if (btn) {
       btn.className = name === tab ? 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
     }
@@ -983,4 +988,4 @@ function openNewTxModal() {
 }
 function closeNewTxModal() { document.getElementById('newTxModal').classList.add('hidden'); }
 function copyWorkspaceCountCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
-function logout() { auth.signOut().then(() => window.location.href = 'index.html'); }
+function logout() { auth.signOut().then(() => window.location.replace('index.html')); }
