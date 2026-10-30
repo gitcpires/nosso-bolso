@@ -16,6 +16,12 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-4 sm:p-6 antialiased selection:bg-amber-500 selection:text-slate-950">
 
+  <!-- Ecrã de Carregamento Inicial -->
+  <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 text-white space-y-4">
+    <div class="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-xs font-bold tracking-wider text-slate-400">A validar permissões de Administrador...</p>
+  </div>
+
   <div class="max-w-4xl mx-auto space-y-6">
     <!-- Cabeçalho -->
     <div class="flex items-center justify-between bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-lg">
@@ -89,7 +95,8 @@
 
     let cacheUtilizadores = [];
 
-    async function validarE(user) {
+    // Ouve o estado de autenticação de forma estável
+    auth.onAuthStateChanged(async (user) => {
       if (!user) {
         window.location.replace("index.html");
         return;
@@ -103,26 +110,14 @@
           return;
         }
 
+        // Se for admin, esconde o ecrã de carregamento e carrega os dados
+        document.getElementById('loadingScreen').classList.add('hidden');
         carregarUtilizadores();
       } catch (err) {
         console.error("Erro ao validar admin:", err);
+        document.getElementById('loadingScreen').innerHTML = `<p class="text-xs text-rose-500 font-bold">Erro ao validar permissões.</p>`;
       }
-    }
-
-    let processado = false;
-
-    auth.onAuthStateChanged((user) => {
-      if (processado) return;
-      processado = true;
-      validarE(user);
     });
-
-    setTimeout(() => {
-      if (!processado) {
-        processado = true;
-        validarE(auth.currentUser);
-      }
-    }, 600);
 
     function carregarUtilizadores() {
       db.collection('users').onSnapshot((snapshot) => {
