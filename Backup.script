@@ -22,6 +22,7 @@ let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
 let lousaDocId = null;
 let modoMetasAtual = 'perc';
+let editingTxId = null; // Variável para controlar se estamos a editar uma transação existente
 
 auth.onAuthStateChanged(async (userAuth) => {
   if (!userAuth) {
@@ -108,7 +109,7 @@ function mudarModoMetas(modo) {
 function carregarDadosMetasNoConfig() {
   const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
   const currentTx = transactions.filter(t => t.month === activeMonth);
-  const income = currentTx.filter(t => t.type === 'INCOME' && t.confirmado === true).reduce((s, t) => s + t.amount, 0);
+  const income = currentTx.filter(t => (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra')).reduce((s, t) => s + t.amount, 0);
   const baseEntradas = income > 0 ? income : 1;
 
   ['Fixos', 'Gerais', 'Lazer', 'Invest'].forEach(catKey => {
@@ -139,7 +140,7 @@ function carregarDadosMetasNoConfig() {
 
 function calcularConversaoMetas(catKey) {
   const currentTx = transactions.filter(t => t.month === activeMonth);
-  const income = currentTx.filter(t => t.type === 'INCOME' && t.confirmado === true).reduce((s, t) => s + t.amount, 0);
+  const income = currentTx.filter(t => (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra')).reduce((s, t) => s + t.amount, 0);
   const baseEntradas = income > 0 ? income : 1;
 
   const inputEl = document.getElementById(`cfgMeta${catKey.charAt(0).toUpperCase() + catKey.slice(1)}`);
@@ -192,7 +193,7 @@ function calcularConversaoMetas(catKey) {
 async function salvarMetasGrupoConfig(e) {
   e.preventDefault();
   const currentTx = transactions.filter(t => t.month === activeMonth);
-  const income = currentTx.filter(t => t.type === 'INCOME' && t.confirmado === true).reduce((s, t) => s + t.amount, 0);
+  const income = currentTx.filter(t => (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra')).reduce((s, t) => s + t.amount, 0);
   const baseEntradas = income > 0 ? income : 1;
 
   let fixosInput = document.getElementById('cfgMetaFixos').value;
@@ -382,6 +383,11 @@ function initUserSession() {
   document.getElementById('headerWelcomeMsg').innerText = `Grupo: ${currentWorkspace.code}`;
   document.getElementById('profileWorkspaceCodeDisplay').innerText = currentWorkspace.code;
 
+  ['badgeExtrato', 'badgeInvest', 'badgeMural'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+
   renderAll();
   carregarDadosDoBanco();
   carregarMembrosDoGrupo();
@@ -488,6 +494,7 @@ async function escreverNaLousa(e) {
         texto: texto,
         userId: currentUser.id,
         userEmail: currentUser.email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     } else {
@@ -527,43 +534,91 @@ function carregarDadosDoBanco() {
     .onSnapshot((snapshot) => {
       transactions = [];
       snapshot.forEach((doc) => {
-        transactions.push({ id: doc.id, ...doc.data() });
+        const data = doc.data();
+        transactions.push({ id: doc.id, ...data });
       });
       renderAll();
     });
 }
 
-async function handleSaveTransaction(e) {
-  e.preventDefault();
-  const type = document.querySelector('input[name="txType"]:checked').value;
-  const desc = document.getElementById('txDesc').value.trim();
-  const amount = parseFloat(document.getElementById('txAmount').value);
-  const date = document.getElementById('txDate').value;
-  const cat = document.getElementById('txCat').value;
+function openNewTxModal() { 
+  editingTxId = null; // Assegura que é um novo registo
+  const modalTitle = document.getElementById('modalTxTitle');
+  if (modalTitle) modalTitle.innerText = "Novo Lançamento";
 
-  const newTx = {
-    desc, amount, type, cat,
-    userId: currentUser.id,
-    userEmail: currentUser.email,
-    workspaceId: currentWorkspace.id,
-    month: activeMonth,
-    date,
-    confirmado: false
-  };
+  const txDate = document.getElementById('txDate');
+  if (txDate) txDate.value = new Date().toISOString().split('T')[0];
 
-  await db.collection('transacoes').add(newTx);
-  closeNewTxModal();
-  document.getElementById('txForm').reset();
+  document.getElementById('txDesc').value = '';
+  document.getElementById('txAmount').value = '';
+
+  selecionarTipoTx('EXPENSE'); 
+  document.getElementById('newTxModal').classList.remove('hidden'); 
 }
 
-async function alternarConfirmacaoTx(id, estadoAtual) {
-  try {
-    await db.collection('transacoes').doc(id).update({
-      confirmado: !estadoAtual
-    });
-  } catch (err) {
-    alert("Erro ao alterar o estado de confirmação.");
+function openEditTransaction(id) {
+  const tx = transactions.find(t => t.id === id);
+  if (!tx) return;
+
+  editingTxId = id;
+  const modalTitle = document.getElementById('modalTxTitle');
+  if (modalTitle) modalTitle.innerText = "Editar Lançamento";
+
+  document.getElementById('txDesc').value = tx.desc;
+  document.getElementById('txAmount').value = tx.amount;
+  document.getElementById('txDate').value = tx.date || '';
+
+  const isIncome = tx.type === 'INCOME' || tx.cat === 'Salário' || tx.cat === 'Renda Extra';
+  selecionarTipoTx(isIncome ? 'INCOME' : 'EXPENSE');
+
+  setTimeout(() => {
+    document.getElementById('txCat').value = tx.cat;
+  }, 50);
+
+  document.getElementById('newTxModal').classList.remove('hidden');
+}
+
+function closeNewTxModal() { 
+  document.getElementById('newTxModal').classList.add('hidden'); 
+  editingTxId = null;
+}
+
+async function handleSaveTransaction(e) {
+  e.preventDefault();
+  const radioChecked = document.querySelector('input[name="txType"]:checked');
+  const type = radioChecked ? radioChecked.value : 'EXPENSE';
+  const desc = document.getElementById('txDesc').value.trim();
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  const dateStr = document.getElementById('txDate').value; 
+  const cat = document.getElementById('txCat').value;
+
+  const partesData = dateStr.split('-');
+  const ano = partesData[0];
+  const mesIndex = parseInt(partesData[1], 10) - 1;
+  const mesCalculado = `${mesesNomes[mesIndex]} ${ano}`;
+
+  const txData = {
+    desc, amount, type, cat,
+    month: mesCalculado,
+    date: dateStr,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  if (editingTxId) {
+    // Atualiza o documento existente
+    await db.collection('transacoes').doc(editingTxId).update(txData);
+  } else {
+    // Cria novo documento
+    txData.userId = currentUser.id;
+    txData.userEmail = currentUser.email;
+    txData.workspaceId = currentWorkspace.id;
+    txData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    await db.collection('transacoes').add(txData);
   }
+
+  closeNewTxModal();
+  document.getElementById('txForm').reset();
+  editingTxId = null;
 }
 
 async function deleteTransaction(id) {
@@ -586,16 +641,39 @@ function selecionarTipoTx(tipo) {
 }
 
 function toggleTxTypeUI() {
-  const type = document.querySelector('input[name="txType"][value="EXPENSE"]').checked ? 'EXPENSE' : 'INCOME';
-  // Mantém a UI de seleção dos botões de Entrada/Saída no modal
+  const radioEntrada = document.querySelector('input[name="txType"][value="INCOME"]');
+  const labelEntrada = document.getElementById('labelTabEntrada');
+  const labelSaida = document.getElementById('labelTabSaida');
+  const selectCat = document.getElementById('txCat');
+
+  if (!selectCat) return;
+
+  if (radioEntrada && radioEntrada.checked) {
+    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-emerald-600 shadow-2xs transition";
+    if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
+    
+    selectCat.innerHTML = `
+      <option value="Salário">💰 Salário</option>
+      <option value="Renda Extra">💵 Renda Extra</option>
+    `;
+  } else {
+    if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition";
+    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
+    
+    selectCat.innerHTML = `
+      <option value="Gastos Fixos">🏠 Gastos Fixos</option>
+      <option value="Gastos Gerais">🛒 Gastos Gerais</option>
+      <option value="Lazer">🎉 Lazer</option>
+      <option value="Investimentos">📈 Investimentos</option>
+    `;
+  }
 }
 
 function renderAll() {
   const currentTx = transactions.filter(t => t.month === activeMonth);
-  const txConfirmadas = currentTx.filter(t => t.confirmado === true);
 
-  const income = txConfirmadas.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
-  const expense = txConfirmadas.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
+  const income = currentTx.filter(t => t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra').reduce((s, t) => s + t.amount, 0);
+  const expense = currentTx.filter(t => t.type === 'EXPENSE' && t.cat !== 'Salário' && t.cat !== 'Renda Extra').reduce((s, t) => s + t.amount, 0);
   const balance = income - expense;
 
   const statIncome = document.getElementById('statIncome');
@@ -606,10 +684,10 @@ function renderAll() {
   if (statExpense) statExpense.innerText = `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
   if (statBalance) statBalance.innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
-  const fixed = txConfirmadas.filter(t => t.cat === 'Gastos Fixos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
-  const general = txConfirmadas.filter(t => t.cat === 'Gastos Gerais' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
-  const leisure = txConfirmadas.filter(t => t.cat === 'Lazer' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
-  const invest = txConfirmadas.filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE').reduce((a, b) => a + b.amount, 0);
+  const fixed = currentTx.filter(t => t.cat === 'Gastos Fixos').reduce((a, b) => a + b.amount, 0);
+  const general = currentTx.filter(t => t.cat === 'Gastos Gerais').reduce((a, b) => a + b.amount, 0);
+  const leisure = currentTx.filter(t => t.cat === 'Lazer').reduce((a, b) => a + b.amount, 0);
+  const invest = currentTx.filter(t => t.cat === 'Investimentos').reduce((a, b) => a + b.amount, 0);
 
   const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
@@ -763,18 +841,26 @@ function renderTransactionsList(currentTx) {
     return matchSearch && matchMembro && matchCat;
   });
 
+  filtered.sort((a, b) => {
+    const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
+    const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
+    if (timeA !== timeB) {
+      return timeB - timeA;
+    }
+    return new Date(b.date) - new Date(a.date);
+  });
+
   if (filtered.length === 0) {
     container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">Nenhuma movimentação encontrada neste mês com estes filtros.</div>`;
     return;
   }
 
   filtered.forEach(t => {
-    const isIncome = t.type === 'INCOME';
+    const isIncome = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
-    const isConfirmed = t.confirmado === true;
 
     container.innerHTML += `
-      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-300 bg-amber-50/30'} shadow-2xs">
+      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
         <div>
           <div class="text-xs font-extrabold text-slate-900">${t.desc} 
             <span class="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
@@ -782,20 +868,14 @@ function renderTransactionsList(currentTx) {
           </div>
           <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2">
             <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
-            ${!isConfirmed ? '<span class="text-[9px] text-amber-700 font-extrabold bg-amber-100 px-1.5 py-0.2 rounded">Pendente</span>' : '<span class="text-[9px] text-emerald-700 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">Confirmado</span>'}
+            <span class="text-[9px] text-emerald-700 font-extrabold bg-emerald-100 px-1.5 py-0.2 rounded">✓ Registado</span>
           </div>
         </div>
-        <div class="flex items-center gap-2.5">
-          <span class="text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-slate-900'}">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">
             ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
           </span>
-          
-          ${!isConfirmed ? `
-            <button onclick="alternarConfirmacaoTx('${t.id}', false)" title="Confirmar lançamento" class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-amber-500 text-white hover:bg-amber-600 animate-pulse transition shadow-2xs">
-              Confirmar
-            </button>
-          ` : ''}
-
+          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
           <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
@@ -804,14 +884,14 @@ function renderTransactionsList(currentTx) {
 }
 
 function renderInvestments(currentTx) {
-  const investConfirmadosMes = currentTx.filter(t => t.cat === 'Investimentos' && t.confirmado === true);
+  const investConfirmadosMes = currentTx.filter(t => t.cat === 'Investimentos');
   const totalMes = investConfirmadosMes.reduce((s, t) => s + t.amount, 0);
 
   const monthInvestEl = document.getElementById('monthInvestTotalHeader');
   if (monthInvestEl) monthInvestEl.innerText = `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
   const totalYearInvested = transactions
-    .filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE' && t.confirmado === true && (t.month.includes('2026') || (t.date && t.date.startsWith('2026'))))
+    .filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE' && (t.month.includes('2026') || (t.date && t.date.startsWith('2026'))))
     .reduce((sum, t) => sum + t.amount, 0);
 
   const yearHeader = document.getElementById('yearInvestTotalHeader');
@@ -823,6 +903,12 @@ function renderInvestments(currentTx) {
   if (!investList) return;
 
   const invests = currentTx.filter(t => t.cat === 'Investimentos');
+  invests.sort((a, b) => {
+    const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
+    const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
+    if (timeA !== timeB) return timeB - timeA;
+    return new Date(b.date) - new Date(a.date);
+  });
 
   if (invests.length === 0) {
     investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">Nenhum aporte registrado neste mês.</div>`;
@@ -831,18 +917,15 @@ function renderInvestments(currentTx) {
 
   investList.innerHTML = '';
   invests.forEach(t => {
-    const isConfirmed = t.confirmado === true;
     investList.innerHTML += `
-      <div class="flex items-center justify-between bg-white p-3 rounded-2xl border ${isConfirmed ? 'border-slate-200' : 'border-amber-300 bg-amber-50/30'} shadow-2xs">
+      <div class="flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
         <div>
           <div class="text-xs font-extrabold text-slate-900">${t.desc}</div>
-          <div class="text-[10px] text-slate-500">${t.date} ${!isConfirmed ? '• <span class="text-amber-700 font-bold">Pendente</span>' : ''}</div>
+          <div class="text-[10px] text-slate-500">${t.date}</div>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-xs font-black text-emerald-600">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
-          ${!isConfirmed ? `
-            <button onclick="alternarConfirmacaoTx('${t.id}', false)" class="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-amber-500 text-white animate-pulse">Confirmar</button>
-          ` : ''}
+          <span class="text-xs font-black text-rose-600">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
+          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
           <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
@@ -859,23 +942,19 @@ function switchTab(tab) {
   const activeEl = document.getElementById(`tab-${tab}`);
   if (activeEl) activeEl.classList.remove('hidden');
 
+  if (tab === 'extrato') {
+    renderTransactionsList(transactions.filter(t => t.month === activeMonth));
+  }
+
   ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     if (btn) {
-      btn.className = name === tab ? 'flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
+      btn.className = name === tab ? 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
     }
   });
 
-  if (tab === 'extrato') renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   if (tab === 'resumo') renderAll();
 }
 
-function openNewTxModal() { 
-  const txDate = document.getElementById('txDate');
-  if (txDate) txDate.value = new Date().toISOString().split('T')[0];
-  toggleTxTypeUI();
-  document.getElementById('newTxModal').classList.remove('hidden'); 
-}
-function closeNewTxModal() { document.getElementById('newTxModal').classList.add('hidden'); }
 function copyWorkspaceCountCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
-function logout() { auth.signOut().then(() => window.location.href = 'index.html'); }
+function logout() { auth.signOut().then(() => window.location.replace('index.html')); }
