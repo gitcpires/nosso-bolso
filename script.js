@@ -459,7 +459,6 @@ function ouvinteLousaGrupo() {
       const dados = docLousa.data();
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
-      // Verifica se há novo recado do outro membro após a última leitura guardada
       if (dados.userId && dados.userId !== currentUser.id) {
         const muralTime = dados.createdAt ? (dados.createdAt.toMillis ? dados.createdAt.toMillis() : dados.createdAt) : 0;
         const lastMuralView = parseInt(localStorage.getItem('lastMuralView_' + currentUser.id) || '0');
@@ -818,6 +817,9 @@ function renderTransactionsList(currentTx) {
     return matchSearch && matchMembro && matchCat;
   });
 
+  // Ordena para que o lançamento mais recente fique sempre no topo
+  filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
   if (filtered.length === 0) {
     container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">Nenhuma movimentação encontrada neste mês com estes filtros.</div>`;
     return;
@@ -878,6 +880,7 @@ function renderInvestments(currentTx) {
   if (!investList) return;
 
   const invests = currentTx.filter(t => t.cat === 'Investimentos');
+  invests.sort((a, b) => new Date(b.date) - new Date(a.date));
 
   if (invests.length === 0) {
     investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">Nenhum aporte registrado neste mês.</div>`;
