@@ -382,6 +382,12 @@ function initUserSession() {
   document.getElementById('headerWelcomeMsg').innerText = `Grupo: ${currentWorkspace.code}`;
   document.getElementById('profileWorkspaceCodeDisplay').innerText = currentWorkspace.code;
 
+  // Garante que as bolinhas de notificação do menu inferior ficam escondidas
+  ['badgeExtrato', 'badgeInvest', 'badgeMural'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+
   renderAll();
   carregarDadosDoBanco();
   carregarMembrosDoGrupo();
@@ -541,10 +547,9 @@ async function handleSaveTransaction(e) {
   const type = radioChecked ? radioChecked.value : 'EXPENSE';
   const desc = document.getElementById('txDesc').value.trim();
   const amount = parseFloat(document.getElementById('txAmount').value);
-  const dateStr = document.getElementById('txDate').value; // Ex: "2026-11-01"
+  const dateStr = document.getElementById('txDate').value; 
   const cat = document.getElementById('txCat').value;
 
-  // Converte a data escolhida para o mês por extenso correto
   const partesData = dateStr.split('-');
   const ano = partesData[0];
   const mesIndex = parseInt(partesData[1], 10) - 1;
@@ -555,7 +560,7 @@ async function handleSaveTransaction(e) {
     userId: currentUser.id,
     userEmail: currentUser.email,
     workspaceId: currentWorkspace.id,
-    month: mesCalculado, // Atribui automaticamente com base na data escolhida
+    month: mesCalculado,
     date: dateStr,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
@@ -902,7 +907,6 @@ function openNewTxModal() {
   const txDate = document.getElementById('txDate');
   if (txDate) txDate.value = new Date().toISOString().split('T')[0];
   selecionarTipoTx('EXPENSE'); 
-  document.getElementById('newTxModal').classList.add('hidden'); 
   document.getElementById('newTxModal').classList.remove('hidden'); 
 }
 function closeNewTxModal() { document.getElementById('newTxModal').classList.add('hidden'); }
