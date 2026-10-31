@@ -996,12 +996,12 @@ function renderTransactionsList(currentTx) {
   if (btnImportar) {
     const jaTemFixos = currentTx.some(t => t.cat === 'Gastos Fixos');
     if (jaTemFixos) {
-      btnImportar.innerText = "✓ Gastos Fixos já importados neste mês";
-      btnImportar.className = "w-full py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-2xl text-xs font-bold cursor-not-allowed flex items-center justify-center gap-2 shadow-none";
+      btnImportar.innerText = "✓ Fixos Importados";
+      btnImportar.className = "px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-xl text-[10px] font-bold cursor-not-allowed flex items-center gap-1.5 shadow-none";
       btnImportar.disabled = true;
     } else {
-      btnImportar.innerHTML = `<i class="fa-solid fa-file-arrow-down text-blue-400"></i> Importar Gastos Fixos do Mês Anterior`;
-      btnImportar.className = "w-full py-2.5 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm";
+      btnImportar.innerHTML = `<i class="fa-solid fa-file-arrow-down text-blue-500"></i> Importar Fixos do Mês Anterior`;
+      btnImportar.className = "px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-[10px] font-bold transition flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 shadow-2xs";
       btnImportar.disabled = false;
     }
   }
