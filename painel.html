@@ -191,6 +191,13 @@
 
     <!-- ABAS: EXTRATO -->
     <div id="tab-extrato" class="space-y-3 hidden">
+      <!-- Botão de Importar Gastos Fixos do Mês Anterior -->
+      <div>
+        <button id="btnImportarFixos" onclick="importarGastosFixosMesAnterior()" class="w-full py-2.5 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm">
+          <i class="fa-solid fa-file-arrow-down text-blue-400"></i> Importar Gastos Fixos do Mês Anterior
+        </button>
+      </div>
+
       <div class="flex gap-2">
         <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-2xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
       </div>
