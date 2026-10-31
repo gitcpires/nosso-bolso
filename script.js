@@ -100,10 +100,10 @@ function mudarModoMetas(modo) {
   
   if (modo === 'perc') {
     btnPerc.className = "px-2.5 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
-    btnDinheiro.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300 transition";
+    btnDinheiro.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 transition";
   } else {
     btnDinheiro.className = "px-2.5 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
-    btnPerc.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300 transition";
+    btnPerc.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 transition";
   }
   carregarDadosMetasNoConfig();
   calcularConversaoMetas('fixos');
@@ -448,9 +448,9 @@ async function carregarMembrosDoGrupo() {
       const ehVoce = emailMembro === currentUser.email ? ' (Você)' : '';
 
       containerMembros.innerHTML += `
-        <div class="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
-          <span class="font-bold text-slate-700 dark:text-slate-200 truncate text-[11px]"><i class="fa-solid fa-user-circle text-blue-500 mr-1.5"></i>${emailMembro}${ehVoce}</span>
-          <span class="text-[9px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
+        <div class="flex items-center justify-between p-2 bg-slate-50 rounded-xl border border-slate-200 shadow-2xs">
+          <span class="font-bold text-slate-700 truncate text-[11px]"><i class="fa-solid fa-user-circle text-blue-500 mr-1.5"></i>${emailMembro}${ehVoce}</span>
+          <span class="text-[9px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
         </div>
       `;
 
@@ -480,7 +480,7 @@ function ouvinteLousaGrupo() {
 
       if (snapshot.empty) {
         lousaDocId = null;
-        lousaConteudo.innerHTML = `<p class="text-xs text-slate-500 dark:text-slate-400 italic">Mural limpo. Escreva um recado!</p>`;
+        lousaConteudo.innerHTML = `<p class="text-xs text-slate-500 italic">Mural limpo. Escreva um recado!</p>`;
         lousaAutorContainer.classList.add('hidden');
         btnLimparLousa.classList.add('hidden');
         return;
@@ -492,8 +492,8 @@ function ouvinteLousaGrupo() {
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
       lousaConteudo.innerHTML = `
-        <div class="py-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xs rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 inline-block max-w-full">
-          <p class="text-xl sm:text-2xl font-extrabold tracking-wide text-slate-900 dark:text-white fonte-manuscrita break-words">"${dados.texto}"</p>
+        <div class="py-4 bg-white/90 backdrop-blur-xs rounded-2xl p-4 shadow-sm border border-slate-200 inline-block max-w-full">
+          <p class="text-xl sm:text-2xl font-extrabold tracking-wide text-slate-900 fonte-manuscrita break-words">"${dados.texto}"</p>
         </div>
       `;
       
@@ -693,16 +693,16 @@ function toggleTxTypeUI() {
   if (!selectCat) return;
 
   if (radioEntrada && radioEntrada.checked) {
-    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs transition";
-    if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 dark:text-slate-400 transition";
+    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-emerald-600 shadow-2xs transition";
+    if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
     
     selectCat.innerHTML = `
       <option value="Salário">💰 Salário</option>
       <option value="Renda Extra">💵 Renda Extra</option>
     `;
   } else {
-    if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-2xs transition";
-    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 dark:text-slate-400 transition";
+    if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white text-rose-600 shadow-2xs transition";
+    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 transition";
     
     selectCat.innerHTML = `
       <option value="Gastos Fixos">🏠 Gastos Fixos</option>
@@ -742,7 +742,7 @@ function renderAll() {
   const metaInvestVal = baseEntradas * (metas.invest / 100);
 
   const gerarBarraProgressoEStatus = (gasto, meta, corHex) => {
-    if (meta <= 0) return { html: `<div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-1"></div>`, texto: `<span class="text-[9px] text-slate-400 dark:text-slate-500 font-semibold">Sem renda cadastrada</span>` };
+    if (meta <= 0) return { html: `<div class="w-full bg-slate-200 h-1.5 rounded-full mt-1"></div>`, texto: `<span class="text-[9px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
     
     const pctGasto = (gasto / meta) * 100;
     const larguraPreenchida = Math.min(pctGasto, 100);
@@ -754,15 +754,15 @@ function renderAll() {
     const diferenca = meta - gasto;
     let textoStatus = '';
     if (diferenca >= 0) {
-      textoStatus = `<span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">Faltam R$ ${diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
+      textoStatus = `<span class="text-[9px] text-emerald-600 font-bold">Faltam R$ ${diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
     } else {
-      textoStatus = `<span class="text-[9px] text-rose-600 dark:text-rose-400 font-bold">Passou R$ ${Math.abs(diferenca).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
+      textoStatus = `<span class="text-[9px] text-rose-600 font-bold">Passou R$ ${Math.abs(diferenca).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
     }
 
     const htmlBarra = `
-      <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-1 relative overflow-hidden flex">
+      <div class="w-full bg-slate-200 h-1.5 rounded-full mt-1 relative overflow-hidden flex">
         <div class="h-full transition-all duration-300" style="width: ${larguraPreenchida}%; background-color: ${corHex};"></div>
-        <div class="bg-rose-600 dark:bg-rose-500 h-full transition-all duration-300" style="width: ${larguraUltrapassada}%"></div>
+        <div class="bg-rose-600 h-full transition-all duration-300" style="width: ${larguraUltrapassada}%"></div>
       </div>
     `;
 
@@ -774,7 +774,7 @@ function renderAll() {
   const resLazer = gerarBarraProgressoEStatus(leisure, metaLazerVal, '#8b5cf6');
   const resInvest = gerarBarraProgressoEStatus(invest, metaInvestVal, '#f59e0b');
 
-  const containerCat = document.getElementById('cardsCategoryContainer');
+    const containerCat = document.getElementById('cardsCategoryContainer');
   if (containerCat) {
     containerCat.innerHTML = `
       <div class="rounded-2xl bg-white dark:bg-slate-900 p-3 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
@@ -807,6 +807,7 @@ function renderAll() {
       </div>
     `;
   }
+
 
   const currentTxMes = transactions.filter(t => t.month === activeMonth);
   renderTransactionsList(currentTxMes);
@@ -896,7 +897,7 @@ function renderTransactionsList(currentTx) {
   });
 
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">Nenhuma movimentação encontrada neste mês com estes filtros.</div>`;
+    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">Nenhuma movimentação encontrada neste mês com estes filtros.</div>`;
     return;
   }
 
@@ -906,29 +907,29 @@ function renderTransactionsList(currentTx) {
     const confirmado = t.confirmado === true;
 
     container.innerHTML += `
-      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+      <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
         <div>
-          <div class="text-xs font-extrabold text-slate-900 dark:text-white">${t.desc} 
-            <span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
-            <span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
+          <div class="text-xs font-extrabold text-slate-900">${t.desc} 
+            <span class="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
+            <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
           </div>
-          <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
+          <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2">
             <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
             <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-2 py-0.5 rounded transition ${
               confirmado 
-                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 hover:bg-emerald-200' 
-                : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 hover:bg-amber-200 animate-pulse'
+                ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
+                : 'bg-amber-100 text-amber-700 hover:bg-amber-200 animate-pulse'
             }">
               ${confirmado ? '✓ Registado' : '⏳ Pendente (Clique p/ Confirmar)'}
             </button>
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-xs font-black whitespace-nowrap ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
+          <span class="text-xs font-black whitespace-nowrap ${isIncome ? 'text-emerald-600' : 'text-rose-600'}">
             ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
           </span>
-          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
-          <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
+          <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
     `;
@@ -963,7 +964,7 @@ function renderInvestments(currentTx) {
   });
 
   if (invests.length === 0) {
-    investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">Nenhum aporte registrado neste mês.</div>`;
+    investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">Nenhum aporte registrado neste mês.</div>`;
     return;
   }
 
@@ -971,22 +972,22 @@ function renderInvestments(currentTx) {
   invests.forEach(t => {
     const confirmado = t.confirmado === true;
     investList.innerHTML += `
-      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+      <div class="flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
         <div>
-          <div class="text-xs font-extrabold text-slate-900 dark:text-white">${t.desc}</div>
-          <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+          <div class="text-xs font-extrabold text-slate-900">${t.desc}</div>
+          <div class="text-[10px] text-slate-500 flex items-center gap-2 mt-0.5">
             <span>${t.date}</span>
             <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-1.5 py-0.2 rounded transition ${
-              confirmado ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+              confirmado ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
             }">
               ${confirmado ? '✓ Registado' : '⏳ Pendente'}
             </button>
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-xs font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
-          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
-          <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          <span class="text-xs font-black text-rose-600 whitespace-nowrap">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
+          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
+          <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
         </div>
       </div>
     `;
@@ -1009,7 +1010,7 @@ function switchTab(tab) {
   ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     if (btn) {
-      btn.className = name === tab ? 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95 py-0.5';
+      btn.className = name === tab ? 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 transition active:scale-95 py-0.5';
     }
   });
 
