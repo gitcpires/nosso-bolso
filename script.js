@@ -1016,5 +1016,26 @@ function switchTab(tab) {
   if (tab === 'resumo') renderAll();
 }
 
+function toggleDarkMode() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('nossoBolsoDarkMode', isDark ? 'enabled' : 'disabled');
+  atualizarIconeDarkMode(isDark);
+}
+
+function atualizarIconeDarkMode(isDark) {
+  const icon = document.getElementById('darkModeIcon');
+  if (icon) {
+    icon.className = isDark ? 'fa-solid fa-sun text-xs text-amber-400' : 'fa-solid fa-moon text-xs text-slate-700';
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const darkModePref = localStorage.getItem('nossoBolsoDarkMode');
+  if (darkModePref === 'enabled') {
+    document.documentElement.classList.add('dark');
+    atualizarIconeDarkMode(true);
+  }
+});
+
 function copyWorkspaceCountCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
 function logout() { auth.signOut().then(() => window.location.replace('index.html')); }
