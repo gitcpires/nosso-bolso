@@ -581,7 +581,6 @@ function openNewTxModal() {
 
   document.getElementById('txDesc').value = '';
   document.getElementById('txAmount').value = '';
-  document.getElementById('txSubcat').value = 'Cartão de Crédito';
 
   selecionarTipoTx('EXPENSE'); 
   document.getElementById('newTxModal').classList.remove('hidden'); 
@@ -598,7 +597,6 @@ function openEditTransaction(id) {
   document.getElementById('txDesc').value = tx.desc;
   document.getElementById('txAmount').value = tx.amount;
   document.getElementById('txDate').value = tx.date || '';
-  document.getElementById('txSubcat').value = tx.subcat || 'Cartão de Crédito';
 
   const isIncome = tx.type === 'INCOME' || tx.cat === 'Salário' || tx.cat === 'Renda Extra';
   selecionarTipoTx(isIncome ? 'INCOME' : 'EXPENSE');
@@ -623,7 +621,6 @@ async function handleSaveTransaction(e) {
   const amount = parseFloat(document.getElementById('txAmount').value);
   const dateStr = document.getElementById('txDate').value; 
   const cat = document.getElementById('txCat').value;
-  const subcat = document.getElementById('txSubcat').value;
 
   const partesData = dateStr.split('-');
   const ano = partesData[0];
@@ -631,7 +628,7 @@ async function handleSaveTransaction(e) {
   const mesCalculado = `${mesesNomes[mesIndex]} ${ano}`;
 
   const txData = {
-    desc, amount, type, cat, subcat,
+    desc, amount, type, cat,
     month: mesCalculado,
     date: dateStr,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -879,33 +876,15 @@ function renderTransactionsList(currentTx) {
   const search = (document.getElementById('searchExpense')?.value || '').toLowerCase();
   const filtroMembro = document.getElementById('filterMember')?.value || '';
   const filtroCat = document.getElementById('filterCategory')?.value || '';
-  const filtroSubcat = document.getElementById('filterSubcat')?.value || '';
 
   container.innerHTML = '';
   
   const filtered = currentTx.filter(t => {
-    const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search) || (t.subcat && t.subcat.toLowerCase().includes(search));
+    const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search);
     const matchMembro = filtroMembro === '' || t.userEmail === filtroMembro;
     const matchCat = filtroCat === '' || t.cat === filtroCat;
-    const matchSubcat = filtroSubcat === '' || t.subcat === filtroSubcat;
-    return matchSearch && matchMembro && matchCat && matchSubcat;
+    return matchSearch && matchMembro && matchCat;
   });
-
-  // Calcula o somatório total dos itens filtrados
-  let totalFiltrado = 0;
-  filtered.forEach(t => {
-    const isInc = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
-    if (t.confirmado) {
-      if (isInc) totalFiltrado += t.amount;
-      else totalFiltrado -= t.amount;
-    }
-  });
-
-  const filterTotalValueEl = document.getElementById('filterTotalValue');
-  if (filterTotalValueEl) {
-    filterTotalValueEl.innerText = `R$ ${totalFiltrado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-    filterTotalValueEl.className = `text-sm font-black ${totalFiltrado >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`;
-  }
 
   filtered.sort((a, b) => {
     const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
@@ -924,7 +903,6 @@ function renderTransactionsList(currentTx) {
   filtered.forEach(t => {
     const isIncome = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
-    const subcatTexto = t.subcat || 'PIX';
     const confirmado = t.confirmado === true;
 
     container.innerHTML += `
@@ -932,7 +910,6 @@ function renderTransactionsList(currentTx) {
         <div>
           <div class="text-xs font-extrabold text-slate-900 dark:text-white">${t.desc} 
             <span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
-            <span class="text-[9px] bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded font-bold">${subcatTexto}</span>
             <span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
           </div>
           <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
@@ -993,11 +970,10 @@ function renderInvestments(currentTx) {
   investList.innerHTML = '';
   invests.forEach(t => {
     const confirmado = t.confirmado === true;
-    const subcatTexto = t.subcat || 'PIX';
     investList.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
         <div>
-          <div class="text-xs font-extrabold text-slate-900 dark:text-white">${t.desc} <span class="text-[9px] bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded font-bold">${subcatTexto}</span></div>
+          <div class="text-xs font-extrabold text-slate-900 dark:text-white">${t.desc}</div>
           <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
             <span>${t.date}</span>
             <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-1.5 py-0.2 rounded transition ${
