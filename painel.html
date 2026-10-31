@@ -190,31 +190,42 @@
     </div>
 
     <!-- ABAS: EXTRATO -->
-    <div id="tab-extrato" class="space-y-3 hidden">
+    <div id="tab-extrato" class="space-y-2">
       <div class="flex gap-2">
-        <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-2xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
+        <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-600 shadow-2xs" />
       </div>
-      <div class="grid grid-cols-2 gap-2">
-        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
-          <option value="">👤 Todos Membros</option>
+
+      <!-- Filtros Compactos em Grid -->
+      <div class="grid grid-cols-3 gap-1.5">
+        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-2 py-2 text-[11px] font-bold focus:outline-none shadow-2xs">
+          <option value="">👤 Membros</option>
         </select>
-        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
-          <option value="">🏷️ Todas Categorias</option>
-          <option value="Gastos Fixos">Gastos Fixos</option>
-          <option value="Gastos Gerais">Gastos Gerais</option>
+        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-2 py-2 text-[11px] font-bold focus:outline-none shadow-2xs">
+          <option value="">🏷️ Categorias</option>
+          <option value="Gastos Fixos">Fixos</option>
+          <option value="Gastos Gerais">Gerais</option>
           <option value="Lazer">Lazer</option>
-          <option value="Investimentos">Investimentos</option>
+          <option value="Investimentos">Invest.</option>
         </select>
-      </div>
-      <div>
-        <select id="filterSubCategory" onchange="renderTransactionsList(transactions)" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
-          <option value="">💳 Todas Subcategorias</option>
-          <option value="Cartão de Crédito">Cartão de Crédito</option>
+        <select id="filterSubCategory" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-2 py-2 text-[11px] font-bold focus:outline-none shadow-2xs">
+          <option value="">💳 Pagamento</option>
+          <option value="Cartão de Crédito">Cartão</option>
           <option value="PIX">PIX</option>
           <option value="Dinheiro">Dinheiro</option>
-          <option value="Transferência">Transferência</option>
+          <option value="Transferência">Transf.</option>
         </select>
       </div>
+
+      <!-- Caixa de Total do Filtro -->
+      <div id="filterTotalBox" class="bg-blue-50 dark:bg-slate-800 p-2.5 rounded-xl border border-blue-100 dark:border-slate-700 flex items-center justify-between hidden">
+        <span class="text-[10px] font-extrabold text-blue-900 dark:text-blue-300 uppercase">Total do Filtro:</span>
+        <span id="filterTotalValue" class="text-xs font-black text-blue-700 dark:text-blue-400">R$ 0,00</span>
+      </div>
+      
+      <div id="txListContainer" class="space-y-2 pt-1"></div>
+    </div>
+
+      
       <!-- Caixa de Total do Filtro -->
       <div id="filterTotalBox" class="bg-blue-50 dark:bg-slate-800 p-3 rounded-2xl border border-blue-100 dark:border-slate-700 flex items-center justify-between hidden">
         <span class="text-[10px] font-extrabold text-blue-900 dark:text-blue-300 uppercase">Total do Filtro:</span>
