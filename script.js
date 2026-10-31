@@ -774,39 +774,40 @@ function renderAll() {
   const resLazer = gerarBarraProgressoEStatus(leisure, metaLazerVal, '#8b5cf6');
   const resInvest = gerarBarraProgressoEStatus(invest, metaInvestVal, '#f59e0b');
 
-  const containerCat = document.getElementById('cardsCategoryContainer');
+    const containerCat = document.getElementById('cardsCategoryContainer');
   if (containerCat) {
     containerCat.innerHTML = `
-      <div class="rounded-2xl bg-white p-3 border border-slate-200 shadow-2xs space-y-1">
-        <span class="text-[9px] font-extrabold text-slate-400 uppercase block">Gastos Fixos</span>
-        <div class="text-xs sm:text-sm font-black text-slate-900">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 font-bold">Meta (${metas.fixos.toFixed(1)}%): R$ ${metaFixosVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+      <div class="rounded-2xl bg-white dark:bg-slate-900 p-3 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+        <span class="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase block">Gastos Fixos</span>
+        <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-bold">Meta (${metas.fixos.toFixed(1)}%): R$ ${metaFixosVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div>${resFixos.texto}</div>
         ${resFixos.html}
       </div>
-      <div class="rounded-2xl bg-white p-3 border border-slate-200 shadow-2xs space-y-1">
-        <span class="text-[9px] font-extrabold text-slate-400 uppercase block">Gastos Gerais</span>
-        <div class="text-xs sm:text-sm font-black text-slate-900">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 font-bold">Meta (${metas.gerais.toFixed(1)}%): R$ ${metaGeraisVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+      <div class="rounded-2xl bg-white dark:bg-slate-900 p-3 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+        <span class="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase block">Gastos Gerais</span>
+        <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-bold">Meta (${metas.gerais.toFixed(1)}%): R$ ${metaGeraisVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div>${resGerais.texto}</div>
         ${resGerais.html}
       </div>
-      <div class="rounded-2xl bg-white p-3 border border-slate-200 shadow-2xs space-y-1">
-        <span class="text-[9px] font-extrabold text-slate-400 uppercase block">Lazer</span>
-        <div class="text-xs sm:text-sm font-black text-slate-900">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 font-bold">Meta (${metas.lazer.toFixed(1)}%): R$ ${metaLazerVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+      <div class="rounded-2xl bg-white dark:bg-slate-900 p-3 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+        <span class="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase block">Lazer</span>
+        <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-bold">Meta (${metas.lazer.toFixed(1)}%): R$ ${metaLazerVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div>${resLazer.texto}</div>
         ${resLazer.html}
       </div>
-      <div class="rounded-2xl bg-white p-3 border border-slate-200 shadow-2xs space-y-1">
-        <span class="text-[9px] font-extrabold text-slate-400 uppercase block">Investimentos</span>
-        <div class="text-xs sm:text-sm font-black text-emerald-600">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 font-bold">Meta (${metas.invest.toFixed(1)}%): R$ ${metaInvestVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+      <div class="rounded-2xl bg-white dark:bg-slate-900 p-3 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+        <span class="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase block">Investimentos</span>
+        <div class="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-bold">Meta (${metas.invest.toFixed(1)}%): R$ ${metaInvestVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
         <div>${resInvest.texto}</div>
         ${resInvest.html}
       </div>
     `;
   }
+
 
   const currentTxMes = transactions.filter(t => t.month === activeMonth);
   renderTransactionsList(currentTxMes);
