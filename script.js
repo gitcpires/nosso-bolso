@@ -719,6 +719,78 @@ function toggleTxTypeUI() {
   }
 }
 
+async function importarGastosFixosMesAnterior() {
+  const [nomeMesAtual, anoAtualStr] = activeMonth.split(' ');
+  const indexMesAtual = mesesNomes.indexOf(nomeMesAtual);
+  
+  let indexMesAnterior = indexMesAtual - 1;
+  let anoAnterior = parseInt(anoAtualStr, 10);
+  
+  if (indexMesAnterior < 0) {
+    indexMesAnterior = 11;
+    anoAnterior -= 1;
+  }
+  const mesAnteriorStr = `${mesesNomes[indexMesAnterior]} ${anoAnterior}`;
+
+  const jaExistemNoAtual = transactions.some(t => t.month === activeMonth && t.cat === 'Gastos Fixos');
+  if (jaExistemNoAtual) {
+    alert(`⚠️ Os gastos fixos deste mês (${activeMonth}) já foram importados anteriormente.`);
+    return;
+  }
+
+  const gastosFixosAnteriores = transactions.filter(t => t.month === mesAnteriorStr && t.cat === 'Gastos Fixos');
+
+  if (gastosFixosAnteriores.length === 0) {
+    alert(`Nenhum gasto fixo encontrado no mês anterior (${mesAnteriorStr}) para importar.`);
+    return;
+  }
+
+  const confirmacao = confirm(`Deseja importar ${gastosFixosAnteriores.length} gasto(s) fixo(s) de ${mesAnteriorStr} para ${activeMonth}? Eles entrarão como pendentes.`);
+  if (!confirmacao) return;
+
+  try {
+    const batch = db.batch();
+
+    gastosFixosAnteriores.forEach(txAntiga => {
+      const novoDocRef = db.collection('transacoes').doc();
+      
+      let novaDataStr = txAntiga.date;
+      if (novaDataStr && novaDataStr.length === 10) {
+        const partesDia = novaDataStr.split('-');
+        const diaOriginal = partesDia[2];
+        const novoMesNum = String(indexMesAtual + 1).padStart(2, '0');
+        novaDataStr = `${anoAtualStr}-${novoMesNum}-${diaOriginal}`;
+      } else {
+        novaDataStr = new Date().toISOString().split('T')[0];
+      }
+
+      const novaTx = {
+        desc: txAntiga.desc,
+        amount: txAntiga.amount,
+        type: txAntiga.type || 'EXPENSE',
+        cat: 'Gastos Fixos',
+        subCat: txAntiga.subCat || 'Cartão de Crédito',
+        month: activeMonth,
+        date: novaDataStr,
+        confirmado: false,
+        userId: currentUser.id,
+        userEmail: currentUser.email,
+        workspaceId: currentWorkspace.id,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      batch.set(novoDocRef, novaTx);
+    });
+
+    await batch.commit();
+    alert(`Gastos fixos importados com sucesso para ${activeMonth}!`);
+    
+  } catch (err) {
+    console.error("Erro ao importar gastos fixos:", err);
+    alert("Erro ao tentar importar os gastos fixos. Tente novamente.");
+  }
+}
+
 function renderAll() {
   const currentTxConfirmadas = transactions.filter(t => t.month === activeMonth && t.confirmado);
 
@@ -917,6 +989,21 @@ function renderTransactionsList(currentTx) {
     if (filterTotalBox) filterTotalBox.classList.remove('hidden');
   } else {
     if (filterTotalBox) filterTotalBox.classList.add('hidden');
+  }
+
+  // Trava visual no botão de importar fixos
+  const btnImportar = document.getElementById('btnImportarFixos');
+  if (btnImportar) {
+    const jaTemFixos = currentTx.some(t => t.cat === 'Gastos Fixos');
+    if (jaTemFixos) {
+      btnImportar.innerText = "✓ Gastos Fixos já importados neste mês";
+      btnImportar.className = "w-full py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-2xl text-xs font-bold cursor-not-allowed flex items-center justify-center gap-2 shadow-none";
+      btnImportar.disabled = true;
+    } else {
+      btnImportar.innerHTML = `<i class="fa-solid fa-file-arrow-down text-blue-400"></i> Importar Gastos Fixos do Mês Anterior`;
+      btnImportar.className = "w-full py-2.5 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm";
+      btnImportar.disabled = false;
+    }
   }
 
   if (filtered.length === 0) {
