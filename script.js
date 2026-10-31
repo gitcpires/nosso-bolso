@@ -77,7 +77,6 @@ auth.onAuthStateChanged(async (userAuth) => {
 
 function getMetasAtuais() {
   if (!currentWorkspace.metasPorMes) currentWorkspace.metasPorMes = {};
-  // Retorna as metas do mês ativo ou um padrão de 50/30/10/10 caso não existam para este mês específico
   return currentWorkspace.metasPorMes[activeMonth] || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 }
 
@@ -243,7 +242,6 @@ async function salvarMetasGrupoConfig(e) {
     if (!currentWorkspace.metasPorMes) currentWorkspace.metasPorMes = {};
     currentWorkspace.metasPorMes[activeMonth] = novasMetasMes;
 
-    // Salva na propriedade específica do mês no Firestore
     await db.collection('workspaces').doc(currentWorkspace.id).set({
       metasPorMes: currentWorkspace.metasPorMes
     }, { merge: true });
@@ -743,14 +741,16 @@ function renderAll() {
   const metaLazerVal = baseEntradas * (metas.lazer / 100);
   const metaInvestVal = baseEntradas * (metas.invest / 100);
 
-  const gerarBarraProgressoEStatus = (gasto, meta) => {
+  // Função geradora de barra com cor correspondente do gráfico
+  // Cores: Fixos = #3b82f6 (Azul), Gerais = #10b981 (Verde), Lazer = #8b5cf6 (Roxo), Investimentos = #f59e0b (Laranja)
+  const gerarBarraProgressoEStatus = (gasto, meta, corHex) => {
     if (meta <= 0) return { html: `<div class="w-full bg-slate-200 h-1.5 rounded-full mt-1"></div>`, texto: `<span class="text-[9px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
     
     const pctGasto = (gasto / meta) * 100;
-    const larguraVerde = Math.min(pctGasto, 100);
-    let larguraVermelha = 0;
+    const larguraPreenchida = Math.min(pctGasto, 100);
+    let larguraUltrapassada = 0;
     if (pctGasto > 100) {
-      larguraVermelha = Math.min(pctGasto - 100, 100);
+      larguraUltrapassada = Math.min(pctGasto - 100, 100);
     }
 
     const diferenca = meta - gasto;
@@ -763,18 +763,18 @@ function renderAll() {
 
     const htmlBarra = `
       <div class="w-full bg-slate-200 h-1.5 rounded-full mt-1 relative overflow-hidden flex">
-        <div class="bg-emerald-500 h-full transition-all duration-300" style="width: ${larguraVerde}%"></div>
-        <div class="bg-rose-600 h-full transition-all duration-300" style="width: ${larguraVermelha}%"></div>
+        <div class="h-full transition-all duration-300" style="width: ${larguraPreenchida}%; background-color: ${corHex};"></div>
+        <div class="bg-rose-600 h-full transition-all duration-300" style="width: ${larguraUltrapassada}%"></div>
       </div>
     `;
 
     return { html: htmlBarra, texto: textoStatus };
   };
 
-  const resFixos = gerarBarraProgressoEStatus(fixed, metaFixosVal);
-  const resGerais = gerarBarraProgressoEStatus(general, metaGeraisVal);
-  const resLazer = gerarBarraProgressoEStatus(leisure, metaLazerVal);
-  const resInvest = gerarBarraProgressoEStatus(invest, metaInvestVal);
+  const resFixos = gerarBarraProgressoEStatus(fixed, metaFixosVal, '#3b82f6');
+  const resGerais = gerarBarraProgressoEStatus(general, metaGeraisVal, '#10b981');
+  const resLazer = gerarBarraProgressoEStatus(leisure, metaLazerVal, '#8b5cf6');
+  const resInvest = gerarBarraProgressoEStatus(invest, metaInvestVal, '#f59e0b');
 
   const containerCat = document.getElementById('cardsCategoryContainer');
   if (containerCat) {
@@ -998,7 +998,7 @@ function renderInvestments(currentTx) {
 function switchTab(tab) {
   ['resumo', 'extrato', 'invest', 'mural'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.add('hidden');
+    if (el) el.classList.0 ? el.classList.add('hidden') : el.classList.add('hidden');
   });
 
   const activeEl = document.getElementById(`tab-${tab}`);
