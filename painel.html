@@ -1,4 +1,4 @@
-<!<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -194,17 +194,31 @@
       <div class="flex gap-2">
         <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-2xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600" />
       </div>
-      <div class="flex gap-2">
-        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="w-1/2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
-          <option value="">👤 Todos os Membros</option>
+      <div class="grid grid-cols-2 gap-2">
+        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
+          <option value="">👤 Todos Membros</option>
         </select>
-        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="w-1/2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
+        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
           <option value="">🏷️ Todas Categorias</option>
           <option value="Gastos Fixos">Gastos Fixos</option>
           <option value="Gastos Gerais">Gastos Gerais</option>
           <option value="Lazer">Lazer</option>
           <option value="Investimentos">Investimentos</option>
         </select>
+      </div>
+      <div>
+        <select id="filterSubCategory" onchange="renderTransactionsList(transactions)" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
+          <option value="">💳 Todas Subcategorias</option>
+          <option value="Cartão de Crédito">Cartão de Crédito</option>
+          <option value="PIX">PIX</option>
+          <option value="Dinheiro">Dinheiro</option>
+          <option value="Transferência">Transferência</option>
+        </select>
+      </div>
+      <!-- Caixa de Total do Filtro -->
+      <div id="filterTotalBox" class="bg-blue-50 dark:bg-slate-800 p-3 rounded-2xl border border-blue-100 dark:border-slate-700 flex items-center justify-between hidden">
+        <span class="text-[10px] font-extrabold text-blue-900 dark:text-blue-300 uppercase">Total do Filtro:</span>
+        <span id="filterTotalValue" class="text-xs font-black text-blue-700 dark:text-blue-400">R$ 0,00</span>
       </div>
       <div id="txListContainer" class="space-y-2"></div>
     </div>
@@ -332,6 +346,16 @@
             <option value="Gastos Gerais">Gastos Gerais</option>
             <option value="Lazer">Lazer</option>
             <option value="Investimentos">Investimentos</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Subcategoria (Forma de Pagamento)</label>
+          <select id="txSubCat" required class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white dark:bg-slate-800 dark:text-white">
+            <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+            <option value="PIX">⚡ PIX</option>
+            <option value="Dinheiro">💵 Dinheiro</option>
+            <option value="Transferência">🏦 Transferência</option>
           </select>
         </div>
 
