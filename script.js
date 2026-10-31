@@ -11,7 +11,7 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let currentWorkspace = { id: '', code: '', metasPorMes: {} };
+let currentWorkspace = { id: '', code: '', metas: { fixos: 50, gerais: 30, lazer: 10, invest: 10 } };
 let currentUser = { id: '', name: '', email: '' };
 let transactions = [];
 const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -66,6 +66,10 @@ auth.onAuthStateChanged(async (userAuth) => {
     currentWorkspace.id = userData.workspaceId;
     currentWorkspace.code = userData.workspaceCode || '----';
 
+    if (userData.metas) {
+      currentWorkspace.metas = userData.metas;
+    }
+
     document.getElementById('loadingScreen').classList.add('hidden');
     initUserSession();
 
@@ -75,15 +79,8 @@ auth.onAuthStateChanged(async (userAuth) => {
   }
 });
 
-function getMetasAtuais() {
-  if (!currentWorkspace.metasPorMes) currentWorkspace.metasPorMes = {};
-  return currentWorkspace.metasPorMes[activeMonth] || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
-}
-
 function openProfileModal() {
   document.getElementById('profileModal').classList.remove('hidden');
-  const labelMesModal = document.getElementById('labelModalMetasMes');
-  if (labelMesModal) labelMesModal.innerText = `Definir Metas (${activeMonth})`;
   carregarMembrosDoGrupo();
   carregarDadosMetasNoConfig();
   calcularConversaoMetas('fixos');
@@ -110,7 +107,7 @@ function mudarModoMetas(modo) {
 }
 
 function carregarDadosMetasNoConfig() {
-  const metas = getMetasAtuais();
+  const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
   const currentTx = transactions.filter(t => t.month === activeMonth && t.confirmado);
   const income = currentTx.filter(t => (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra')).reduce((s, t) => s + t.amount, 0);
   const baseEntradas = income > 0 ? income : 1;
@@ -238,19 +235,14 @@ async function salvarMetasGrupoConfig(e) {
   errorDiv.classList.add('hidden');
 
   try {
-    const novasMetasMes = { fixos, gerais, lazer, invest };
-    if (!currentWorkspace.metasPorMes) currentWorkspace.metasPorMes = {};
-    currentWorkspace.metasPorMes[activeMonth] = novasMetasMes;
-
-    await db.collection('workspaces').doc(currentWorkspace.id).set({
-      metasPorMes: currentWorkspace.metasPorMes
-    }, { merge: true });
+    const novasMetas = { fixos, gerais, lazer, invest };
+    await db.collection('users').doc(currentUser.id).update({ metas: novasMetas });
+    currentWorkspace.metas = novasMetas;
 
     closeProfileModal();
     renderAll();
-    alert(`Metas de ${activeMonth} atualizadas para todo o grupo com sucesso!`);
+    alert("Metas atualizadas com sucesso!");
   } catch (err) {
-    console.error(err);
     alert("Erro ao salvar metas.");
   }
 }
@@ -273,7 +265,8 @@ async function deixarGrupo() {
 
     await db.collection('users').doc(uidAtual).update({
       workspaceId: firebase.firestore.FieldValue.delete(),
-      workspaceCode: firebase.firestore.FieldValue.delete()
+      workspaceCode: firebase.firestore.FieldValue.delete(),
+      metas: firebase.firestore.FieldValue.delete()
     });
 
     if (éOUltimo) {
@@ -283,9 +276,6 @@ async function deixarGrupo() {
 
       const lousaQuery = await db.collection('lousa').where('workspaceId', '==', wsIdAtual).get();
       lousaQuery.forEach(doc => batch.delete(doc.ref));
-
-      const wsRef = db.collection('workspaces').doc(wsIdAtual);
-      batch.delete(wsRef);
 
       await batch.commit();
     }
@@ -307,7 +297,7 @@ async function criarNovoWorkspace() {
 
     while (codigoExiste && tentativas < 10) {
       novoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
-      const checkQuery = await db.collection('workspaces').where('code', '==', novoCodigo).get();
+      const checkQuery = await db.collection('users').where('workspaceCode', '==', novoCodigo).get();
       if (checkQuery.empty) {
         codigoExiste = false;
       }
@@ -317,22 +307,17 @@ async function criarNovoWorkspace() {
     const workspaceId = 'ws_' + currentUser.id;
     const metasPadrao = { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
-    await db.collection('workspaces').doc(workspaceId).set({
-      code: novoCodigo,
-      metasPorMes: { [activeMonth]: metasPadrao },
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
     await db.collection('users').doc(currentUser.id).set({
       workspaceId: workspaceId,
       workspaceCode: novoCodigo,
+      metas: metasPadrao,
       email: currentUser.email,
       status: 'approved'
     }, { merge: true });
 
     currentWorkspace.id = workspaceId;
     currentWorkspace.code = novoCodigo;
-    currentWorkspace.metasPorMes = { [activeMonth]: metasPadrao };
+    currentWorkspace.metas = metasPadrao;
 
     document.getElementById('setupWorkspaceModal').classList.add('hidden');
     initUserSession();
@@ -351,28 +336,28 @@ async function entrarGrupoExistente() {
 
   try {
     mostrarSetupMsg("A procurar grupo...", "info");
-    const wsQuery = await db.collection('workspaces').where('code', '==', codigoInput).get();
+    const wsQuery = await db.collection('users').where('workspaceCode', '==', codigoInput).get();
 
     if (wsQuery.empty) {
       mostrarSetupMsg("Código de grupo não encontrado. Verifique com o seu familiar/sócio.", "erro");
       return;
     }
 
-    const wsDoc = wsQuery.docs[0];
-    const targetWorkspaceId = wsDoc.id;
-    const wsData = wsDoc.data();
-    const metasPorMesGrupo = wsData.metasPorMes || {};
+    const wsData = wsQuery.docs[0].data();
+    const targetWorkspaceId = wsData.workspaceId;
+    const metasGrupo = wsData.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
     await db.collection('users').doc(currentUser.id).set({
       workspaceId: targetWorkspaceId,
       workspaceCode: codigoInput,
+      metas: metasGrupo,
       email: currentUser.email,
       status: 'approved'
     }, { merge: true });
 
     currentWorkspace.id = targetWorkspaceId;
     currentWorkspace.code = codigoInput;
-    currentWorkspace.metasPorMes = metasPorMesGrupo;
+    currentWorkspace.metas = metasGrupo;
 
     document.getElementById('setupWorkspaceModal').classList.add('hidden');
     initUserSession();
@@ -405,23 +390,8 @@ function initUserSession() {
 
   renderAll();
   carregarDadosDoBanco();
-  ouvinteWorkspaceWorkspace();
   carregarMembrosDoGrupo();
   ouvinteLousaGrupo();
-}
-
-function ouvinteWorkspaceWorkspace() {
-  if (!currentWorkspace.id) return;
-  db.collection('workspaces').doc(currentWorkspace.id)
-    .onSnapshot((doc) => {
-      if (doc.exists) {
-        const data = doc.data();
-        if (data.metasPorMes) {
-          currentWorkspace.metasPorMes = data.metasPorMes;
-          renderAll();
-        }
-      }
-    });
 }
 
 async function carregarMembrosDoGrupo() {
@@ -637,6 +607,7 @@ async function handleSaveTransaction(e) {
   if (editingTxId) {
     await db.collection('transacoes').doc(editingTxId).update(txData);
   } else {
+    // Novos lançamentos começam sempre pendentes (confirmado: false)
     txData.confirmado = false;
     txData.userId = currentUser.id;
     txData.userEmail = currentUser.email;
@@ -714,6 +685,7 @@ function toggleTxTypeUI() {
 }
 
 function renderAll() {
+  // Apenas transações confirmadas alimentam o resumo, gráficos e metas
   const currentTxConfirmadas = transactions.filter(t => t.month === activeMonth && t.confirmado);
 
   const income = currentTxConfirmadas.filter(t => t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra').reduce((s, t) => s + t.amount, 0);
@@ -733,7 +705,7 @@ function renderAll() {
   const leisure = currentTxConfirmadas.filter(t => t.cat === 'Lazer').reduce((a, b) => a + b.amount, 0);
   const invest = currentTxConfirmadas.filter(t => t.cat === 'Investimentos').reduce((a, b) => a + b.amount, 0);
 
-  const metas = getMetasAtuais();
+  const metas = currentWorkspace.metas || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
   const baseEntradas = income > 0 ? income : 1; 
   const metaFixosVal = baseEntradas * (metas.fixos / 100);
@@ -741,16 +713,14 @@ function renderAll() {
   const metaLazerVal = baseEntradas * (metas.lazer / 100);
   const metaInvestVal = baseEntradas * (metas.invest / 100);
 
-  // Função geradora de barra com cor correspondente do gráfico
-  // Cores: Fixos = #3b82f6 (Azul), Gerais = #10b981 (Verde), Lazer = #8b5cf6 (Roxo), Investimentos = #f59e0b (Laranja)
-  const gerarBarraProgressoEStatus = (gasto, meta, corHex) => {
+  const gerarBarraProgressoEStatus = (gasto, meta) => {
     if (meta <= 0) return { html: `<div class="w-full bg-slate-200 h-1.5 rounded-full mt-1"></div>`, texto: `<span class="text-[9px] text-slate-400 font-semibold">Sem renda cadastrada</span>` };
     
     const pctGasto = (gasto / meta) * 100;
-    const larguraPreenchida = Math.min(pctGasto, 100);
-    let larguraUltrapassada = 0;
+    const larguraVerde = Math.min(pctGasto, 100);
+    let larguraVermelha = 0;
     if (pctGasto > 100) {
-      larguraUltrapassada = Math.min(pctGasto - 100, 100);
+      larguraVermelha = Math.min(pctGasto - 100, 100);
     }
 
     const diferenca = meta - gasto;
@@ -763,18 +733,18 @@ function renderAll() {
 
     const htmlBarra = `
       <div class="w-full bg-slate-200 h-1.5 rounded-full mt-1 relative overflow-hidden flex">
-        <div class="h-full transition-all duration-300" style="width: ${larguraPreenchida}%; background-color: ${corHex};"></div>
-        <div class="bg-rose-600 h-full transition-all duration-300" style="width: ${larguraUltrapassada}%"></div>
+        <div class="bg-emerald-500 h-full transition-all duration-300" style="width: ${larguraVerde}%"></div>
+        <div class="bg-rose-600 h-full transition-all duration-300" style="width: ${larguraVermelha}%"></div>
       </div>
     `;
 
     return { html: htmlBarra, texto: textoStatus };
   };
 
-  const resFixos = gerarBarraProgressoEStatus(fixed, metaFixosVal, '#3b82f6');
-  const resGerais = gerarBarraProgressoEStatus(general, metaGeraisVal, '#10b981');
-  const resLazer = gerarBarraProgressoEStatus(leisure, metaLazerVal, '#8b5cf6');
-  const resInvest = gerarBarraProgressoEStatus(invest, metaInvestVal, '#f59e0b');
+  const resFixos = gerarBarraProgressoEStatus(fixed, metaFixosVal);
+  const resGerais = gerarBarraProgressoEStatus(general, metaGeraisVal);
+  const resLazer = gerarBarraProgressoEStatus(leisure, metaLazerVal);
+  const resInvest = gerarBarraProgressoEStatus(invest, metaInvestVal);
 
   const containerCat = document.getElementById('cardsCategoryContainer');
   if (containerCat) {
@@ -938,6 +908,7 @@ function renderTransactionsList(currentTx) {
 }
 
 function renderInvestments(currentTx) {
+  // Apenas investimentos confirmados contam para os totais
   const investConfirmadosMes = currentTx.filter(t => t.cat === 'Investimentos' && t.confirmado);
   const totalMes = investConfirmadosMes.reduce((s, t) => s + t.amount, 0);
 
@@ -998,7 +969,7 @@ function renderInvestments(currentTx) {
 function switchTab(tab) {
   ['resumo', 'extrato', 'invest', 'mural'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.0 ? el.classList.add('hidden') : el.classList.add('hidden');
+    if (el) el.classList.add('hidden');
   });
 
   const activeEl = document.getElementById(`tab-${tab}`);
