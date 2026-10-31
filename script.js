@@ -991,17 +991,17 @@ function renderTransactionsList(currentTx) {
     if (filterTotalBox) filterTotalBox.classList.add('hidden');
   }
 
-  // Trava visual no botão de importar fixos
+  // Trava visual no botão de importar fixos (agora localizado nas Configurações)
   const btnImportar = document.getElementById('btnImportarFixos');
   if (btnImportar) {
     const jaTemFixos = currentTx.some(t => t.cat === 'Gastos Fixos');
     if (jaTemFixos) {
-      btnImportar.innerText = "✓ Fixos Importados";
-      btnImportar.className = "px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-xl text-[10px] font-bold cursor-not-allowed flex items-center gap-1.5 shadow-none";
+      btnImportar.innerText = "✓ Importado";
+      btnImportar.className = "px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-lg text-[10px] font-extrabold cursor-not-allowed shadow-none";
       btnImportar.disabled = true;
     } else {
-      btnImportar.innerHTML = `<i class="fa-solid fa-file-arrow-down text-blue-500"></i> Importar Fixos do Mês Anterior`;
-      btnImportar.className = "px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-[10px] font-bold transition flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 shadow-2xs";
+      btnImportar.innerHTML = `<i class="fa-solid fa-file-arrow-down"></i> Importar`;
+      btnImportar.className = "px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold transition shadow-xs flex items-center gap-1";
       btnImportar.disabled = false;
     }
   }
