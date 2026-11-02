@@ -583,7 +583,8 @@ function openNewTxModal() {
   document.getElementById('txAmount').value = '';
   const subCatEl = document.getElementById('txSubCat');
   if (subCatEl) subCatEl.value = 'Cartão de Crédito';
-
+  
+  toggleParcelasUI();
   selecionarTipoTx('EXPENSE'); 
   document.getElementById('newTxModal').classList.remove('hidden'); 
 }
@@ -602,6 +603,8 @@ function openEditTransaction(id) {
   
   const subCatEl = document.getElementById('txSubCat');
   if (subCatEl) subCatEl.value = tx.subCat || 'Cartão de Crédito';
+  
+  toggleParcelasUI();
 
   const isIncome = tx.type === 'INCOME' || tx.cat === 'Salário' || tx.cat === 'Renda Extra';
   selecionarTipoTx(isIncome ? 'INCOME' : 'EXPENSE');
@@ -618,42 +621,110 @@ function closeNewTxModal() {
   editingTxId = null;
 }
 
+// Funções para controle visual das parcelas no modal
+function toggleParcelasUI() {
+  const subCat = document.getElementById('txSubCat').value;
+  const container = document.getElementById('containerParcelas');
+  if (subCat === 'Cartão de Crédito') {
+    container.classList.remove('hidden');
+  } else {
+    container.classList.add('hidden');
+    document.getElementById('txTipoCartao').value = 'AVista';
+    toggleNumeroParcelas();
+  }
+}
+
+function toggleNumeroParcelas() {
+  const tipo = document.getElementById('txTipoCartao').value;
+  const containerNum = document.getElementById('containerNumParcelas');
+  if (tipo === 'Parcelado') {
+    containerNum.classList.remove('hidden');
+  } else {
+    containerNum.classList.add('hidden');
+  }
+}
+
 async function handleSaveTransaction(e) {
   e.preventDefault();
   const radioChecked = document.querySelector('input[name="txType"]:checked');
   const type = radioChecked ? radioChecked.value : 'EXPENSE';
-  const desc = document.getElementById('txDesc').value.trim();
-  const amount = parseFloat(document.getElementById('txAmount').value);
+  const descOriginal = document.getElementById('txDesc').value.trim();
+  const amountTotal = parseFloat(document.getElementById('txAmount').value);
   const dateStr = document.getElementById('txDate').value; 
   const cat = document.getElementById('txCat').value;
   const subCat = document.getElementById('txSubCat').value;
 
+  const tipoCartao = subCat === 'Cartão de Crédito' ? document.getElementById('txTipoCartao').value : 'AVista';
+  const qtdParcelas = tipoCartao === 'Parcelado' ? parseInt(document.getElementById('txQtdParcelas').value, 10) : 1;
+
   const partesData = dateStr.split('-');
-  const ano = partesData[0];
-  const mesIndex = parseInt(partesData[1], 10) - 1;
-  const mesCalculado = `${mesesNomes[mesIndex]} ${ano}`;
+  let anoBase = parseInt(partesData[0], 10);
+  let mesIndexBase = parseInt(partesData[1], 10) - 1;
+  const diaOriginal = partesData[2] || '01';
 
-  const txData = {
-    desc, amount, type, cat, subCat,
-    month: mesCalculado,
-    date: dateStr,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
+  try {
+    const batch = db.batch();
 
-  if (editingTxId) {
-    await db.collection('transacoes').doc(editingTxId).update(txData);
-  } else {
-    txData.confirmado = false;
-    txData.userId = currentUser.id;
-    txData.userEmail = currentUser.email;
-    txData.workspaceId = currentWorkspace.id;
-    txData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-    await db.collection('transacoes').add(txData);
+    if (editingTxId) {
+      // Se for edição, atualiza apenas o registro atual
+      const txData = {
+        desc: descOriginal,
+        amount: amountTotal,
+        type, cat, subCat,
+        month: `${mesesNomes[mesIndexBase]} ${anoBase}`,
+        date: dateStr,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await db.collection('transacoes').doc(editingTxId).update(txData);
+    } else {
+      // Se for novo, gera o loop para parcelamentos automáticos
+      for (let i = 0; i < qtdParcelas; i++) {
+        let mesCalculadoIndex = mesIndexBase + i;
+        let anoCalculado = anoBase + Math.floor(mesCalculadoIndex / 12);
+        mesCalculadoIndex = mesCalculadoIndex % 12;
+
+        const mesNomeCalculado = mesesNomes[mesCalculadoIndex];
+        const mesStringFinal = `${mesNomeCalculado} ${anoCalculado}`;
+
+        const mesNumStr = String(mesCalculadoIndex + 1).padStart(2, '0');
+        const dataParcelaStr = `${anoCalculado}-${mesNumStr}-${diaOriginal}`;
+
+        const valorParcela = Math.round((amountTotal / qtdParcelas) * 100) / 100;
+        const descFinal = qtdParcelas > 1 ? `${descOriginal} (${i + 1}/${qtdParcelas})` : descOriginal;
+
+        const novoDocRef = db.collection('transacoes').doc();
+        const txData = {
+          desc: descFinal,
+          amount: valorParcela,
+          type, 
+          cat, 
+          subCat,
+          month: mesStringFinal,
+          date: dataParcelaStr,
+          confirmado: false, // Entram como pendentes
+          userId: currentUser.id,
+          userEmail: currentUser.email,
+          workspaceId: currentWorkspace.id,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        batch.set(novoDocRef, txData);
+      }
+      await batch.commit();
+    }
+
+    closeNewTxModal();
+    document.getElementById('txForm').reset();
+    toggleParcelasUI();
+    editingTxId = null;
+
+    alert(qtdParcelas > 1 ? `Compra parcelada em ${qtdParcelas}x gerada com sucesso nos respetivos meses!` : "Lançamento guardado com sucesso!");
+
+  } catch (err) {
+    console.error("Erro ao salvar transação:", err);
+    alert("Erro ao guardar o lançamento. Tente novamente.");
   }
-
-  closeNewTxModal();
-  document.getElementById('txForm').reset();
-  editingTxId = null;
 }
 
 async function toggleConfirmTransaction(id) {
@@ -991,7 +1062,7 @@ function renderTransactionsList(currentTx) {
     if (filterTotalBox) filterTotalBox.classList.add('hidden');
   }
 
-  // Trava visual no botão de importar fixos (agora localizado nas Configurações)
+  // Trava visual no botão de importar fixos (localizado nas Configurações)
   const btnImportar = document.getElementById('btnImportarFixos');
   if (btnImportar) {
     const jaTemFixos = currentTx.some(t => t.cat === 'Gastos Fixos');
