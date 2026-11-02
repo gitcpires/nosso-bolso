@@ -126,23 +126,30 @@
         </div>
       </div>
 
-      <!-- Seletor de Mês -->
-      <div class="flex items-center justify-between bg-gradient-to-r from-slate-100/90 to-blue-50/50 dark:from-slate-800/90 dark:to-slate-900/50 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-inner">
-        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Mês de Referência:</span>
-        <select id="selectMonth" onchange="changeActiveMonth(this.value)" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-black text-blue-900 dark:text-blue-400 rounded-lg px-2.5 py-1 focus:outline-none shadow-2xs">
-          <option value="Janeiro 2026">Janeiro 2026</option>
-          <option value="Fevereiro 2026">Fevereiro 2026</option>
-          <option value="Março 2026">Março 2026</option>
-          <option value="Abril 2026">Abril 2026</option>
-          <option value="Maio 2026">Maio 2026</option>
-          <option value="Junho 2026">Junho 2026</option>
-          <option value="Julho 2026">Julho 2026</option>
-          <option value="Agosto 2026">Agosto 2026</option>
-          <option value="Setembro 2026">Setembro 2026</option>
-          <option value="Outubro 2026" selected>Outubro 2026</option>
-          <option value="Novembro 2026">Novembro 2026</option>
-          <option value="Dezembro 2026">Dezembro 2026</option>
-        </select>
+      <!-- Seletor de Mês e Ano Independentes -->
+      <div class="flex items-center justify-between bg-gradient-to-r from-slate-100/90 to-blue-50/50 dark:from-slate-800/90 dark:to-slate-900/50 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-inner gap-2">
+        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Mês / Ano:</span>
+        <div class="flex gap-1.5 w-full justify-end">
+          <select id="selectMonth" onchange="changeActiveMonthCombo()" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-black text-blue-900 dark:text-blue-400 rounded-lg px-2 py-1 focus:outline-none shadow-2xs">
+            <option value="Janeiro">Janeiro</option>
+            <option value="Fevereiro">Fevereiro</option>
+            <option value="Março">Março</option>
+            <option value="Abril">Abril</option>
+            <option value="Maio">Maio</option>
+            <option value="Junho">Junho</option>
+            <option value="Julho">Julho</option>
+            <option value="Agosto">Agosto</option>
+            <option value="Setembro">Setembro</option>
+            <option value="Outubro">Outubro</option>
+            <option value="Novembro" selected>Novembro</option>
+            <option value="Dezembro">Dezembro</option>
+          </select>
+          <select id="selectYear" onchange="changeActiveMonthCombo()" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-black text-blue-900 dark:text-blue-400 rounded-lg px-2 py-1 focus:outline-none shadow-2xs">
+            <option value="2026" selected>2026</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
+          </select>
+        </div>
       </div>
 
     </div>
@@ -195,7 +202,7 @@
         <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-600 shadow-2xs" />
       </div>
       
-      <!-- Filtros Compactos (Categoria e Botão de Filtro de Subcategoria/Pagamento na mesma linha) -->
+      <!-- Filtros Compactos -->
       <div class="grid grid-cols-3 gap-1.5">
         <select id="filterMember" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-2 py-2 text-[11px] font-bold focus:outline-none shadow-2xs">
           <option value="">👤 Membros</option>
@@ -212,13 +219,16 @@
         </button>
       </div>
 
-      <!-- Caixa de Filtros Avançados (Inicia oculta) -->
+      <!-- Botão Exportar para Excel -->
+      <button onclick="exportarParaExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-3 py-2 text-xs font-bold transition shadow-2xs flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-file-excel"></i> Exportar Mês para Excel (CSV)
+      </button>
+
+      <!-- Caixa de Filtros Avançados -->
       <div id="containerFiltroAvancado" class="grid grid-cols-2 gap-1.5 bg-slate-50 dark:bg-slate-900/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hidden">
         <div>
           <span class="text-[9px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Subcategorias</span>
-          <div id="filterSubCatCheckboxes" class="space-y-1 max-h-28 overflow-y-auto pr-1 text-[11px]">
-            <!-- Preenchido via Script -->
-          </div>
+          <div id="filterSubCatCheckboxes" class="space-y-1 max-h-28 overflow-y-auto pr-1 text-[11px]"></div>
         </div>
         <div>
           <span class="text-[9px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Forma Pagamento</span>
@@ -242,8 +252,6 @@
 
     <!-- ABAS: INVESTIMENTOS -->
     <div id="tab-invest" class="space-y-2 hidden">
-      
-      <!-- Dois Cartões: Mês Atual e Total Acumulado do Ano -->
       <div class="grid grid-cols-2 gap-2">
         <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-3.5 rounded-2xl text-white shadow-lg space-y-1">
           <span class="text-[9px] font-bold text-indigo-300 uppercase tracking-wider block">Investido no Mês</span>
@@ -254,7 +262,6 @@
           <div id="yearInvestTotalHeader" class="text-base sm:text-lg font-black text-white truncate">R$ 0,00</div>
         </div>
       </div>
-
       <div id="monthInvestmentsList" class="space-y-2 pt-1"></div>
     </div>
 
@@ -366,7 +373,6 @@
           </select>
         </div>
 
-        <!-- Subcategoria -->
         <div id="containerSubCat">
           <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Subcategoria</label>
           <select id="txSubCat" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white dark:bg-slate-800 dark:text-white">
@@ -379,7 +385,6 @@
           </select>
         </div>
 
-        <!-- Forma de Pagamento -->
         <div>
           <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Forma de Pagamento</label>
           <select id="txPaymentMethod" required onchange="toggleParcelasUI()" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white dark:bg-slate-800 dark:text-white">
@@ -389,7 +394,6 @@
           </select>
         </div>
 
-        <!-- Seção de Parcelas -->
         <div id="containerParcelas" class="space-y-2.5 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 hidden">
           <div>
             <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Tipo de Compra no Cartão</label>
@@ -487,7 +491,7 @@
           <div id="metaConfigErrorMsg" class="text-[9px] font-bold text-rose-600 bg-rose-50 dark:bg-rose-900/40 p-1 rounded-lg text-center hidden"></div>
 
           <button type="submit" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold transition shadow-xs">
-            Guardar Navas Metas do Mês
+            Guardar Novas Metas do Mês
           </button>
         </form>
       </div>
