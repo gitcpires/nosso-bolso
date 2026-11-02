@@ -1200,128 +1200,52 @@ function renderTransactionsList(currentTx) {
     return;
   }
 
-function renderTransactionsList(currentTx) {
-  const container = document.getElementById('txListContainer');
-  if (!container) return;
-
-  const search = (document.getElementById('searchExpense')?.value || '').toLowerCase();
-  const filtroMembro = document.getElementById('filterMember')?.value || '';
-  const filtroCat = document.getElementById('filterCategory')?.value || '';
-  
-  const checkboxesSubCat = document.querySelectorAll('.subcat-filter-checkbox');
-  const subCatsSelecionadas = Array.from(checkboxesSubCat).filter(cb => cb.checked).map(cb => cb.value);
-  
-  const filtroPaymentMethod = document.getElementById('filterPaymentMethod')?.value || '';
-
-  container.innerHTML = '';
-  
-  const filtered = currentTx.filter(t => {
-    const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search) || (t.subCat && t.subCat.toLowerCase().includes(search));
-    const matchMembro = filtroMembro === '' || t.userEmail === filtroMembro;
-    const matchCat = filtroCat === '' || t.cat === filtroCat;
-    const matchSubCat = subCatsSelecionadas.length === 0 || subCatsSelecionadas.includes(t.subCat);
-    const matchPayment = filtroPaymentMethod === '' || t.paymentMethod === filtroPaymentMethod;
-
-    return matchSearch && matchMembro && matchCat && matchSubCat && matchPayment;
-  });
-
-  filtered.sort((a, b) => {
-    const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
-    const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
-    if (timeA !== timeB) {
-      return timeB - timeA;
-    }
-    return new Date(b.date) - new Date(a.date);
-  });
-
-  const filterTotalBox = document.getElementById('filterTotalBox');
-  const filterTotalValue = document.getElementById('filterTotalValue');
-  const isAlgumFiltroAtivo = search !== '' || filtroMembro !== '' || filtroCat !== '' || subCatsSelecionadas.length > 0 || filtroPaymentMethod !== '';
-  
-  if (isAlgumFiltroAtivo) {
-    const somaFiltro = filtered.reduce((acc, t) => {
-      const ehEntrada = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
-      return ehEntrada ? acc + t.amount : acc - t.amount;
-    }, 0);
-
-    if (filterTotalValue) filterTotalValue.innerText = `R$ ${somaFiltro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-    if (filterTotalBox) filterTotalBox.classList.remove('hidden');
-  } else {
-    if (filterTotalBox) filterTotalBox.classList.add('hidden');
-  }
-
-  const btnImportar = document.getElementById('btnImportarFixos');
-  if (btnImportar) {
-    const jaTemFixos = currentTx.some(t => t.cat === 'Gastos Fixos');
-    if (jaTemFixos) {
-      btnImportar.innerText = "✓ Importado";
-      btnImportar.className = "px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-lg text-[10px] font-extrabold cursor-not-allowed shadow-none";
-      btnImportar.disabled = true;
-    } else {
-      btnImportar.innerHTML = `<i class="fa-solid fa-file-arrow-down"></i> Importar`;
-      btnImportar.className = "px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold transition shadow-xs flex items-center gap-1";
-      btnImportar.disabled = false;
-    }
-  }
-
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">Nenhuma movimentação encontrada neste mês com estes filtros.</div>`;
-    return;
-  }
-
   filtered.forEach(t => {
     const isIncome = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
     const confirmado = t.confirmado === true;
     
-    const catBadge = t.cat ? `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md font-bold">${t.cat}</span>` : '';
-    const subCatBadge = t.subCat ? `<span class="text-[9px] bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-md font-bold">${t.subCat}</span>` : '';
-    const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-md font-bold">${t.paymentMethod}</span>` : '';
-    const userBadge = `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-md font-medium"><i class="fa-solid fa-user text-[7px] mr-1"></i>${autorNome}</span>`;
+    // Todos os badges na mesma linha com espaçamento uniforme
+    const catBadge = t.cat ? `<span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>` : '';
+    const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-bold">${t.subCat}</span>` : '';
+    const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold">${t.paymentMethod}</span>` : '';
+    const userBadge = `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-semibold"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>`;
 
     container.innerHTML += `
-      <div class="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-2.5 transition hover:border-slate-300 dark:hover:border-slate-700">
-        
-        <!-- Linha Superior: Descrição e Valor Aumentado -->
-        <div class="flex items-start justify-between gap-2">
-          <div class="text-xs font-black text-slate-900 dark:text-white tracking-tight leading-snug break-words">${t.desc}</div>
-          <div class="text-sm sm:text-base font-black whitespace-nowrap ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}">
-            ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
+      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+        <div class="space-y-1 pr-2 overflow-hidden w-full">
+          <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">${t.desc}</div>
+          
+          <!-- Categoria, Subcategoria, Pagamento e Utilizador estritamente na mesma linha -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            ${catBadge}
+            ${subCatBadge}
+            ${paymentBadge}
+            ${userBadge}
           </div>
-        </div>
 
-        <!-- Linha do Meio: Etiquetas Organizacionais -->
-        <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
-          ${catBadge}
-          ${subCatBadge}
-          ${paymentBadge}
-          ${userBadge}
-        </div>
-
-        <!-- Linha Inferior: Data, Status e Ações -->
-        <div class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/80">
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] text-slate-400 font-medium"><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
-            <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-2 py-0.5 rounded-md transition ${
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 pt-0.5">
+            <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
+            <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-2 py-0.5 rounded transition ${
               confirmado 
-                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' 
-                : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 animate-pulse'
+                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 hover:bg-emerald-200' 
+                : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 hover:bg-amber-200 animate-pulse'
             }">
-              ${confirmado ? '✓ Registado' : '⏳ Pendente'}
+              ${confirmado ? '✓ Registado' : '⏳ Pendente (Clique p/ Confirmar)'}
             </button>
           </div>
-
-          <div class="flex items-center gap-1">
-            <button onclick="openEditTransaction('${t.id}')" class="w-7 h-7 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center transition" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
-            <button onclick="deleteTransaction('${t.id}')" class="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center transition" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
-          </div>
         </div>
-
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-black whitespace-nowrap ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
+            ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
+          </span>
+          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
+          <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
+        </div>
       </div>
     `;
   });
 }
-
 
 function renderInvestments(currentTx) {
   const investConfirmadosMes = currentTx.filter(t => t.cat === 'Investimentos' && t.confirmado);
