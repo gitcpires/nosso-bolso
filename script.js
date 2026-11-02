@@ -18,6 +18,16 @@ const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
 const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
 
+const subcategoriasDisponiveis = [
+  'Transporte',
+  'Alimentação',
+  'Telefonia',
+  'Ticket Alimentação',
+  'Cartão de Crédito',
+  'Serviços Públicos',
+  'Outros'
+];
+
 let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
 let lousaDocId = null;
@@ -403,11 +413,26 @@ function initUserSession() {
     if (el) el.classList.add('hidden');
   });
 
+  renderSubCatCheckboxes();
   renderAll();
   carregarDadosDoBanco();
   ouvinteWorkspaceWorkspace();
   carregarMembrosDoGrupo();
   ouvinteLousaGrupo();
+}
+
+function renderSubCatCheckboxes() {
+  const container = document.getElementById('filterSubCatCheckboxes');
+  if (!container) return;
+  container.innerHTML = '';
+  subcategoriasDisponiveis.forEach(sub => {
+    container.innerHTML += `
+      <label class="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300">
+        <input type="checkbox" value="${sub}" onchange="renderTransactionsList(transactions)" class="subcat-filter-checkbox rounded border-slate-300 text-blue-600 focus:ring-0 w-3.5 h-3.5" />
+        <span class="truncate">${sub}</span>
+      </label>
+    `;
+  });
 }
 
 function ouvinteWorkspaceWorkspace() {
@@ -582,8 +607,11 @@ function openNewTxModal() {
   document.getElementById('txDesc').value = '';
   document.getElementById('txAmount').value = '';
   const subCatEl = document.getElementById('txSubCat');
-  if (subCatEl) subCatEl.value = 'Cartão de Crédito';
+  if (subCatEl) subCatEl.value = 'Transporte';
   
+  const paymentMethodEl = document.getElementById('txPaymentMethod');
+  if (paymentMethodEl) paymentMethodEl.value = 'PIX';
+
   const tipoCartaoEl = document.getElementById('txTipoCartao');
   if (tipoCartaoEl) tipoCartaoEl.value = 'AVista';
   
@@ -605,7 +633,10 @@ function openEditTransaction(id) {
   document.getElementById('txDate').value = tx.date || '';
   
   const subCatEl = document.getElementById('txSubCat');
-  if (subCatEl) subCatEl.value = tx.subCat || 'Cartão de Crédito';
+  if (subCatEl) subCatEl.value = tx.subCat || 'Transporte';
+
+  const paymentMethodEl = document.getElementById('txPaymentMethod');
+  if (paymentMethodEl) paymentMethodEl.value = tx.paymentMethod || 'PIX';
   
   toggleParcelasUI();
 
@@ -655,6 +686,7 @@ async function handleSaveTransaction(e) {
   const dateStr = document.getElementById('txDate').value; 
   const cat = document.getElementById('txCat').value;
   const subCat = document.getElementById('txSubCat').value;
+  const paymentMethod = document.getElementById('txPaymentMethod').value;
 
   const tipoCartao = subCat === 'Cartão de Crédito' ? document.getElementById('txTipoCartao').value : 'AVista';
   let qtdParcelas = 1;
@@ -675,7 +707,7 @@ async function handleSaveTransaction(e) {
       const txData = {
         desc: descOriginal,
         amount: amountTotal,
-        type, cat, subCat,
+        type, cat, subCat, paymentMethod,
         month: `${mesesNomes[mesIndexBase]} ${anoBase}`,
         date: dateStr,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -705,6 +737,7 @@ async function handleSaveTransaction(e) {
           type, 
           cat, 
           subCat,
+          paymentMethod,
           month: mesStringFinal,
           date: dataParcelaStr,
           confirmado: false,
@@ -895,7 +928,8 @@ async function importarGastosFixosMesAnterior() {
         amount: txAntiga.amount,
         type: txAntiga.type || 'EXPENSE',
         cat: 'Gastos Fixos',
-        subCat: txAntiga.subCat || 'Cartão de Crédito',
+        subCat: txAntiga.subCat || 'Outros',
+        paymentMethod: txAntiga.paymentMethod || 'PIX',
         month: activeMonth,
         date: novaDataStr,
         confirmado: false,
@@ -1080,16 +1114,26 @@ function renderTransactionsList(currentTx) {
   const search = (document.getElementById('searchExpense')?.value || '').toLowerCase();
   const filtroMembro = document.getElementById('filterMember')?.value || '';
   const filtroCat = document.getElementById('filterCategory')?.value || '';
-  const filtroSubCat = document.getElementById('filterSubCategory')?.value || '';
+  
+  // Captura subcategorias selecionadas nos checkboxes múltiplos
+  const checkboxesSubCat = document.querySelectorAll('.subcat-filter-checkbox');
+  const subCatsSelecionadas = Array.from(checkboxesSubCat).filter(cb => cb.checked).map(cb => cb.value);
+  
+  const filtroPaymentMethod = document.getElementById('filterPaymentMethod')?.value || '';
 
   container.innerHTML = '';
   
   const filtered = currentTx.filter(t => {
-    const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search);
+    const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search) || (t.subCat && t.subCat.toLowerCase().includes(search));
     const matchMembro = filtroMembro === '' || t.userEmail === filtroMembro;
     const matchCat = filtroCat === '' || t.cat === filtroCat;
-    const matchSubCat = filtroSubCat === '' || t.subCat === filtroSubCat;
-    return matchSearch && matchMembro && matchCat && matchSubCat;
+    
+    // Se houver subcategorias marcadas, filtra por elas (ou passa se nenhuma estiver marcada)
+    const matchSubCat = subCatsSelecionadas.length === 0 || subCatsSelecionadas.includes(t.subCat);
+    
+    const matchPayment = filtroPaymentMethod === '' || t.paymentMethod === filtroPaymentMethod;
+
+    return matchSearch && matchMembro && matchCat && matchSubCat && matchPayment;
   });
 
   filtered.sort((a, b) => {
@@ -1103,7 +1147,7 @@ function renderTransactionsList(currentTx) {
 
   const filterTotalBox = document.getElementById('filterTotalBox');
   const filterTotalValue = document.getElementById('filterTotalValue');
-  const isAlgumFiltroAtivo = search !== '' || filtroMembro !== '' || filtroCat !== '' || filtroSubCat !== '';
+  const isAlgumFiltroAtivo = search !== '' || filtroMembro !== '' || filtroCat !== '' || subCatsSelecionadas.length > 0 || filtroPaymentMethod !== '';
   
   if (isAlgumFiltroAtivo) {
     const somaFiltro = filtered.reduce((acc, t) => {
@@ -1141,6 +1185,7 @@ function renderTransactionsList(currentTx) {
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
     const confirmado = t.confirmado === true;
     const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-bold ml-1">${t.subCat}</span>` : '';
+    const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold ml-1">${t.paymentMethod}</span>` : '';
 
     container.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
@@ -1148,6 +1193,7 @@ function renderTransactionsList(currentTx) {
           <div class="text-xs font-extrabold text-slate-900 dark:text-white">${t.desc} 
             <span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
             ${subCatBadge}
+            ${paymentBadge}
             <span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
           </div>
           <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
