@@ -141,11 +141,11 @@
             <option value="Agosto">Agosto</option>
             <option value="Setembro">Setembro</option>
             <option value="Outubro">Outubro</option>
-            <option value="Novembro" selected>Novembro</option>
+            <option value="Novembro">Novembro</option>
             <option value="Dezembro">Dezembro</option>
           </select>
           <select id="selectYear" onchange="changeActiveMonthCombo()" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-black text-blue-900 dark:text-blue-400 rounded-lg px-2 py-1 focus:outline-none shadow-2xs">
-            <option value="2026" selected>2026</option>
+            <option value="2026">2026</option>
             <option value="2027">2027</option>
             <option value="2028">2028</option>
           </select>
@@ -160,8 +160,6 @@
 
     <!-- ABAS: RESUMO -->
     <div id="tab-resumo" class="space-y-2">
-      
-      <!-- Cartões de Resumo Maiores e Mais Visíveis -->
       <div class="grid grid-cols-3 gap-2">
         <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
           <span class="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-tight block">Entradas</span>
@@ -177,7 +175,6 @@
         </div>
       </div>
 
-      <!-- Card de Progresso de Metas -->
       <div class="bg-white dark:bg-slate-900 p-3 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-2">
         <div class="flex items-center justify-between">
           <h3 class="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Progresso de Metas</h3>
@@ -186,7 +183,6 @@
         <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2"></div>
       </div>
 
-      <!-- Card de Distribuição de Gastos Compacto -->
       <div class="bg-white dark:bg-slate-900 p-3 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-2">
         <h3 class="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Distribuição de Gastos</h3>
         <div class="grid grid-cols-2 gap-3 items-center">
@@ -202,7 +198,6 @@
         <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-600 shadow-2xs" />
       </div>
       
-      <!-- Filtros Compactos -->
       <div class="grid grid-cols-3 gap-1.5">
         <select id="filterMember" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-2 py-2 text-[11px] font-bold focus:outline-none shadow-2xs">
           <option value="">👤 Membros</option>
@@ -219,12 +214,6 @@
         </button>
       </div>
 
-      <!-- Botão Exportar para Excel -->
-      <button onclick="exportarParaExcel()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-3 py-2 text-xs font-bold transition shadow-2xs flex items-center justify-center gap-1.5">
-        <i class="fa-solid fa-file-excel"></i> Exportar Mês para Excel (CSV)
-      </button>
-
-      <!-- Caixa de Filtros Avançados -->
       <div id="containerFiltroAvancado" class="grid grid-cols-2 gap-1.5 bg-slate-50 dark:bg-slate-900/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hidden">
         <div>
           <span class="text-[9px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Subcategorias</span>
@@ -242,7 +231,6 @@
         </div>
       </div>
 
-      <!-- Caixa de Total do Filtro -->
       <div id="filterTotalBox" class="bg-blue-50 dark:bg-slate-800 p-2.5 rounded-xl border border-blue-100 dark:border-slate-700 flex items-center justify-between hidden">
         <span class="text-[10px] font-extrabold text-blue-900 dark:text-blue-300 uppercase">Total do Filtro:</span>
         <span id="filterTotalValue" class="text-xs font-black text-blue-700 dark:text-blue-400">R$ 0,00</span>
@@ -417,7 +405,7 @@
     </div>
   </div>
 
-  <!-- Modal de Configurações -->
+  <!-- Modal de Configurações (Com Exportar discreto aqui dentro) -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-3 hidden backdrop-blur-md">
     <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-4 rounded-[2rem] space-y-3 shadow-2xl max-h-[92vh] overflow-y-auto">
       
@@ -448,6 +436,17 @@
         </div>
         <button id="btnImportarFixos" onclick="importarGastosFixosMesAnterior()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold transition shadow-xs flex items-center gap-1">
           <i class="fa-solid fa-file-arrow-down"></i> Importar
+        </button>
+      </div>
+
+      <!-- Botão Discreto de Exportar para Excel dentro das Configurações -->
+      <div class="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <div>
+          <span class="text-[8px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-tight block">Dados do Mês</span>
+          <span class="text-[10px] font-extrabold text-slate-700 dark:text-slate-200">Exportar para Excel (CSV)</span>
+        </div>
+        <button onclick="exportarParaExcel()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-extrabold transition shadow-xs flex items-center gap-1">
+          <i class="fa-solid fa-file-excel"></i> Exportar
         </button>
       </div>
 
