@@ -1205,17 +1205,19 @@ function renderTransactionsList(currentTx) {
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
     const confirmado = t.confirmado === true;
     
+    // Todos os badges na mesma linha com espaçamento uniforme
     const catBadge = t.cat ? `<span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>` : '';
-    const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-bold ml-1">${t.subCat}</span>` : '';
-    const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold ml-1">${t.paymentMethod}</span>` : '';
+    const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-bold">${t.subCat}</span>` : '';
+    const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold">${t.paymentMethod}</span>` : '';
     const userBadge = `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-semibold"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>`;
 
     container.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-        <div class="space-y-1 pr-2 overflow-hidden">
+        <div class="space-y-1 pr-2 overflow-hidden w-full">
           <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">${t.desc}</div>
           
-          <div class="flex flex-wrap items-center gap-1">
+          <!-- Categoria, Subcategoria, Pagamento e Utilizador estritamente na mesma linha -->
+          <div class="flex flex-wrap items-center gap-1.5">
             ${catBadge}
             ${subCatBadge}
             ${paymentBadge}
