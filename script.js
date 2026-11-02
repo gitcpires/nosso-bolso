@@ -420,6 +420,13 @@ function initUserSession() {
   ouvinteLousaGrupo();
 }
 
+function toggleFiltroAvancado() {
+  const caixa = document.getElementById('containerFiltroAvancado');
+  if (caixa) {
+    caixa.classList.toggle('hidden');
+  }
+}
+
 function renderSubCatCheckboxes() {
   const container = document.getElementById('filterSubCatCheckboxes');
   if (!container) return;
@@ -631,7 +638,6 @@ function openEditTransaction(id) {
   const isIncome = tx.type === 'INCOME' || tx.cat === 'Salário' || tx.cat === 'Renda Extra';
   selecionarTipoTx(isIncome ? 'INCOME' : 'EXPENSE');
 
-  // Define a forma de pagamento após ajustar a interface do tipo de transação
   const paymentMethodEl = document.getElementById('txPaymentMethod');
   if (paymentMethodEl) paymentMethodEl.value = tx.paymentMethod || 'PIX';
 
@@ -683,7 +689,6 @@ async function handleSaveTransaction(e) {
   const dateStr = document.getElementById('txDate').value; 
   const cat = document.getElementById('txCat').value;
   
-  // Se for Entrada, subCat fica vazio
   const subCat = type === 'INCOME' ? '' : document.getElementById('txSubCat').value;
   const paymentMethod = document.getElementById('txPaymentMethod').value;
 
@@ -863,10 +868,8 @@ function toggleTxTypeUI() {
     if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs transition";
     if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 dark:text-slate-400 transition";
     
-    // Esconde a subcategoria para entradas
     if (containerSubCat) containerSubCat.classList.add('hidden');
 
-    // Forma de pagamento para entrada (sem cartão de crédito, com transferência)
     selectPayment.innerHTML = `
       <option value="PIX">⚡ PIX</option>
       <option value="Transferência">🏦 Transferência</option>
@@ -881,10 +884,8 @@ function toggleTxTypeUI() {
     if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-2xs transition";
     if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 dark:text-slate-400 transition";
     
-    // Mostra a subcategoria para saídas
     if (containerSubCat) containerSubCat.classList.remove('hidden');
 
-    // Forma de pagamento para saída (com Cartão de Crédito)
     selectPayment.innerHTML = `
       <option value="PIX">⚡ PIX</option>
       <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
@@ -1203,19 +1204,25 @@ function renderTransactionsList(currentTx) {
     const isIncome = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
     const confirmado = t.confirmado === true;
+    
+    const catBadge = t.cat ? `<span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>` : '';
     const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-bold ml-1">${t.subCat}</span>` : '';
     const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold ml-1">${t.paymentMethod}</span>` : '';
+    const userBadge = `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-semibold"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>`;
 
     container.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-        <div>
-          <div class="text-xs font-extrabold text-slate-900 dark:text-white">${t.desc} 
-            <span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
+        <div class="space-y-1 pr-2 overflow-hidden">
+          <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">${t.desc}</div>
+          
+          <div class="flex flex-wrap items-center gap-1">
+            ${catBadge}
             ${subCatBadge}
             ${paymentBadge}
-            <span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
+            ${userBadge}
           </div>
-          <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
+
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 pt-0.5">
             <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
             <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-2 py-0.5 rounded transition ${
               confirmado 
