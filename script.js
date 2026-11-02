@@ -15,6 +15,8 @@ let currentWorkspace = { id: '', code: '', metasPorMes: {} };
 let currentUser = { id: '', name: '', email: '' };
 let transactions = [];
 const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+// Define por padrão o mês e ano correntes do dispositivo (Ex: Novembro 2026)
 const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
 
