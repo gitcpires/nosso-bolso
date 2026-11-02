@@ -400,8 +400,21 @@ function mostrarSetupMsg(texto, tipo) {
   div.classList.remove('hidden');
 }
 
+function changeActiveMonthCombo() {
+  const mesSelect = document.getElementById('selectMonth').value;
+  const anoSelect = document.getElementById('selectYear').value;
+  activeMonth = `${mesSelect} ${anoSelect}`;
+  renderAll();
+}
+
 function initUserSession() {
-  document.getElementById('selectMonth').value = activeMonth;
+  const partesAtivas = activeMonth.split(' ');
+  if (partesAtivas.length === 2) {
+    const mEl = document.getElementById('selectMonth');
+    const yEl = document.getElementById('selectYear');
+    if (mEl) mEl.value = partesAtivas[0];
+    if (yEl) yEl.value = partesAtivas[1];
+  }
 
   document.getElementById('headerUserName').innerText = currentUser.name;
   document.getElementById('headerWelcomeMsg').innerText = `Grupo: ${currentWorkspace.code}`;
@@ -839,11 +852,6 @@ async function deleteTransaction(id) {
       alert("Erro ao tentar remover o lançamento.");
     }
   }
-}
-
-function changeActiveMonth(m) {
-  activeMonth = m;
-  renderAll();
 }
 
 function selecionarTipoTx(tipo) {
@@ -1317,6 +1325,38 @@ function renderInvestments(currentTx) {
       </div>
     `;
   });
+}
+
+function exportarParaExcel() {
+  const currentTx = transactions.filter(t => t.month === activeMonth);
+  if (currentTx.length === 0) {
+    alert("Não existem lançamentos neste mês para exportar.");
+    return;
+  }
+
+  let csvContent = "\uFEFFData;Descrição;Tipo;Categoria;Subcategoria;Forma Pagamento;Valor (R$);Estado;Membro\n";
+
+  currentTx.forEach(t => {
+    const tipoFormatado = (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra') ? 'Entrada' : 'Saída';
+    const valorFormatado = Number(t.amount).toFixed(2).replace('.', ',');
+    const statusFormatado = t.confirmado ? 'Registado' : 'Pendente';
+    const membro = t.userEmail ? t.userEmail.split('@')[0] : '';
+    const descLimpa = `"${(t.desc || '').replace(/"/g, '""')}"`;
+    const cat = `"${t.cat || ''}"`;
+    const subCat = `"${t.subCat || ''}"`;
+    const pagamento = `"${t.paymentMethod || ''}"`;
+
+    csvContent += `${t.date};${descLimpa};${tipoFormatado};${cat};${subCat};${pagamento};${valorFormatado};${statusFormatado};${membro}\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `NossoBolso_${activeMonth.replace(' ', '_')}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function switchTab(tab) {
