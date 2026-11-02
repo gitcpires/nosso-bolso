@@ -584,6 +584,10 @@ function openNewTxModal() {
   const subCatEl = document.getElementById('txSubCat');
   if (subCatEl) subCatEl.value = 'Cartão de Crédito';
   
+  // Reseta para À Vista como padrão
+  const tipoCartaoEl = document.getElementById('txTipoCartao');
+  if (tipoCartaoEl) tipoCartaoEl.value = 'AVista';
+  
   toggleParcelasUI();
   selecionarTipoTx('EXPENSE'); 
   document.getElementById('newTxModal').classList.remove('hidden'); 
@@ -655,7 +659,11 @@ async function handleSaveTransaction(e) {
   const subCat = document.getElementById('txSubCat').value;
 
   const tipoCartao = subCat === 'Cartão de Crédito' ? document.getElementById('txTipoCartao').value : 'AVista';
-  const qtdParcelas = tipoCartao === 'Parcelado' ? parseInt(document.getElementById('txQtdParcelas').value, 10) : 1;
+  let qtdParcelas = 1;
+  if (tipoCartao === 'Parcelado') {
+    qtdParcelas = parseInt(document.getElementById('txQtdParcelas').value, 10) || 1;
+    if (qtdParcelas < 1) qtdParcelas = 1;
+  }
 
   const partesData = dateStr.split('-');
   let anoBase = parseInt(partesData[0], 10);
@@ -666,7 +674,6 @@ async function handleSaveTransaction(e) {
     const batch = db.batch();
 
     if (editingTxId) {
-      // Se for edição, atualiza apenas o registro atual
       const txData = {
         desc: descOriginal,
         amount: amountTotal,
@@ -677,7 +684,9 @@ async function handleSaveTransaction(e) {
       };
       await db.collection('transacoes').doc(editingTxId).update(txData);
     } else {
-      // Se for novo, gera o loop para parcelamentos automáticos
+      // Gera um ID único de grupo para vincular as parcelas e permitir apagar na origem
+      const parcelaGroupId = 'grp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+
       for (let i = 0; i < qtdParcelas; i++) {
         let mesCalculadoIndex = mesIndexBase + i;
         let anoCalculado = anoBase + Math.floor(mesCalculadoIndex / 12);
@@ -701,7 +710,8 @@ async function handleSaveTransaction(e) {
           subCat,
           month: mesStringFinal,
           date: dataParcelaStr,
-          confirmado: false, // Entram como pendentes
+          confirmado: false,
+          parcelaGroupId: qtdParcelas > 1 ? parcelaGroupId : null, // Identificador para apagar em lote
           userId: currentUser.id,
           userEmail: currentUser.email,
           workspaceId: currentWorkspace.id,
@@ -743,6 +753,27 @@ async function toggleConfirmTransaction(id) {
 }
 
 async function deleteTransaction(id) {
+  const tx = transactions.find(t => t.id === id);
+  if (!tx) return;
+
+  // Se a transação faz parte de um grupo de parcelas, pergunta se deseja apagar todas em todos os meses
+  if (tx.parcelaGroupId) {
+    const apagarTodas = confirm("Esta é uma compra parcelada. Deseja apagar esta parcela e todas as outras associadas nos demais meses?");
+    if (!apagarTodas) return;
+
+    try {
+      const batch = db.batch();
+      const parcelasQuery = await db.collection('transacoes').where('parcelaGroupId', '==', tx.parcelaGroupId).get();
+      parcelasQuery.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+      return;
+    } catch (err) {
+      console.error("Erro ao apagar parcelas em lote:", err);
+      alert("Erro ao tentar remover as parcelas.");
+      return;
+    }
+  }
+
   if (confirm("Deseja remover este lançamento?")) {
     await db.collection('transacoes').doc(id).delete();
   }
