@@ -584,7 +584,6 @@ function openNewTxModal() {
   const subCatEl = document.getElementById('txSubCat');
   if (subCatEl) subCatEl.value = 'Cartão de Crédito';
   
-  // Reseta para À Vista como padrão
   const tipoCartaoEl = document.getElementById('txTipoCartao');
   if (tipoCartaoEl) tipoCartaoEl.value = 'AVista';
   
@@ -625,7 +624,6 @@ function closeNewTxModal() {
   editingTxId = null;
 }
 
-// Funções para controle visual das parcelas no modal
 function toggleParcelasUI() {
   const subCat = document.getElementById('txSubCat').value;
   const container = document.getElementById('containerParcelas');
@@ -684,7 +682,6 @@ async function handleSaveTransaction(e) {
       };
       await db.collection('transacoes').doc(editingTxId).update(txData);
     } else {
-      // Gera um ID único de grupo para vincular as parcelas e permitir apagar na origem
       const parcelaGroupId = 'grp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
 
       for (let i = 0; i < qtdParcelas; i++) {
@@ -711,7 +708,7 @@ async function handleSaveTransaction(e) {
           month: mesStringFinal,
           date: dataParcelaStr,
           confirmado: false,
-          parcelaGroupId: qtdParcelas > 1 ? parcelaGroupId : null, // Identificador para apagar em lote
+          parcelaGroupId: qtdParcelas > 1 ? parcelaGroupId : null,
           userId: currentUser.id,
           userEmail: currentUser.email,
           workspaceId: currentWorkspace.id,
@@ -754,28 +751,55 @@ async function toggleConfirmTransaction(id) {
 
 async function deleteTransaction(id) {
   const tx = transactions.find(t => t.id === id);
-  if (!tx) return;
+  if (!tx) {
+    if (confirm("Deseja remover este lançamento?")) {
+      await db.collection('transacoes').doc(id).delete();
+    }
+    return;
+  }
 
-  // Se a transação faz parte de um grupo de parcelas, pergunta se deseja apagar todas em todos os meses
-  if (tx.parcelaGroupId) {
-    const apagarTodas = confirm("Esta é uma compra parcelada. Deseja apagar esta parcela e todas as outras associadas nos demais meses?");
-    if (!apagarTodas) return;
+  if (tx.parcelaGroupId && tx.parcelaGroupId.trim() !== '') {
+    const escolha = confirm(
+      "Esta é uma compra parcelada!\n\n" +
+      "• Clique em [OK] para apagar TODAS as parcelas desta compra em todos os meses.\n" +
+      "• Clique em [Cancelar] se deseja apagar APENAS esta parcela do mês atual."
+    );
 
-    try {
-      const batch = db.batch();
-      const parcelasQuery = await db.collection('transacoes').where('parcelaGroupId', '==', tx.parcelaGroupId).get();
-      parcelasQuery.forEach(doc => batch.delete(doc.ref));
-      await batch.commit();
-      return;
-    } catch (err) {
-      console.error("Erro ao apagar parcelas em lote:", err);
-      alert("Erro ao tentar remover as parcelas.");
-      return;
+    if (escolha) {
+      try {
+        const batch = db.batch();
+        const parcelasQuery = await db.collection('transacoes').where('workspaceId', '==', currentWorkspace.id).where('parcelaGroupId', '==', tx.parcelaGroupId).get();
+        
+        parcelasQuery.forEach(doc => {
+          batch.delete(doc.ref);
+        });
+
+        await batch.commit();
+        return;
+      } catch (err) {
+        console.error("Erro ao apagar parcelas em lote:", err);
+        alert("Erro ao tentar remover o lote de parcelas.");
+        return;
+      }
+    } else {
+      try {
+        await db.collection('transacoes').doc(id).delete();
+        return;
+      } catch (err) {
+        console.error("Erro ao apagar parcela individual:", err);
+        alert("Erro ao tentar remover o lançamento.");
+        return;
+      }
     }
   }
 
   if (confirm("Deseja remover este lançamento?")) {
-    await db.collection('transacoes').doc(id).delete();
+    try {
+      await db.collection('transacoes').doc(id).delete();
+    } catch (err) {
+      console.error("Erro ao apagar transação:", err);
+      alert("Erro ao tentar remover o lançamento.");
+    }
   }
 }
 
@@ -1093,7 +1117,6 @@ function renderTransactionsList(currentTx) {
     if (filterTotalBox) filterTotalBox.classList.add('hidden');
   }
 
-  // Trava visual no botão de importar fixos (localizado nas Configurações)
   const btnImportar = document.getElementById('btnImportarFixos');
   if (btnImportar) {
     const jaTemFixos = currentTx.some(t => t.cat === 'Gastos Fixos');
