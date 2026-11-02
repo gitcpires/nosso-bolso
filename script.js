@@ -23,7 +23,6 @@ const subcategoriasDisponiveis = [
   'Alimentação',
   'Telefonia',
   'Ticket Alimentação',
-  'Cartão de Crédito',
   'Serviços Públicos',
   'Outros'
 ];
@@ -606,6 +605,7 @@ function openNewTxModal() {
 
   document.getElementById('txDesc').value = '';
   document.getElementById('txAmount').value = '';
+  
   const subCatEl = document.getElementById('txSubCat');
   if (subCatEl) subCatEl.value = 'Transporte';
   
@@ -659,9 +659,9 @@ function closeNewTxModal() {
 }
 
 function toggleParcelasUI() {
-  const subCat = document.getElementById('txSubCat').value;
+  const paymentMethod = document.getElementById('txPaymentMethod').value;
   const container = document.getElementById('containerParcelas');
-  if (subCat === 'Cartão de Crédito') {
+  if (paymentMethod === 'Cartão de Crédito') {
     container.classList.remove('hidden');
   } else {
     container.classList.add('hidden');
@@ -688,12 +688,14 @@ async function handleSaveTransaction(e) {
   const amountTotal = parseFloat(document.getElementById('txAmount').value);
   const dateStr = document.getElementById('txDate').value; 
   const cat = document.getElementById('txCat').value;
-  const subCat = document.getElementById('txSubCat').value;
+  
+  // Se for Entrada, ignora a subcategoria
+  const subCat = type === 'INCOME' ? '' : document.getElementById('txSubCat').value;
   const paymentMethod = document.getElementById('txPaymentMethod').value;
 
-  const tipoCartao = subCat === 'Cartão de Crédito' ? document.getElementById('txTipoCartao').value : 'AVista';
+  const tipoCartao = paymentMethod === 'Cartão de Crédito' ? document.getElementById('txTipoCartao').value : 'AVista';
   let qtdParcelas = 1;
-  if (tipoCartao === 'Parcelado') {
+  if (paymentMethod === 'Cartão de Crédito' && tipoCartao === 'Parcelado') {
     qtdParcelas = parseInt(document.getElementById('txQtdParcelas').value, 10) || 1;
     if (qtdParcelas < 1) qtdParcelas = 1;
   }
@@ -858,6 +860,7 @@ function toggleTxTypeUI() {
   const labelEntrada = document.getElementById('labelTabEntrada');
   const labelSaida = document.getElementById('labelTabSaida');
   const selectCat = document.getElementById('txCat');
+  const containerSubCat = document.getElementById('containerSubCat');
 
   if (!selectCat) return;
 
@@ -865,6 +868,9 @@ function toggleTxTypeUI() {
     if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs transition";
     if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 dark:text-slate-400 transition";
     
+    // Esconde a subcategoria para entradas
+    if (containerSubCat) containerSubCat.classList.add('hidden');
+
     selectCat.innerHTML = `
       <option value="Salário">💰 Salário</option>
       <option value="Renda Extra">💵 Renda Extra</option>
@@ -873,6 +879,9 @@ function toggleTxTypeUI() {
     if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-2xs transition";
     if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 dark:text-slate-400 transition";
     
+    // Mostra a subcategoria para saídas
+    if (containerSubCat) containerSubCat.classList.remove('hidden');
+
     selectCat.innerHTML = `
       <option value="Gastos Fixos">🏠 Gastos Fixos</option>
       <option value="Gastos Gerais">🛒 Gastos Gerais</option>
