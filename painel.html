@@ -194,7 +194,9 @@
       <div class="flex gap-2">
         <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-600 shadow-2xs" />
       </div>
-      <div class="grid grid-cols-3 gap-1.5">
+      
+      <!-- Filtros Compactos -->
+      <div class="grid grid-cols-2 gap-1.5">
         <select id="filterMember" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-2 py-2 text-[11px] font-bold focus:outline-none shadow-2xs">
           <option value="">👤 Membros</option>
         </select>
@@ -205,14 +207,26 @@
           <option value="Lazer">Lazer</option>
           <option value="Investimentos">Invest.</option>
         </select>
-        <select id="filterSubCategory" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-2 py-2 text-[11px] font-bold focus:outline-none shadow-2xs">
-          <option value="">💳 Pagamento</option>
-          <option value="Cartão de Crédito">Cartão</option>
-          <option value="PIX">PIX</option>
-          <option value="Dinheiro">Dinheiro</option>
-          <option value="Transferência">Transf.</option>
-        </select>
       </div>
+
+      <!-- Filtros Múltiplos de Subcategoria e Forma de Pagamento -->
+      <div class="grid grid-cols-2 gap-1.5 bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+        <div>
+          <span class="text-[9px] font-bold text-slate-400 block mb-1">Subcategorias (Múltiplas)</span>
+          <div id="filterSubCatCheckboxes" class="space-y-1 max-h-24 overflow-y-auto pr-1 text-[11px]">
+            <!-- Preenchido via Script -->
+          </div>
+        </div>
+        <div>
+          <span class="text-[9px] font-bold text-slate-400 block mb-1">Forma Pagamento</span>
+          <select id="filterPaymentMethod" onchange="renderTransactionsList(transactions)" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-lg px-2 py-1.5 text-[11px] font-bold focus:outline-none">
+            <option value="">Todas</option>
+            <option value="PIX">PIX</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+      </div>
+
       <!-- Caixa de Total do Filtro -->
       <div id="filterTotalBox" class="bg-blue-50 dark:bg-slate-800 p-2.5 rounded-xl border border-blue-100 dark:border-slate-700 flex items-center justify-between hidden">
         <span class="text-[10px] font-extrabold text-blue-900 dark:text-blue-300 uppercase">Total do Filtro:</span>
@@ -347,18 +361,31 @@
           </select>
         </div>
 
+        <!-- Novas Subcategorias -->
         <div>
-          <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Subcategoria (Forma de Pagamento)</label>
+          <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Subcategoria</label>
           <select id="txSubCat" required onchange="toggleParcelasUI()" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white dark:bg-slate-800 dark:text-white">
+            <option value="Transporte">🚗 Transporte</option>
+            <option value="Alimentação">🍔 Alimentação</option>
+            <option value="Telefonia">📱 Telefonia</option>
+            <option value="Ticket Alimentação">🎫 Ticket Alimentação</option>
             <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+            <option value="Serviços Públicos">💡 Serviços Públicos</option>
+            <option value="Outros">📦 Outros</option>
+          </select>
+        </div>
+
+        <!-- Forma de Pagamento (PIX ou Outros) -->
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Forma de Pagamento</label>
+          <select id="txPaymentMethod" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white dark:bg-slate-800 dark:text-white">
             <option value="PIX">⚡ PIX</option>
-            <option value="Dinheiro">💵 Dinheiro</option>
-            <option value="Transferência">🏦 Transferência</option>
+            <option value="Outros">🔄 Outros</option>
           </select>
         </div>
 
         <!-- Seção de Parcelas (Aparece apenas para Cartão de Crédito) -->
-        <div id="containerParcelas" class="space-y-2.5 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+        <div id="containerParcelas" class="space-y-2.5 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 hidden">
           <div>
             <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Tipo de Compra</label>
             <select id="txTipoCartao" onchange="toggleNumeroParcelas()" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-bold focus:outline-none bg-white dark:bg-slate-900 dark:text-white">
