@@ -637,6 +637,9 @@ function openEditTransaction(id) {
 
   const paymentMethodEl = document.getElementById('txPaymentMethod');
   if (paymentMethodEl) paymentMethodEl.value = tx.paymentMethod || 'PIX';
+
+  const tipoCartaoEl = document.getElementById('txTipoCartao');
+  if (tipoCartaoEl) tipoCartaoEl.value = tx.tipoCartao || 'AVista';
   
   toggleParcelasUI();
 
@@ -707,7 +710,7 @@ async function handleSaveTransaction(e) {
       const txData = {
         desc: descOriginal,
         amount: amountTotal,
-        type, cat, subCat, paymentMethod,
+        type, cat, subCat, paymentMethod, tipoCartao,
         month: `${mesesNomes[mesIndexBase]} ${anoBase}`,
         date: dateStr,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -738,6 +741,7 @@ async function handleSaveTransaction(e) {
           cat, 
           subCat,
           paymentMethod,
+          tipoCartao,
           month: mesStringFinal,
           date: dataParcelaStr,
           confirmado: false,
@@ -1115,7 +1119,6 @@ function renderTransactionsList(currentTx) {
   const filtroMembro = document.getElementById('filterMember')?.value || '';
   const filtroCat = document.getElementById('filterCategory')?.value || '';
   
-  // Captura subcategorias selecionadas nos checkboxes múltiplos
   const checkboxesSubCat = document.querySelectorAll('.subcat-filter-checkbox');
   const subCatsSelecionadas = Array.from(checkboxesSubCat).filter(cb => cb.checked).map(cb => cb.value);
   
@@ -1127,10 +1130,7 @@ function renderTransactionsList(currentTx) {
     const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search) || (t.subCat && t.subCat.toLowerCase().includes(search));
     const matchMembro = filtroMembro === '' || t.userEmail === filtroMembro;
     const matchCat = filtroCat === '' || t.cat === filtroCat;
-    
-    // Se houver subcategorias marcadas, filtra por elas (ou passa se nenhuma estiver marcada)
     const matchSubCat = subCatsSelecionadas.length === 0 || subCatsSelecionadas.includes(t.subCat);
-    
     const matchPayment = filtroPaymentMethod === '' || t.paymentMethod === filtroPaymentMethod;
 
     return matchSearch && matchMembro && matchCat && matchSubCat && matchPayment;
