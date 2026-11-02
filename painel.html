@@ -222,6 +222,7 @@
           <select id="filterPaymentMethod" onchange="renderTransactionsList(transactions)" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-lg px-2 py-1.5 text-[11px] font-bold focus:outline-none">
             <option value="">Todas</option>
             <option value="PIX">PIX</option>
+            <option value="Cartão de Crédito">Cartão de Crédito</option>
             <option value="Outros">Outros</option>
           </select>
         </div>
@@ -362,32 +363,32 @@
         </div>
 
         <!-- Subcategorias Atualizadas -->
-        <div>
+        <div id="containerSubCat">
           <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Subcategoria</label>
-          <select id="txSubCat" required onchange="toggleParcelasUI()" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white dark:bg-slate-800 dark:text-white">
+          <select id="txSubCat" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white dark:bg-slate-800 dark:text-white">
             <option value="Transporte">🚗 Transporte</option>
             <option value="Alimentação">🍔 Alimentação</option>
             <option value="Telefonia">📱 Telefonia</option>
             <option value="Ticket Alimentação">🎫 Ticket Alimentação</option>
-            <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
             <option value="Serviços Públicos">💡 Serviços Públicos</option>
             <option value="Outros">📦 Outros</option>
           </select>
         </div>
 
-        <!-- Forma de Pagamento (PIX ou Outros) -->
+        <!-- Forma de Pagamento Atualizada (Com Cartão de Crédito aqui) -->
         <div>
           <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Forma de Pagamento</label>
-          <select id="txPaymentMethod" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white dark:bg-slate-800 dark:text-white">
+          <select id="txPaymentMethod" required onchange="toggleParcelasUI()" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white dark:bg-slate-800 dark:text-white">
             <option value="PIX">⚡ PIX</option>
+            <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
             <option value="Outros">🔄 Outros</option>
           </select>
         </div>
 
-        <!-- Seção de Parcelas (Aparece apenas quando Cartão de Crédito é selecionado) -->
+        <!-- Seção de Parcelas (Aparece apenas quando Cartão de Crédito é escolhido na Forma de Pagamento) -->
         <div id="containerParcelas" class="space-y-2.5 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 hidden">
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Tipo de Compra</label>
+            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Tipo de Compra no Cartão</label>
             <select id="txTipoCartao" onchange="toggleNumeroParcelas()" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-bold focus:outline-none bg-white dark:bg-slate-900 dark:text-white">
               <option value="AVista" selected>À Vista</option>
               <option value="Parcelado">Parcelado</option>
