@@ -1205,7 +1205,6 @@ function renderTransactionsList(currentTx) {
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
     const confirmado = t.confirmado === true;
     
-    // Todos os badges na mesma linha com espaçamento uniforme
     const catBadge = t.cat ? `<span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>` : '';
     const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-bold">${t.subCat}</span>` : '';
     const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold">${t.paymentMethod}</span>` : '';
@@ -1216,7 +1215,6 @@ function renderTransactionsList(currentTx) {
         <div class="space-y-1 pr-2 overflow-hidden w-full">
           <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">${t.desc}</div>
           
-          <!-- Categoria, Subcategoria, Pagamento e Utilizador estritamente na mesma linha -->
           <div class="flex flex-wrap items-center gap-1.5">
             ${catBadge}
             ${subCatBadge}
@@ -1229,18 +1227,25 @@ function renderTransactionsList(currentTx) {
             <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-2 py-0.5 rounded transition ${
               confirmado 
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 hover:bg-emerald-200' 
-                : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 hover:bg-amber-200 animate-pulse'
+                : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 hover:bg-emerald-200 animate-pulse'
             }">
               ${confirmado ? '✓ Registado' : '⏳ Pendente (Clique p/ Confirmar)'}
             </button>
           </div>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-black whitespace-nowrap ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
+
+        <div class="flex flex-col items-end pl-2 shrink-0">
+          <span class="text-sm sm:text-base font-black whitespace-nowrap ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
             ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
           </span>
-          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
-          <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          <div class="flex items-center gap-3 mt-1.5">
+            <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1 transition" title="Editar">
+              <i class="fa-solid fa-pen-to-square text-sm"></i>
+            </button>
+            <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1 transition" title="Excluir">
+              <i class="fa-solid fa-trash-can text-sm"></i>
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -1283,8 +1288,8 @@ function renderInvestments(currentTx) {
   invests.forEach(t => {
     const confirmado = t.confirmado === true;
     investList.innerHTML += `
-      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-        <div>
+      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+        <div class="space-y-1 pr-2 overflow-hidden w-full">
           <div class="text-xs font-extrabold text-slate-900 dark:text-white">${t.desc}</div>
           <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
             <span>${t.date}</span>
@@ -1295,10 +1300,19 @@ function renderInvestments(currentTx) {
             </button>
           </div>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
-          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
-          <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
+
+        <div class="flex flex-col items-end pl-2 shrink-0">
+          <span class="text-sm sm:text-base font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">
+            R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
+          </span>
+          <div class="flex items-center gap-3 mt-1.5">
+            <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1 transition" title="Editar">
+              <i class="fa-solid fa-pen-to-square text-sm"></i>
+            </button>
+            <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1 transition" title="Excluir">
+              <i class="fa-solid fa-trash-can text-sm"></i>
+            </button>
+          </div>
         </div>
       </div>
     `;
