@@ -361,7 +361,7 @@
           </select>
         </div>
 
-        <!-- Novas Subcategorias -->
+        <!-- Subcategorias Atualizadas -->
         <div>
           <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Subcategoria</label>
           <select id="txSubCat" required onchange="toggleParcelasUI()" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white dark:bg-slate-800 dark:text-white">
@@ -384,13 +384,14 @@
           </select>
         </div>
 
-        <!-- Seção de Parcelas (Aparece apenas para Cartão de Crédito) -->
+        <!-- Seção de Parcelas (Aparece apenas quando Cartão de Crédito é selecionado) -->
         <div id="containerParcelas" class="space-y-2.5 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 hidden">
           <div>
             <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Tipo de Compra</label>
             <select id="txTipoCartao" onchange="toggleNumeroParcelas()" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-bold focus:outline-none bg-white dark:bg-slate-900 dark:text-white">
               <option value="AVista" selected>À Vista</option>
               <option value="Parcelado">Parcelado</option>
+              <option value="Outros">Outros</option>
             </select>
           </div>
 
