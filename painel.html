@@ -362,26 +362,14 @@
           <div>
             <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Tipo de Compra</label>
             <select id="txTipoCartao" onchange="toggleNumeroParcelas()" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-bold focus:outline-none bg-white dark:bg-slate-900 dark:text-white">
-              <option value="AVista">À Vista</option>
+              <option value="AVista" selected>À Vista</option>
               <option value="Parcelado">Parcelado</option>
             </select>
           </div>
 
           <div id="containerNumParcelas" class="hidden">
             <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Número de Parcelas</label>
-            <select id="txQtdParcelas" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-bold focus:outline-none bg-white dark:bg-slate-900 dark:text-white">
-              <option value="2">2x</option>
-              <option value="3">3x</option>
-              <option value="4">4x</option>
-              <option value="5">5x</option>
-              <option value="6">6x</option>
-              <option value="7">7x</option>
-              <option value="8">8x</option>
-              <option value="9">9x</option>
-              <option value="10">10x</option>
-              <option value="11">11x</option>
-              <option value="12">12x</option>
-            </select>
+            <input type="number" id="txQtdParcelas" min="2" max="60" value="2" placeholder="Ex: 10" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold focus:outline-none dark:text-white" />
           </div>
         </div>
 
