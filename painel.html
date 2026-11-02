@@ -195,8 +195,8 @@
         <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-600 shadow-2xs" />
       </div>
       
-      <!-- Filtros Compactos -->
-      <div class="grid grid-cols-2 gap-1.5">
+      <!-- Filtros Compactos (Categoria e Botão de Filtro de Subcategoria/Pagamento na mesma linha) -->
+      <div class="grid grid-cols-3 gap-1.5">
         <select id="filterMember" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:text-white rounded-xl px-2 py-2 text-[11px] font-bold focus:outline-none shadow-2xs">
           <option value="">👤 Membros</option>
         </select>
@@ -207,18 +207,21 @@
           <option value="Lazer">Lazer</option>
           <option value="Investimentos">Invest.</option>
         </select>
+        <button onclick="toggleFiltroAvancado()" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-xl px-2 py-2 text-[11px] font-bold focus:outline-none shadow-2xs flex items-center justify-center gap-1 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+          <i class="fa-solid fa-filter text-blue-600"></i> Filtros
+        </button>
       </div>
 
-      <!-- Filtros Múltiplos de Subcategoria e Forma de Pagamento -->
-      <div class="grid grid-cols-2 gap-1.5 bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+      <!-- Caixa Rettilínia de Filtros Avançados (Oculta por padrão, abre ao clicar no botão) -->
+      <div id="containerFiltroAvancado" class="grid grid-cols-2 gap-1.5 bg-slate-50 dark:bg-slate-900/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hidden">
         <div>
-          <span class="text-[9px] font-bold text-slate-400 block mb-1">Subcategorias (Múltiplas)</span>
-          <div id="filterSubCatCheckboxes" class="space-y-1 max-h-24 overflow-y-auto pr-1 text-[11px]">
+          <span class="text-[9px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Subcategorias</span>
+          <div id="filterSubCatCheckboxes" class="space-y-1 max-h-28 overflow-y-auto pr-1 text-[11px]">
             <!-- Preenchido via Script -->
           </div>
         </div>
         <div>
-          <span class="text-[9px] font-bold text-slate-400 block mb-1">Forma Pagamento</span>
+          <span class="text-[9px] font-bold text-slate-400 block mb-1 uppercase tracking-wider">Forma Pagamento</span>
           <select id="filterPaymentMethod" onchange="renderTransactionsList(transactions)" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 dark:text-white rounded-lg px-2 py-1.5 text-[11px] font-bold focus:outline-none">
             <option value="">Todas</option>
             <option value="PIX">PIX</option>
@@ -363,7 +366,7 @@
           </select>
         </div>
 
-        <!-- Subcategoria (Oculta automaticamente em Entradas) -->
+        <!-- Subcategoria -->
         <div id="containerSubCat">
           <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Subcategoria</label>
           <select id="txSubCat" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white dark:bg-slate-800 dark:text-white">
@@ -376,7 +379,7 @@
           </select>
         </div>
 
-                <!-- Forma de Pagamento Dinâmica -->
+        <!-- Forma de Pagamento -->
         <div>
           <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Forma de Pagamento</label>
           <select id="txPaymentMethod" required onchange="toggleParcelasUI()" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-600 bg-white dark:bg-slate-800 dark:text-white">
@@ -386,8 +389,7 @@
           </select>
         </div>
 
-
-        <!-- Seção de Parcelas (Aparece apenas quando Cartão de Crédito é escolhido) -->
+        <!-- Seção de Parcelas -->
         <div id="containerParcelas" class="space-y-2.5 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 hidden">
           <div>
             <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">Tipo de Compra no Cartão</label>
@@ -411,11 +413,10 @@
     </div>
   </div>
 
-  <!-- Modal de Configurações Compacto e Otimizado -->
+  <!-- Modal de Configurações -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-3 hidden backdrop-blur-md">
     <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-4 rounded-[2rem] space-y-3 shadow-2xl max-h-[92vh] overflow-y-auto">
       
-      <!-- Cabeçalho do Modal -->
       <div class="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-800">
         <div class="flex items-center gap-2">
           <div class="w-6 h-6 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-[10px]">
@@ -426,7 +427,6 @@
         <button onclick="closeProfileModal()" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark text-[10px]"></i></button>
       </div>
 
-      <!-- Código de Convite Compacto -->
       <div class="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
         <div>
           <span class="text-[8px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-tight block">Código de Convite</span>
@@ -437,7 +437,6 @@
         </button>
       </div>
 
-      <!-- Botão de Importar Fixos nas Configurações -->
       <div class="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
         <div>
           <span class="text-[8px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-tight block">Gastos Fixos</span>
@@ -448,7 +447,6 @@
         </button>
       </div>
 
-      <!-- Secção de Metas Compacta -->
       <div class="bg-blue-50/40 dark:bg-slate-800/40 p-3 rounded-xl border border-blue-100 dark:border-slate-700 space-y-2">
         <div class="flex items-center justify-between">
           <h4 id="labelModalMetasMes" class="text-[10px] font-extrabold text-blue-900 dark:text-blue-300 uppercase">Definir Metas</h4>
@@ -482,7 +480,6 @@
             </div>
           </div>
 
-          <!-- Indicador de Soma Total -->
           <div class="text-center">
             <span id="metaTotalRestante" class="text-[9px] font-bold text-slate-500 dark:text-slate-400"></span>
           </div>
@@ -495,13 +492,11 @@
         </form>
       </div>
 
-      <!-- Membros do Grupo (Compacto) -->
       <div class="space-y-1">
         <span class="text-[8px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Membros do Grupo</span>
         <div id="workspaceMembersList" class="space-y-1 max-h-16 overflow-y-auto pr-1"></div>
       </div>
 
-      <!-- Botões Inferiores -->
       <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex gap-2">
         <button onclick="deixarGrupo()" class="w-1/2 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border border-rose-200 dark:border-rose-900 rounded-xl text-[10px] font-bold transition">
           Sair do Grupo
