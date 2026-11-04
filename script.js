@@ -16,7 +16,7 @@ let currentUser = { id: '', name: '', email: '' };
 let transactions = [];
 const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-// Define por padrão o mês e ano correntes do dispositivo (Ex: Novembro 2026)
+// Define por padrão o mês e ano correntes do dispositivo
 const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
 
@@ -496,7 +496,7 @@ async function carregarMembrosDoGrupo() {
       containerMembros.innerHTML += `
         <div class="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
           <span class="font-bold text-slate-700 dark:text-slate-200 truncate text-[11px]"><i class="fa-solid fa-user-circle text-blue-500 mr-1.5"></i>${emailMembro}${ehVoce}</span>
-          <span class="text-[9px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
+          <span class="text-[9px] bg-emerald-50 text-emerald-700 dark:text-emerald-950 dark:text-emerald-300 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
         </div>
       `;
 
@@ -1145,6 +1145,9 @@ function renderTransactionsList(currentTx) {
   const container = document.getElementById('txListContainer');
   if (!container) return;
 
+  // Garante que só filtra e exibe transações estritamente do mês/ano ativo selecionado no topo
+  const transacoesDoMesAtivo = transactions.filter(t => t.month === activeMonth);
+
   const search = (document.getElementById('searchExpense')?.value || '').toLowerCase();
   const filtroMembro = document.getElementById('filterMember')?.value || '';
   const filtroCat = document.getElementById('filterCategory')?.value || '';
@@ -1156,7 +1159,7 @@ function renderTransactionsList(currentTx) {
 
   container.innerHTML = '';
   
-  const filtered = currentTx.filter(t => {
+  const filtered = transacoesDoMesAtivo.filter(t => {
     const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search) || (t.subCat && t.subCat.toLowerCase().includes(search));
     const matchMembro = filtroMembro === '' || t.userEmail === filtroMembro;
     const matchCat = filtroCat === '' || t.cat === filtroCat;
@@ -1269,8 +1272,9 @@ function renderInvestments(currentTx) {
   const monthInvestEl = document.getElementById('monthInvestTotalHeader');
   if (monthInvestEl) monthInvestEl.innerText = `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
+  const anoAtualSelecionado = activeMonth.split(' ')[1] || '2026';
   const totalYearInvested = transactions
-    .filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE' && t.confirmado && (t.month.includes('2026') || (t.date && t.date.startsWith('2026'))))
+    .filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE' && t.confirmado && (t.month.includes(anoAtualSelecionado) || (t.date && t.date.startsWith(anoAtualSelecionado))))
     .reduce((sum, t) => sum + t.amount, 0);
 
   const yearHeader = document.getElementById('yearInvestTotalHeader');
