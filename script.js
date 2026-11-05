@@ -16,7 +16,6 @@ let currentUser = { id: '', name: '', email: '' };
 let transactions = [];
 const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-// Define por padrão o mês e ano correntes do dispositivo
 const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
 
@@ -31,6 +30,7 @@ const subcategoriasDisponiveis = [
 
 let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
+let subCategoryBarChartInstance = null;
 let lousaDocId = null;
 let modoMetasAtual = 'perc';
 let editingTxId = null;
@@ -496,7 +496,7 @@ async function carregarMembrosDoGrupo() {
       containerMembros.innerHTML += `
         <div class="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
           <span class="font-bold text-slate-700 dark:text-slate-200 truncate text-[11px]"><i class="fa-solid fa-user-circle text-blue-500 mr-1.5"></i>${emailMembro}${ehVoce}</span>
-          <span class="text-[9px] bg-emerald-50 text-emerald-700 dark:text-emerald-950 dark:text-emerald-300 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
+          <span class="text-[9px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
         </div>
       `;
 
@@ -1084,6 +1084,7 @@ function renderAll() {
   renderTransactionsList(currentTxMes);
   renderInvestments(currentTxMes);
   renderCharts(fixed, general, leisure, invest);
+  renderSubCategoryChart(currentTxMes);
 }
 
 function renderCharts(fixed, general, leisure, invest) {
@@ -1141,11 +1142,58 @@ function renderCharts(fixed, general, leisure, invest) {
   }
 }
 
+function renderSubCategoryChart(currentTx) {
+  const ctxSubBar = document.getElementById('subCategoryBarChart');
+  if (!ctxSubBar) return;
+
+  const despesasComSubCat = currentTx.filter(t => t.type === 'EXPENSE' && t.confirmado && t.subCat);
+
+  const totaisPorSubCat = {};
+  subcategoriasDisponiveis.forEach(sub => {
+    totaisPorSubCat[sub] = 0;
+  });
+
+  despesasComSubCat.forEach(t => {
+    if (totaisPorSubCat[t.subCat] !== undefined) {
+      totaisPorSubCat[t.subCat] += t.amount;
+    } else {
+      totaisPorSubCat[t.subCat] = t.amount;
+    }
+  });
+
+  const labels = Object.keys(totaisPorSubCat);
+  const dados = Object.values(totaisPorSubCat);
+
+  if (subCategoryBarChartInstance) subCategoryBarChartInstance.destroy();
+
+  subCategoryBarChartInstance = new Chart(ctxSubBar, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Gasto (R$)',
+        data: dados,
+        backgroundColor: '#3b82f6',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { font: { size: 9 }, callback: val => 'R$ ' + val } },
+        y: { grid: { display: false }, ticks: { font: { size: 9 } } }
+      }
+    }
+  });
+}
+
 function renderTransactionsList(currentTx) {
   const container = document.getElementById('txListContainer');
   if (!container) return;
 
-  // Garante que só filtra e exibe transações estritamente do mês/ano ativo selecionado no topo
   const transacoesDoMesAtivo = transactions.filter(t => t.month === activeMonth);
 
   const search = (document.getElementById('searchExpense')?.value || '').toLowerCase();
