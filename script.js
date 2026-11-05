@@ -31,6 +31,7 @@ const subcategoriasDisponiveis = [
 let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
 let subCategoryBarChartInstance = null;
+let paymentMethodBarChartInstance = null;
 let lousaDocId = null;
 let modoMetasAtual = 'perc';
 let editingTxId = null;
@@ -704,7 +705,7 @@ async function handleSaveTransaction(e) {
   const dateStr = document.getElementById('txDate').value; 
   const cat = document.getElementById('txCat').value;
   
-  const subCat = type === 'INCOME' ? '' : document.getElementById('txSubCat').value;
+  const subCat = type === 'INCOME' ? '' : (document.getElementById('txSubCat')?.value || 'Outros');
   const paymentMethod = document.getElementById('txPaymentMethod').value;
 
   const tipoCartao = paymentMethod === 'Cartão de Crédito' ? document.getElementById('txTipoCartao').value : 'AVista';
@@ -1085,6 +1086,7 @@ function renderAll() {
   renderInvestments(currentTxMes);
   renderCharts(fixed, general, leisure, invest);
   renderSubCategoryChart(currentTxMes);
+  renderPaymentMethodChart(currentTxMes);
 }
 
 function renderCharts(fixed, general, leisure, invest) {
@@ -1185,6 +1187,52 @@ function renderSubCategoryChart(currentTx) {
       scales: {
         x: { beginAtZero: true, ticks: { font: { size: 9 }, callback: val => 'R$ ' + val } },
         y: { grid: { display: false }, ticks: { font: { size: 9 } } }
+      }
+    }
+  });
+}
+
+function renderPaymentMethodChart(currentTx) {
+  const ctxPaymentBar = document.getElementById('paymentMethodBarChart');
+  if (!ctxPaymentBar) return;
+
+  const despesasMes = currentTx.filter(t => t.type === 'EXPENSE' && t.confirmado);
+
+  let totalPix = 0;
+  let totalCartao = 0;
+  let totalOutros = 0;
+
+  despesasMes.forEach(t => {
+    const metodo = (t.paymentMethod || '').trim();
+    if (metodo === 'PIX') {
+      totalPix += t.amount;
+    } else if (metodo === 'Cartão de Crédito') {
+      totalCartao += t.amount;
+    } else {
+      totalOutros += t.amount;
+    }
+  });
+
+  if (paymentMethodBarChartInstance) paymentMethodBarChartInstance.destroy();
+
+  paymentMethodBarChartInstance = new Chart(ctxPaymentBar, {
+    type: 'bar',
+    data: {
+      labels: ['PIX', 'Cartão de Crédito', 'Outros'],
+      datasets: [{
+        label: 'Gasto (R$)',
+        data: [totalPix, totalCartao, totalOutros],
+        backgroundColor: ['#0ea5e9', '#6366f1', '#64748b'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+        y: { beginAtZero: true, ticks: { font: { size: 9 }, callback: val => 'R$ ' + val } }
       }
     }
   });
