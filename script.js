@@ -1148,7 +1148,8 @@ function renderSubCategoryChart(currentTx) {
   const ctxSubBar = document.getElementById('subCategoryBarChart');
   if (!ctxSubBar) return;
 
-  const despesasComSubCat = currentTx.filter(t => t.type === 'EXPENSE' && t.confirmado && t.subCat);
+  // Filtra apenas despesas confirmadas e restringe estritamente às subcategorias oficiais permitidas
+  const despesasComSubCat = currentTx.filter(t => t.type === 'EXPENSE' && t.confirmado && subcategoriasDisponiveis.includes(t.subCat));
 
   const totaisPorSubCat = {};
   subcategoriasDisponiveis.forEach(sub => {
@@ -1158,8 +1159,6 @@ function renderSubCategoryChart(currentTx) {
   despesasComSubCat.forEach(t => {
     if (totaisPorSubCat[t.subCat] !== undefined) {
       totaisPorSubCat[t.subCat] += t.amount;
-    } else {
-      totaisPorSubCat[t.subCat] = t.amount;
     }
   });
 
@@ -1196,6 +1195,7 @@ function renderPaymentMethodChart(currentTx) {
   const ctxPaymentBar = document.getElementById('paymentMethodBarChart');
   if (!ctxPaymentBar) return;
 
+  // Considera as despesas confirmadas do mês para alinhar com os demais gráficos de resumo
   const despesasMes = currentTx.filter(t => t.type === 'EXPENSE' && t.confirmado);
 
   let totalPix = 0;
@@ -1386,7 +1386,7 @@ function renderInvestments(currentTx) {
     const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
     const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
     if (timeA !== timeB) return timeB - timeA;
-    return new Date(b.date) - new Date(a.date);
+    return new Date(b.date) - newDate(a.date);
   });
 
   if (invests.length === 0) {
@@ -1448,7 +1448,7 @@ function exportarParaExcel() {
     const subCat = `"${t.subCat || ''}"`;
     const pagamento = `"${t.paymentMethod || ''}"`;
 
-    csvContent += `${t.date};${descLimpa};${tipoFormatado};${cat};${subCat};${pagamento};${valorFormatado};${statusFormatado};${membro}\n`;
+    csvContent += `${t.date};${descLimrap};${tipoFormatado};${cat};${subCat};${pagamento};${valorFormatado};${statusFormatado};${membro}\n`;
   });
 
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
