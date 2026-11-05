@@ -183,11 +183,20 @@
         <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2"></div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 p-3 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-2">
+      <!-- Card de Distribuição de Gastos com Gráfico de Subcategorias Adicionado -->
+      <div class="bg-white dark:bg-slate-900 p-3 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
         <h3 class="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Distribuição de Gastos</h3>
+        
         <div class="grid grid-cols-2 gap-3 items-center">
           <div class="h-32 relative"><canvas id="categoryPieChart"></canvas></div>
           <div class="h-32 relative"><canvas id="categoryBarChart"></canvas></div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
+          <span class="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-tight block">Uso por Subcategoria</span>
+          <div class="h-40 relative w-full">
+            <canvas id="subCategoryBarChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -405,7 +414,7 @@
     </div>
   </div>
 
-  <!-- Modal de Configurações (Com Exportar discreto aqui dentro) -->
+  <!-- Modal de Configurações -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-3 hidden backdrop-blur-md">
     <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-4 rounded-[2rem] space-y-3 shadow-2xl max-h-[92vh] overflow-y-auto">
       
@@ -439,7 +448,6 @@
         </button>
       </div>
 
-      <!-- Botão Discreto de Exportar para Excel dentro das Configurações -->
       <div class="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
         <div>
           <span class="text-[8px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-tight block">Dados do Mês</span>
