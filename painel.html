@@ -183,7 +183,7 @@
         <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2"></div>
       </div>
 
-      <!-- Card de Distribuição de Gastos com Gráfico de Subcategorias Adicionado -->
+      <!-- Card de Distribuição de Gastos com Subcategorias e Formas de Pagamento -->
       <div class="bg-white dark:bg-slate-900 p-3 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
         <h3 class="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Distribuição de Gastos</h3>
         
@@ -196,6 +196,13 @@
           <span class="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-tight block">Uso por Subcategoria</span>
           <div class="h-40 relative w-full">
             <canvas id="subCategoryBarChart"></canvas>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
+          <span class="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-tight block">Formas de Pagamento (PIX, Cartão, Outros)</span>
+          <div class="h-36 relative w-full">
+            <canvas id="paymentMethodBarChart"></canvas>
           </div>
         </div>
       </div>
