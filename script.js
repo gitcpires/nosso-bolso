@@ -332,10 +332,14 @@ async function criarNovoWorkspace() {
       tentativas++;
     }
 
-    const workspaceId = 'ws_' + currentUser.id;
+    // CORREÇÃO: O Firebase agora gera um ID único e aleatório para o novo grupo
+    const novoDocRef = db.collection('workspaces').doc(); 
+    const workspaceId = novoDocRef.id;
+
     const metasPadrao = { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
-    await db.collection('workspaces').doc(workspaceId).set({
+    // Usamos o novoDocRef criado acima para salvar os dados
+    await novoDocRef.set({
       code: novoCodigo,
       metasPorMes: { [activeMonth]: metasPadrao },
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -359,6 +363,7 @@ async function criarNovoWorkspace() {
     mostrarSetupMsg("Erro: " + (err.message || "Tente novamente."), "erro");
   }
 }
+
 
 async function entrarGrupoExistente() {
   const codigoInput = document.getElementById('inputWorkspaceCode').value.trim();
