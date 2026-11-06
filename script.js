@@ -267,53 +267,53 @@ async function salvarMetasGrupoConfig(e) {
   }
 }
 
-async function deixarGrupo() {
+async function criarNovoWorkspace() {
   try {
-    const wsIdAtual = currentWorkspace.id;
-    const uidAtual = currentUser.id;
+    mostrarSetupMsg("A gerar novo grupo...", "info");
+    let novoCodigo = '';
+    let codigoExiste = true;
+    let tentativas = 0;
 
-    // AQUI O SEU CÓDIGO CONTA QUANTAS PESSOAS TEM NO GRUPO
-    const membrosSnapshot = await db.collection('users').where('workspaceId', '==', wsIdAtual).get();
-    const éOUltimo = membrosSnapshot.size <= 1;
-
-    // SE FOR O ÚLTIMO, FAZ A EXCLUSÃO DOS DADOS PRIMEIRO
-    if (éOUltimo) {
-      const confirmacao = confirm("Atenção: Você é o último utilizador deste grupo. Se sair, todos os dados financeiros e recados do mural serão apagados permanentemente. Deseja continuar?");
-      if (!confirmacao) return;
-      
-      // Apaga os dados porque é o último
-      const batch = db.batch();
-      
-      const txsQuery = await db.collection('transacoes').where('workspaceId', '==', wsIdAtual).get();
-      txsQuery.forEach(doc => batch.delete(doc.ref));
-
-      const lousaQuery = await db.collection('lousa').where('workspaceId', '==', wsIdAtual).get();
-      lousaQuery.forEach(doc => batch.delete(doc.ref));
-
-      const wsRef = db.collection('workspaces').doc(wsIdAtual);
-      batch.delete(wsRef);
-
-      await batch.commit();
-      
-    } else {
-      // SE TIVER 2 OU MAIS PESSOAS, CAI AQUI. SÓ AVISA E NÃO APAGA OS DADOS.
-      const confirmacao = confirm("Tem certeza que deseja sair deste grupo?");
-      if (!confirmacao) return;
+    while (codigoExiste && tentativas < 10) {
+      novoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
+      const checkQuery = await db.collection('workspaces').where('code', '==', novoCodigo).get();
+      if (checkQuery.empty) {
+        codigoExiste = false;
+      }
+      tentativas++;
     }
 
-    // DEPOIS DE TUDO (apagando dados ou não), TIRA O USUÁRIO DO GRUPO
-    await db.collection('users').doc(uidAtual).update({
-      workspaceId: firebase.firestore.FieldValue.delete(),
-      workspaceCode: firebase.firestore.FieldValue.delete()
+    // A MUDANÇA CRUCIAL ESTÁ AQUI: Gera um documento novo com um ID aleatório
+    const novoDocRef = db.collection('workspaces').doc(); 
+    const workspaceId = novoDocRef.id;
+
+    const metasPadrao = { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
+
+    await novoDocRef.set({
+      code: novoCodigo,
+      metasPorMes: { [activeMonth]: metasPadrao },
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    alert("Você saiu do grupo com sucesso.");
-    window.location.reload();
+    await db.collection('users').doc(currentUser.id).set({
+      workspaceId: workspaceId,
+      workspaceCode: novoCodigo,
+      email: currentUser.email,
+      status: 'approved'
+    }, { merge: true });
+
+    currentWorkspace.id = workspaceId;
+    currentWorkspace.code = novoCodigo;
+    currentWorkspace.metasPorMes = { [activeMonth]: metasPadrao };
+
+    document.getElementById('setupWorkspaceModal').classList.add('hidden');
+    initUserSession();
   } catch (err) {
-    console.error(err);
-    alert("Erro ao tentar deixar o grupo. Tente novamente.");
+    console.error("Erro detalhado ao criar grupo:", err);
+    mostrarSetupMsg("Erro: " + (err.message || "Tente novamente."), "erro");
   }
 }
+
 
 
 async function criarNovoWorkspace() {
