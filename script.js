@@ -267,6 +267,49 @@ async function salvarMetasGrupoConfig(e) {
   }
 }
 
+async function deixarGrupo() {
+  try {
+    const wsIdAtual = currentWorkspace.id;
+    const uidAtual = currentUser.id;
+
+    const membrosSnapshot = await db.collection('users').where('workspaceId', '==', wsIdAtual).get();
+    const éOUltimo = membrosSnapshot.size <= 1;
+
+    if (éOUltimo) {
+      const confirmacao = confirm("Atenção: Você é o último utilizador deste grupo. Se sair, todos os dados financeiros e recados do mural serão apagados permanentemente. Deseja continuar?");
+      if (!confirmacao) return;
+    } else {
+      const confirmacao = confirm("Tem certeza que deseja sair deste grupo?");
+      if (!confirmacao) return;
+    }
+
+    await db.collection('users').doc(uidAtual).update({
+      workspaceId: firebase.firestore.FieldValue.delete(),
+      workspaceCode: firebase.firestore.FieldValue.delete()
+    });
+
+    if (éOUltimo) {
+      const batch = db.batch();
+      const txsQuery = await db.collection('transacoes').where('workspaceId', '==', wsIdAtual).get();
+      txsQuery.forEach(doc => batch.delete(doc.ref));
+
+      const lousaQuery = await db.collection('lousa').where('workspaceId', '==', wsIdAtual).get();
+      lousaQuery.forEach(doc => batch.delete(doc.ref));
+
+      const wsRef = db.collection('workspaces').doc(wsIdAtual);
+      batch.delete(wsRef);
+
+      await batch.commit();
+    }
+
+    alert("Você saiu do grupo com sucesso.");
+    window.location.reload();
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao tentar deixar o grupo. Tente novamente.");
+  }
+}
+
 async function criarNovoWorkspace() {
   try {
     mostrarSetupMsg("A gerar novo grupo...", "info");
@@ -283,13 +326,10 @@ async function criarNovoWorkspace() {
       tentativas++;
     }
 
-    // A MUDANÇA CRUCIAL ESTÁ AQUI: Gera um documento novo com um ID aleatório
-    const novoDocRef = db.collection('workspaces').doc(); 
-    const workspaceId = novoDocRef.id;
-
+    const workspaceId = 'ws_' + currentUser.id;
     const metasPadrao = { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
 
-    await novoDocRef.set({
+    await db.collection('workspaces').doc(workspaceId).set({
       code: novoCodigo,
       metasPorMes: { [activeMonth]: metasPadrao },
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -313,57 +353,6 @@ async function criarNovoWorkspace() {
     mostrarSetupMsg("Erro: " + (err.message || "Tente novamente."), "erro");
   }
 }
-
-
-
-async function criarNovoWorkspace() {
-  try {
-    mostrarSetupMsg("A gerar novo grupo...", "info");
-    let novoCodigo = '';
-    let codigoExiste = true;
-    let tentativas = 0;
-
-    while (codigoExiste && tentativas < 10) {
-      novoCodigo = Math.floor(1000 + Math.random() * 9000).toString();
-      const checkQuery = await db.collection('workspaces').where('code', '==', novoCodigo).get();
-      if (checkQuery.empty) {
-        codigoExiste = false;
-      }
-      tentativas++;
-    }
-
-    // CORREÇÃO: O Firebase agora gera um ID único e aleatório para o novo grupo
-    const novoDocRef = db.collection('workspaces').doc(); 
-    const workspaceId = novoDocRef.id;
-
-    const metasPadrao = { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
-
-    // Usamos o novoDocRef criado acima para salvar os dados
-    await novoDocRef.set({
-      code: novoCodigo,
-      metasPorMes: { [activeMonth]: metasPadrao },
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    await db.collection('users').doc(currentUser.id).set({
-      workspaceId: workspaceId,
-      workspaceCode: novoCodigo,
-      email: currentUser.email,
-      status: 'approved'
-    }, { merge: true });
-
-    currentWorkspace.id = workspaceId;
-    currentWorkspace.code = novoCodigo;
-    currentWorkspace.metasPorMes = { [activeMonth]: metasPadrao };
-
-    document.getElementById('setupWorkspaceModal').classList.add('hidden');
-    initUserSession();
-  } catch (err) {
-    console.error("Erro detalhado ao criar grupo:", err);
-    mostrarSetupMsg("Erro: " + (err.message || "Tente novamente."), "erro");
-  }
-}
-
 
 async function entrarGrupoExistente() {
   const codigoInput = document.getElementById('inputWorkspaceCode').value.trim();
