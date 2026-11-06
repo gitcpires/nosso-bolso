@@ -15,11 +15,23 @@ let currentWorkspace = { id: '', code: '', metasPorMes: {} };
 let currentUser = { id: '', name: '', email: '' };
 let transactions = [];
 const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
 const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
 
+const subcategoriasDisponiveis = [
+  'Transporte',
+  'Alimentação',
+  'Telefonia',
+  'Ticket Alimentação',
+  'Serviços Públicos',
+  'Outros'
+];
+
 let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
+let subCategoryBarChartInstance = null;
+let paymentMethodBarChartInstance = null;
 let lousaDocId = null;
 let modoMetasAtual = 'perc';
 let editingTxId = null;
@@ -391,8 +403,21 @@ function mostrarSetupMsg(texto, tipo) {
   div.classList.remove('hidden');
 }
 
+function changeActiveMonthCombo() {
+  const mesSelect = document.getElementById('selectMonth').value;
+  const anoSelect = document.getElementById('selectYear').value;
+  activeMonth = `${mesSelect} ${anoSelect}`;
+  renderAll();
+}
+
 function initUserSession() {
-  document.getElementById('selectMonth').value = activeMonth;
+  const partesAtivas = activeMonth.split(' ');
+  if (partesAtivas.length === 2) {
+    const mEl = document.getElementById('selectMonth');
+    const yEl = document.getElementById('selectYear');
+    if (mEl) mEl.value = partesAtivas[0];
+    if (yEl) yEl.value = partesAtivas[1];
+  }
 
   document.getElementById('headerUserName').innerText = currentUser.name;
   document.getElementById('headerWelcomeMsg').innerText = `Grupo: ${currentWorkspace.code}`;
@@ -403,11 +428,33 @@ function initUserSession() {
     if (el) el.classList.add('hidden');
   });
 
+  renderSubCatCheckboxes();
   renderAll();
   carregarDadosDoBanco();
   ouvinteWorkspaceWorkspace();
   carregarMembrosDoGrupo();
   ouvinteLousaGrupo();
+}
+
+function toggleFiltroAvancado() {
+  const caixa = document.getElementById('containerFiltroAvancado');
+  if (caixa) {
+    caixa.classList.toggle('hidden');
+  }
+}
+
+function renderSubCatCheckboxes() {
+  const container = document.getElementById('filterSubCatCheckboxes');
+  if (!container) return;
+  container.innerHTML = '';
+  subcategoriasDisponiveis.forEach(sub => {
+    container.innerHTML += `
+      <label class="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300">
+        <input type="checkbox" value="${sub}" onchange="renderTransactionsList(transactions)" class="subcat-filter-checkbox rounded border-slate-300 text-blue-600 focus:ring-0 w-3.5 h-3.5" />
+        <span class="truncate">${sub}</span>
+      </label>
+    `;
+  });
 }
 
 function ouvinteWorkspaceWorkspace() {
@@ -581,13 +628,10 @@ function openNewTxModal() {
 
   document.getElementById('txDesc').value = '';
   document.getElementById('txAmount').value = '';
+  
   const subCatEl = document.getElementById('txSubCat');
-  if (subCatEl) subCatEl.value = 'Cartão de Crédito';
-  
-  const tipoCartaoEl = document.getElementById('txTipoCartao');
-  if (tipoCartaoEl) tipoCartaoEl.value = 'AVista';
-  
-  toggleParcelasUI();
+  if (subCatEl) subCatEl.value = 'Transporte';
+
   selecionarTipoTx('EXPENSE'); 
   document.getElementById('newTxModal').classList.remove('hidden'); 
 }
@@ -605,12 +649,18 @@ function openEditTransaction(id) {
   document.getElementById('txDate').value = tx.date || '';
   
   const subCatEl = document.getElementById('txSubCat');
-  if (subCatEl) subCatEl.value = tx.subCat || 'Cartão de Crédito';
-  
-  toggleParcelasUI();
+  if (subCatEl) subCatEl.value = tx.subCat || 'Transporte';
 
   const isIncome = tx.type === 'INCOME' || tx.cat === 'Salário' || tx.cat === 'Renda Extra';
   selecionarTipoTx(isIncome ? 'INCOME' : 'EXPENSE');
+
+  const paymentMethodEl = document.getElementById('txPaymentMethod');
+  if (paymentMethodEl) paymentMethodEl.value = tx.paymentMethod || 'PIX';
+
+  const tipoCartaoEl = document.getElementById('txTipoCartao');
+  if (tipoCartaoEl) tipoCartaoEl.value = tx.tipoCartao || 'AVista';
+  
+  toggleParcelasUI();
 
   setTimeout(() => {
     document.getElementById('txCat').value = tx.cat;
@@ -625,9 +675,9 @@ function closeNewTxModal() {
 }
 
 function toggleParcelasUI() {
-  const subCat = document.getElementById('txSubCat').value;
+  const paymentMethod = document.getElementById('txPaymentMethod').value;
   const container = document.getElementById('containerParcelas');
-  if (subCat === 'Cartão de Crédito') {
+  if (paymentMethod === 'Cartão de Crédito') {
     container.classList.remove('hidden');
   } else {
     container.classList.add('hidden');
@@ -654,11 +704,13 @@ async function handleSaveTransaction(e) {
   const amountTotal = parseFloat(document.getElementById('txAmount').value);
   const dateStr = document.getElementById('txDate').value; 
   const cat = document.getElementById('txCat').value;
-  const subCat = document.getElementById('txSubCat').value;
+  
+  const subCat = type === 'INCOME' ? '' : (document.getElementById('txSubCat')?.value || 'Outros');
+  const paymentMethod = document.getElementById('txPaymentMethod').value;
 
-  const tipoCartao = subCat === 'Cartão de Crédito' ? document.getElementById('txTipoCartao').value : 'AVista';
+  const tipoCartao = paymentMethod === 'Cartão de Crédito' ? document.getElementById('txTipoCartao').value : 'AVista';
   let qtdParcelas = 1;
-  if (tipoCartao === 'Parcelado') {
+  if (paymentMethod === 'Cartão de Crédito' && tipoCartao === 'Parcelado') {
     qtdParcelas = parseInt(document.getElementById('txQtdParcelas').value, 10) || 1;
     if (qtdParcelas < 1) qtdParcelas = 1;
   }
@@ -675,7 +727,7 @@ async function handleSaveTransaction(e) {
       const txData = {
         desc: descOriginal,
         amount: amountTotal,
-        type, cat, subCat,
+        type, cat, subCat, paymentMethod, tipoCartao,
         month: `${mesesNomes[mesIndexBase]} ${anoBase}`,
         date: dateStr,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -705,6 +757,8 @@ async function handleSaveTransaction(e) {
           type, 
           cat, 
           subCat,
+          paymentMethod,
+          tipoCartao,
           month: mesStringFinal,
           date: dataParcelaStr,
           confirmado: false,
@@ -803,11 +857,6 @@ async function deleteTransaction(id) {
   }
 }
 
-function changeActiveMonth(m) {
-  activeMonth = m;
-  renderAll();
-}
-
 function selecionarTipoTx(tipo) {
   const radio = document.querySelector(`input[name="txType"][value="${tipo}"]`);
   if (radio) {
@@ -821,13 +870,23 @@ function toggleTxTypeUI() {
   const labelEntrada = document.getElementById('labelTabEntrada');
   const labelSaida = document.getElementById('labelTabSaida');
   const selectCat = document.getElementById('txCat');
+  const containerSubCat = document.getElementById('containerSubCat');
+  const selectPayment = document.getElementById('txPaymentMethod');
 
-  if (!selectCat) return;
+  if (!selectCat || !selectPayment) return;
 
   if (radioEntrada && radioEntrada.checked) {
     if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs transition";
     if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 dark:text-slate-400 transition";
     
+    if (containerSubCat) containerSubCat.classList.add('hidden');
+
+    selectPayment.innerHTML = `
+      <option value="PIX">⚡ PIX</option>
+      <option value="Transferência">🏦 Transferência</option>
+      <option value="Outros">🔄 Outros</option>
+    `;
+
     selectCat.innerHTML = `
       <option value="Salário">💰 Salário</option>
       <option value="Renda Extra">💵 Renda Extra</option>
@@ -836,6 +895,14 @@ function toggleTxTypeUI() {
     if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-2xs transition";
     if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 dark:text-slate-400 transition";
     
+    if (containerSubCat) containerSubCat.classList.remove('hidden');
+
+    selectPayment.innerHTML = `
+      <option value="PIX">⚡ PIX</option>
+      <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+      <option value="Outros">🔄 Outros</option>
+    `;
+
     selectCat.innerHTML = `
       <option value="Gastos Fixos">🏠 Gastos Fixos</option>
       <option value="Gastos Gerais">🛒 Gastos Gerais</option>
@@ -843,6 +910,7 @@ function toggleTxTypeUI() {
       <option value="Investimentos">📈 Investimentos</option>
     `;
   }
+  toggleParcelasUI();
 }
 
 async function importarGastosFixosMesAnterior() {
@@ -895,7 +963,8 @@ async function importarGastosFixosMesAnterior() {
         amount: txAntiga.amount,
         type: txAntiga.type || 'EXPENSE',
         cat: 'Gastos Fixos',
-        subCat: txAntiga.subCat || 'Cartão de Crédito',
+        subCat: txAntiga.subCat || 'Outros',
+        paymentMethod: txAntiga.paymentMethod || 'PIX',
         month: activeMonth,
         date: novaDataStr,
         confirmado: false,
@@ -1016,6 +1085,8 @@ function renderAll() {
   renderTransactionsList(currentTxMes);
   renderInvestments(currentTxMes);
   renderCharts(fixed, general, leisure, invest);
+  renderSubCategoryChart(currentTxMes);
+  renderPaymentMethodChart(currentTxMes);
 }
 
 function renderCharts(fixed, general, leisure, invest) {
@@ -1073,23 +1144,125 @@ function renderCharts(fixed, general, leisure, invest) {
   }
 }
 
+function renderSubCategoryChart(currentTx) {
+  const ctxSubBar = document.getElementById('subCategoryBarChart');
+  if (!ctxSubBar) return;
+
+  // Filtra apenas despesas confirmadas e restringe estritamente às subcategorias oficiais permitidas
+  const despesasComSubCat = currentTx.filter(t => t.type === 'EXPENSE' && t.confirmado && subcategoriasDisponiveis.includes(t.subCat));
+
+  const totaisPorSubCat = {};
+  subcategoriasDisponiveis.forEach(sub => {
+    totaisPorSubCat[sub] = 0;
+  });
+
+  despesasComSubCat.forEach(t => {
+    if (totaisPorSubCat[t.subCat] !== undefined) {
+      totaisPorSubCat[t.subCat] += t.amount;
+    }
+  });
+
+  const labels = Object.keys(totaisPorSubCat);
+  const dados = Object.values(totaisPorSubCat);
+
+  if (subCategoryBarChartInstance) subCategoryBarChartInstance.destroy();
+
+  subCategoryBarChartInstance = new Chart(ctxSubBar, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Gasto (R$)',
+        data: dados,
+        backgroundColor: '#3b82f6',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { font: { size: 9 }, callback: val => 'R$ ' + val } },
+        y: { grid: { display: false }, ticks: { font: { size: 9 } } }
+      }
+    }
+  });
+}
+
+function renderPaymentMethodChart(currentTx) {
+  const ctxPaymentBar = document.getElementById('paymentMethodBarChart');
+  if (!ctxPaymentBar) return;
+
+  // Considera as despesas confirmadas do mês para alinhar com os demais gráficos de resumo
+  const despesasMes = currentTx.filter(t => t.type === 'EXPENSE' && t.confirmado);
+
+  let totalPix = 0;
+  let totalCartao = 0;
+  let totalOutros = 0;
+
+  despesasMes.forEach(t => {
+    const metodo = (t.paymentMethod || '').trim();
+    if (metodo === 'PIX') {
+      totalPix += t.amount;
+    } else if (metodo === 'Cartão de Crédito') {
+      totalCartao += t.amount;
+    } else {
+      totalOutros += t.amount;
+    }
+  });
+
+  if (paymentMethodBarChartInstance) paymentMethodBarChartInstance.destroy();
+
+  paymentMethodBarChartInstance = new Chart(ctxPaymentBar, {
+    type: 'bar',
+    data: {
+      labels: ['PIX', 'Cartão de Crédito', 'Outros'],
+      datasets: [{
+        label: 'Gasto (R$)',
+        data: [totalPix, totalCartao, totalOutros],
+        backgroundColor: ['#0ea5e9', '#6366f1', '#64748b'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+        y: { beginAtZero: true, ticks: { font: { size: 9 }, callback: val => 'R$ ' + val } }
+      }
+    }
+  });
+}
+
 function renderTransactionsList(currentTx) {
   const container = document.getElementById('txListContainer');
   if (!container) return;
 
+  const transacoesDoMesAtivo = transactions.filter(t => t.month === activeMonth);
+
   const search = (document.getElementById('searchExpense')?.value || '').toLowerCase();
   const filtroMembro = document.getElementById('filterMember')?.value || '';
   const filtroCat = document.getElementById('filterCategory')?.value || '';
-  const filtroSubCat = document.getElementById('filterSubCategory')?.value || '';
+  
+  const checkboxesSubCat = document.querySelectorAll('.subcat-filter-checkbox');
+  const subCatsSelecionadas = Array.from(checkboxesSubCat).filter(cb => cb.checked).map(cb => cb.value);
+  
+  const filtroPaymentMethod = document.getElementById('filterPaymentMethod')?.value || '';
 
   container.innerHTML = '';
   
-  const filtered = currentTx.filter(t => {
-    const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search);
+  const filtered = transacoesDoMesAtivo.filter(t => {
+    const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search) || (t.subCat && t.subCat.toLowerCase().includes(search));
     const matchMembro = filtroMembro === '' || t.userEmail === filtroMembro;
     const matchCat = filtroCat === '' || t.cat === filtroCat;
-    const matchSubCat = filtroSubCat === '' || t.subCat === filtroSubCat;
-    return matchSearch && matchMembro && matchCat && matchSubCat;
+    const matchSubCat = subCatsSelecionadas.length === 0 || subCatsSelecionadas.includes(t.subCat);
+    const matchPayment = filtroPaymentMethod === '' || t.paymentMethod === filtroPaymentMethod;
+
+    return matchSearch && matchMembro && matchCat && matchSubCat && matchPayment;
   });
 
   filtered.sort((a, b) => {
@@ -1103,7 +1276,7 @@ function renderTransactionsList(currentTx) {
 
   const filterTotalBox = document.getElementById('filterTotalBox');
   const filterTotalValue = document.getElementById('filterTotalValue');
-  const isAlgumFiltroAtivo = search !== '' || filtroMembro !== '' || filtroCat !== '' || filtroSubCat !== '';
+  const isAlgumFiltroAtivo = search !== '' || filtroMembro !== '' || filtroCat !== '' || subCatsSelecionadas.length > 0 || filtroPaymentMethod !== '';
   
   if (isAlgumFiltroAtivo) {
     const somaFiltro = filtered.reduce((acc, t) => {
@@ -1140,33 +1313,48 @@ function renderTransactionsList(currentTx) {
     const isIncome = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
     const confirmado = t.confirmado === true;
-    const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-bold ml-1">${t.subCat}</span>` : '';
+    
+    const catBadge = t.cat ? `<span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>` : '';
+    const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-bold">${t.subCat}</span>` : '';
+    const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold">${t.paymentMethod}</span>` : '';
+    const userBadge = `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-semibold"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>`;
 
     container.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-        <div>
-          <div class="text-xs font-extrabold text-slate-900 dark:text-white">${t.desc} 
-            <span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>
+        <div class="space-y-1 pr-2 overflow-hidden w-full">
+          <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">${t.desc}</div>
+          
+          <div class="flex flex-wrap items-center gap-1.5">
+            ${catBadge}
             ${subCatBadge}
-            <span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-semibold ml-1"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>
+            ${paymentBadge}
+            ${userBadge}
           </div>
-          <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
+
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 pt-0.5">
             <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
             <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-2 py-0.5 rounded transition ${
               confirmado 
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 hover:bg-emerald-200' 
-                : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 hover:bg-amber-200 animate-pulse'
+                : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 hover:bg-emerald-200 animate-pulse'
             }">
               ${confirmado ? '✓ Registado' : '⏳ Pendente (Clique p/ Confirmar)'}
             </button>
           </div>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-black whitespace-nowrap ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
+
+        <div class="flex flex-col items-end pl-2 shrink-0">
+          <span class="text-sm sm:text-base font-black whitespace-nowrap ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
             ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
           </span>
-          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
-          <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          <div class="flex items-center gap-3 mt-1.5">
+            <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1 transition" title="Editar">
+              <i class="fa-solid fa-pen-to-square text-sm"></i>
+            </button>
+            <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1 transition" title="Excluir">
+              <i class="fa-solid fa-trash-can text-sm"></i>
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -1180,8 +1368,9 @@ function renderInvestments(currentTx) {
   const monthInvestEl = document.getElementById('monthInvestTotalHeader');
   if (monthInvestEl) monthInvestEl.innerText = `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
+  const anoAtualSelecionado = activeMonth.split(' ')[1] || '2026';
   const totalYearInvested = transactions
-    .filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE' && t.confirmado && (t.month.includes('2026') || (t.date && t.date.startsWith('2026'))))
+    .filter(t => t.cat === 'Investimentos' && t.type === 'EXPENSE' && t.confirmado && (t.month.includes(anoAtualSelecionado) || (t.date && t.date.startsWith(anoAtualSelecionado))))
     .reduce((sum, t) => sum + t.amount, 0);
 
   const yearHeader = document.getElementById('yearInvestTotalHeader');
@@ -1197,7 +1386,7 @@ function renderInvestments(currentTx) {
     const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
     const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
     if (timeA !== timeB) return timeB - timeA;
-    return new Date(b.date) - new Date(a.date);
+    return new Date(b.date) - newDate(a.date);
   });
 
   if (invests.length === 0) {
@@ -1209,8 +1398,8 @@ function renderInvestments(currentTx) {
   invests.forEach(t => {
     const confirmado = t.confirmado === true;
     investList.innerHTML += `
-      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-        <div>
+      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+        <div class="space-y-1 pr-2 overflow-hidden w-full">
           <div class="text-xs font-extrabold text-slate-900 dark:text-white">${t.desc}</div>
           <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
             <span>${t.date}</span>
@@ -1221,14 +1410,55 @@ function renderInvestments(currentTx) {
             </button>
           </div>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">R$ ${Number(t.amount).toFixed(2).replace('.', ',')}</span>
-          <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen-to-square text-xs"></i></button>
-          <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1" title="Excluir"><i class="fa-solid fa-trash-can text-xs"></i></button>
+
+        <div class="flex flex-col items-end pl-2 shrink-0">
+          <span class="text-sm sm:text-base font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">
+            R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
+          </span>
+          <div class="flex items-center gap-3 mt-1.5">
+            <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1 transition" title="Editar">
+              <i class="fa-solid fa-pen-to-square text-sm"></i>
+            </button>
+            <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1 transition" title="Excluir">
+              <i class="fa-solid fa-trash-can text-sm"></i>
+            </button>
+          </div>
         </div>
       </div>
     `;
   });
+}
+
+function exportarParaExcel() {
+  const currentTx = transactions.filter(t => t.month === activeMonth);
+  if (currentTx.length === 0) {
+    alert("Não existem lançamentos neste mês para exportar.");
+    return;
+  }
+
+  let csvContent = "\uFEFFData;Descrição;Tipo;Categoria;Subcategoria;Forma Pagamento;Valor (R$);Estado;Membro\n";
+
+  currentTx.forEach(t => {
+    const tipoFormatado = (t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra') ? 'Entrada' : 'Saída';
+    const valorFormatado = Number(t.amount).toFixed(2).replace('.', ',');
+    const statusFormatado = t.confirmado ? 'Registado' : 'Pendente';
+    const membro = t.userEmail ? t.userEmail.split('@')[0] : '';
+    const descLimpa = `"${(t.desc || '').replace(/"/g, '""')}"`;
+    const cat = `"${t.cat || ''}"`;
+    const subCat = `"${t.subCat || ''}"`;
+    const pagamento = `"${t.paymentMethod || ''}"`;
+
+    csvContent += `${t.date};${descLimrap};${tipoFormatado};${cat};${subCat};${pagamento};${valorFormatado};${statusFormatado};${membro}\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `NossoBolso_${activeMonth.replace(' ', '_')}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function switchTab(tab) {
