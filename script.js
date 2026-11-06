@@ -272,24 +272,18 @@ async function deixarGrupo() {
     const wsIdAtual = currentWorkspace.id;
     const uidAtual = currentUser.id;
 
+    // AQUI O SEU CÓDIGO CONTA QUANTAS PESSOAS TEM NO GRUPO
     const membrosSnapshot = await db.collection('users').where('workspaceId', '==', wsIdAtual).get();
     const éOUltimo = membrosSnapshot.size <= 1;
 
+    // SE FOR O ÚLTIMO, FAZ A EXCLUSÃO DOS DADOS PRIMEIRO
     if (éOUltimo) {
       const confirmacao = confirm("Atenção: Você é o último utilizador deste grupo. Se sair, todos os dados financeiros e recados do mural serão apagados permanentemente. Deseja continuar?");
       if (!confirmacao) return;
-    } else {
-      const confirmacao = confirm("Tem certeza que deseja sair deste grupo?");
-      if (!confirmacao) return;
-    }
-
-    await db.collection('users').doc(uidAtual).update({
-      workspaceId: firebase.firestore.FieldValue.delete(),
-      workspaceCode: firebase.firestore.FieldValue.delete()
-    });
-
-    if (éOUltimo) {
+      
+      // Apaga os dados porque é o último
       const batch = db.batch();
+      
       const txsQuery = await db.collection('transacoes').where('workspaceId', '==', wsIdAtual).get();
       txsQuery.forEach(doc => batch.delete(doc.ref));
 
@@ -300,7 +294,18 @@ async function deixarGrupo() {
       batch.delete(wsRef);
 
       await batch.commit();
+      
+    } else {
+      // SE TIVER 2 OU MAIS PESSOAS, CAI AQUI. SÓ AVISA E NÃO APAGA OS DADOS.
+      const confirmacao = confirm("Tem certeza que deseja sair deste grupo?");
+      if (!confirmacao) return;
     }
+
+    // DEPOIS DE TUDO (apagando dados ou não), TIRA O USUÁRIO DO GRUPO
+    await db.collection('users').doc(uidAtual).update({
+      workspaceId: firebase.firestore.FieldValue.delete(),
+      workspaceCode: firebase.firestore.FieldValue.delete()
+    });
 
     alert("Você saiu do grupo com sucesso.");
     window.location.reload();
@@ -309,6 +314,7 @@ async function deixarGrupo() {
     alert("Erro ao tentar deixar o grupo. Tente novamente.");
   }
 }
+
 
 async function criarNovoWorkspace() {
   try {
