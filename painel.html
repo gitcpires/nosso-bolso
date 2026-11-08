@@ -126,11 +126,17 @@
             <p id="headerWelcomeMsg" class="text-[9px] text-slate-500 dark:text-slate-400 font-bold">Grupo: ----</p>
           </div>
         </div>
+        
         <div class="flex items-center gap-1.5">
+          <!-- Botão Carteira Livre Privada -->
+          <button onclick="openCarteiraLivreModal()" class="w-8 h-8 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center hover:bg-emerald-100 dark:hover:bg-emerald-800 transition" title="Minha Carteira Livre (Privado)">
+            <i class="fa-solid fa-wallet text-xs"></i>
+          </button>
           <!-- Botão Modo Noturno -->
           <button onclick="toggleDarkMode()" class="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-amber-400 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Alternar Modo Noturno">
             <i id="darkModeIcon" class="fa-solid fa-moon text-xs"></i>
           </button>
+          <!-- Botão Configurações -->
           <button onclick="openProfileModal()" class="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition">
             <i class="fa-solid fa-gear text-xs"></i>
           </button>
@@ -534,6 +540,66 @@
           Terminar Sessão
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal Carteira Livre (Privada) -->
+  <div id="carteiraLivreModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 hidden backdrop-blur-md">
+    <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-6 rounded-[2rem] space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto border border-emerald-100 dark:border-emerald-900">
+      
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-emerald-50 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center text-sm">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <div>
+            <h3 class="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">
+              Livre <span class="text-emerald-600 mx-1">•</span> <span id="modalCarteiraMes" class="text-emerald-600 dark:text-emerald-400"></span>
+            </h3>
+            <p class="text-[9px] text-emerald-600 dark:text-emerald-500 font-bold">100% Privado (Oculto do Grupo)</p>
+          </div>
+        </div>
+        <button onclick="closeCarteiraLivreModal()" class="w-8 h-8 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark text-xs"></i></button>
+      </div>
+
+      <!-- Exibição do Saldo -->
+      <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/20 p-3.5 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 flex items-center justify-between">
+        <div>
+          <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-tight block">Saldo Restante no Mês</span>
+          <div id="displaySaldoLivre" class="text-xl font-black text-emerald-700 dark:text-emerald-400">R$ 0,00</div>
+        </div>
+        <button onclick="toggleEditSaldoLivre()" class="px-2.5 py-1.5 bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 rounded-lg text-[10px] font-extrabold shadow-sm border border-emerald-200 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-slate-700 transition flex items-center gap-1">
+          <i class="fa-solid fa-pen"></i> Editar Base
+        </button>
+      </div>
+
+      <!-- Editor do Saldo Base do Mês -->
+      <div id="containerEditSaldoLivre" class="hidden bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+        <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400">Definir Saldo Base Livre para este Mês (R$)</label>
+        <div class="flex gap-2">
+          <input type="number" step="0.01" id="inputNovoSaldoLivre" placeholder="0,00" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold dark:text-white focus:outline-none focus:border-emerald-500" />
+          <button onclick="salvarSaldoLivre()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition">Salvar</button>
+        </div>
+      </div>
+
+      <!-- Adicionar Gasto Livre -->
+      <form onsubmit="adicionarGastoLivre(event)" class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <span class="text-[10px] font-extrabold text-slate-700 dark:text-slate-300 block uppercase">Registrar Gasto Livre neste Mês</span>
+        <div class="grid grid-cols-3 gap-2">
+          <input type="text" id="descGastoLivre" required placeholder="Ex: Lanche" class="col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-bold dark:text-white focus:outline-none focus:border-emerald-500" />
+          <input type="number" step="0.01" id="valorGastoLivre" required placeholder="R$ 0,00" class="col-span-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-bold dark:text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold transition">Descontar do Saldo Livre</button>
+      </form>
+
+      <!-- Lista de Gastos Livres -->
+      <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <span class="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 block uppercase">Histórico Privado do Mês</span>
+        <div id="listaGastosLivres" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+          <!-- JS injeta os itens aqui -->
+        </div>
+      </div>
+
     </div>
   </div>
 
