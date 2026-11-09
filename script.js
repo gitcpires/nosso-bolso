@@ -1329,11 +1329,13 @@ function exportarParaExcel() {
 }
 
 function switchTab(tab) {
+  // Lista atualizada com todas as abas existentes no painel
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     if (el) el.classList.add('hidden');
   });
 
+  // Mostra estritamente a aba clicada
   const activeEl = document.getElementById(`tab-${tab}`);
   if (activeEl) activeEl.classList.remove('hidden');
 
@@ -1341,6 +1343,7 @@ function switchTab(tab) {
     renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   }
 
+  // Atualiza o destaque visual e o indicador azul na barra inferior
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
