@@ -36,6 +36,9 @@ let lousaDocId = null;
 let modoMetasAtual = 'perc';
 let editingTxId = null;
 
+let carteiraLivreSaldos = {}; // Guardará os saldos base de cada mês
+let gastosLivresGlobais = []; // Guardará todos os gastos livres privados
+
 auth.onAuthStateChanged(async (userAuth) => {
   if (!userAuth) {
     window.location.href = 'index.html';
@@ -62,6 +65,7 @@ auth.onAuthStateChanged(async (userAuth) => {
     }
 
     const userData = userDoc.data();
+    carteiraLivreSaldos = userData.carteiraLivreSaldos || {}; // Inicializa os saldos livres
     
     if (userData.status !== 'approved') {
       document.getElementById('loadingScreen').classList.add('hidden');
@@ -408,6 +412,7 @@ function changeActiveMonthCombo() {
   const anoSelect = document.getElementById('selectYear').value;
   activeMonth = `${mesSelect} ${anoSelect}`;
   renderAll();
+  renderCarteiraLivre(); // Atualiza a carteira livre para o novo mês selecionado
 }
 
 function initUserSession() {
@@ -434,6 +439,7 @@ function initUserSession() {
   ouvinteWorkspaceWorkspace();
   carregarMembrosDoGrupo();
   ouvinteLousaGrupo();
+  ouvinteCarteiraLivre();
 }
 
 function toggleFiltroAvancado() {
@@ -1035,7 +1041,7 @@ function renderAll() {
     const htmlBarra = `
       <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-1 relative overflow-hidden flex">
         <div class="h-full transition-all duration-300" style="width: ${larguraPreenchida}%; background-color: ${corHex};"></div>
-        <div class="bg-rose-600 dark:bg-rose-500 h-full transition-all duration-300" style="width: ${larguraUltrapassada}%"></div>
+        <div class="bg-rose-600 dark:bg-rose-50 h-full transition-all duration-300" style="width: ${larguraUltrapassada}%"></div>
       </div>
     `;
 
@@ -1148,7 +1154,6 @@ function renderSubCategoryChart(currentTx) {
   const ctxSubBar = document.getElementById('subCategoryBarChart');
   if (!ctxSubBar) return;
 
-  // Filtra apenas despesas confirmadas e restringe estritamente às subcategorias oficiais permitidas
   const despesasComSubCat = currentTx.filter(t => t.type === 'EXPENSE' && t.confirmado && subcategoriasDisponiveis.includes(t.subCat));
 
   const totaisPorSubCat = {};
@@ -1195,7 +1200,6 @@ function renderPaymentMethodChart(currentTx) {
   const ctxPaymentBar = document.getElementById('paymentMethodBarChart');
   if (!ctxPaymentBar) return;
 
-  // Considera as despesas confirmadas do mês para alinhar com os demais gráficos de resumo
   const despesasMes = currentTx.filter(t => t.type === 'EXPENSE' && t.confirmado);
 
   let totalPix = 0;
@@ -1448,7 +1452,7 @@ function exportarParaExcel() {
     const subCat = `"${t.subCat || ''}"`;
     const pagamento = `"${t.paymentMethod || ''}"`;
 
-    csvContent += `${t.date};${descLimrap};${tipoFormatado};${cat};${subCat};${pagamento};${valorFormatado};${statusFormatado};${membro}\n`;
+    csvContent += `${t.date};${descLimpa};${tipoFormatado};${cat};${subCat};${pagamento};${valorFormatado};${statusFormatado};${membro}\n`;
   });
 
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1507,3 +1511,142 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function copyWorkspaceCountCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
 function logout() { auth.signOut().then(() => window.location.replace('index.html')); }
+
+
+// ==========================================
+// FUNÇÕES DA CARTEIRA LIVRE (POR MÊS)
+// ==========================================
+
+function openCarteiraLivreModal() {
+  document.getElementById('carteiraLivreModal').classList.remove('hidden');
+  renderCarteiraLivre();
+}
+
+function closeCarteiraLivreModal() {
+  document.getElementById('carteiraLivreModal').classList.add('hidden');
+  document.getElementById('containerEditSaldoLivre').classList.add('hidden');
+}
+
+function toggleEditSaldoLivre() {
+  const container = document.getElementById('containerEditSaldoLivre');
+  container.classList.toggle('hidden');
+  if (!container.classList.contains('hidden')) {
+    document.getElementById('inputNovoSaldoLivre').value = carteiraLivreSaldos[activeMonth] || 0;
+  }
+}
+
+async function salvarSaldoLivre() {
+  const novoValor = parseFloat(document.getElementById('inputNovoSaldoLivre').value) || 0;
+  try {
+    carteiraLivreSaldos[activeMonth] = novoValor;
+    
+    await db.collection('users').doc(currentUser.id).set({
+      carteiraLivreSaldos: carteiraLivreSaldos
+    }, { merge: true });
+    
+    toggleEditSaldoLivre();
+    renderCarteiraLivre();
+  } catch(err) {
+    alert("Erro ao salvar saldo livre do mês. Tente novamente.");
+  }
+}
+
+function ouvinteCarteiraLivre() {
+  if (!currentUser.id) return;
+  
+  db.collection('carteira_livre')
+    .where('userId', '==', currentUser.id)
+    .onSnapshot(snapshot => {
+      gastosLivresGlobais = [];
+      snapshot.forEach(doc => {
+        gastosLivresGlobais.push({ id: doc.id, ...doc.data() });
+      });
+      gastosLivresGlobais.sort((a, b) => {
+        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return timeB - timeA;
+      });
+      renderCarteiraLivre();
+    });
+}
+
+async function adicionarGastoLivre(e) {
+  e.preventDefault();
+  const desc = document.getElementById('descGastoLivre').value.trim();
+  const amount = parseFloat(document.getElementById('valorGastoLivre').value);
+  
+  if(!desc || isNaN(amount)) return;
+
+  try {
+    await db.collection('carteira_livre').add({
+      userId: currentUser.id,
+      desc: desc,
+      amount: amount,
+      date: new Date().toISOString().split('T')[0],
+      month: activeMonth, 
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('descGastoLivre').value = '';
+    document.getElementById('valorGastoLivre').value = '';
+  } catch (err) {
+    alert("Erro ao registrar gasto na carteira livre.");
+  }
+}
+
+async function deletarGastoLivre(id) {
+  if(confirm("Excluir este gasto do seu histórico privado?")) {
+    try {
+      await db.collection('carteira_livre').doc(id).delete();
+    } catch(err) {
+      alert("Erro ao excluir.");
+    }
+  }
+}
+
+function renderCarteiraLivre() {
+  const modalMesEl = document.getElementById('modalCarteiraMes');
+  if(modalMesEl) modalMesEl.innerText = activeMonth;
+
+  const saldoBaseMes = carteiraLivreSaldos[activeMonth] || 0;
+  const gastosDoMes = gastosLivresGlobais.filter(g => g.month === activeMonth);
+  
+  const totalGastoNoMes = gastosDoMes.reduce((acc, curr) => acc + curr.amount, 0);
+  const saldoAtual = saldoBaseMes - totalGastoNoMes;
+  
+  const displayEl = document.getElementById('displaySaldoLivre');
+  if(displayEl) {
+    displayEl.innerText = `R$ ${saldoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    if(saldoAtual < 0) {
+      displayEl.className = "text-xl font-black text-rose-600 dark:text-rose-400";
+    } else {
+      displayEl.className = "text-xl font-black text-emerald-700 dark:text-emerald-400";
+    }
+  }
+
+  const lista = document.getElementById('listaGastosLivres');
+  if(!lista) return;
+
+  lista.innerHTML = '';
+  
+  if(gastosDoMes.length === 0) {
+    lista.innerHTML = '<p class="text-[10px] text-slate-400 italic text-center py-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">Nenhum gasto livre registrado neste mês.</p>';
+    return;
+  }
+
+  gastosDoMes.forEach(g => {
+    const dataFormatada = g.date ? g.date.split('-').reverse().join('/') : '';
+    
+    lista.innerHTML += `
+      <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
+        <div class="truncate pr-2 w-full">
+          <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block truncate">${g.desc}</span>
+          <span class="text-[9px] font-semibold text-slate-500">${dataFormatada}</span>
+        </div>
+        <div class="flex items-center gap-3 shrink-0 pl-2 border-l border-slate-200 dark:border-slate-700">
+          <span class="text-xs font-black text-rose-600 dark:text-rose-400">- R$ ${g.amount.toFixed(2).replace('.', ',')}</span>
+          <button onclick="deletarGastoLivre('${g.id}')" class="text-slate-400 hover:text-rose-500 transition p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+        </div>
+      </div>
+    `;
+  });
+}
