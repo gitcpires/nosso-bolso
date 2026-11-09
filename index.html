@@ -2,88 +2,122 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Nosso Bolso - Acesso</title>
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="icone-app.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icone-app.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icone-app.png">
+  <meta name="theme-color" content="#0f172a"> <!-- Cor Slate-900 para mobile -->
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome -->
+  <!-- Fontes e Ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
   <script>
     tailwind.config = {
       darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
     }
   </script>
-</head>
-<body class="bg-slate-950 text-slate-100 flex items-center justify-center min-h-screen px-4">
 
-  <div class="w-full max-w-sm bg-slate-900/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl space-y-6">
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    /* Autofill fix escuro */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active{
+      -webkit-box-shadow: 0 0 0 30px #0f172a inset !important;
+      -webkit-text-fill-color: white !important;
+      border-radius: 1.5rem;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 text-slate-100 flex items-center justify-center min-h-screen px-4 antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- CARD PRINCIPAL (GLASSMORPHISM ESCURO) -->
+  <div class="w-full max-w-sm bg-white/5 backdrop-blur-xl p-8 sm:p-10 rounded-[2.5rem] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.4)] space-y-8 relative overflow-hidden">
     
+    <!-- Efeito de brilho de fundo no card -->
+    <div class="absolute -top-20 -right-20 w-40 h-40 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
     <!-- Ícone / Logótipo Central -->
-    <div class="text-center space-y-3">
-      <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-slate-800/80 border border-slate-700 shadow-inner overflow-hidden p-2">
-        <img src="icone-app.png" alt="Nosso Bolso" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+    <div class="text-center space-y-4 relative z-10">
+      <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-slate-900 border-[3px] border-slate-700/50 shadow-[0_8px_16px_rgba(0,0,0,0.5)] overflow-hidden p-2">
+        <img src="icone-app.png" alt="Nosso Bolso" class="w-full h-full object-contain rounded-full" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
       </div>
-      <h2 id="tituloForm" class="text-sm font-extrabold text-white">Acesse sua conta</h2>
+      <h2 id="tituloForm" class="text-xl font-black text-white tracking-tight">Acesse sua conta</h2>
     </div>
 
     <!-- FORMULÁRIO DE LOGIN -->
-    <form id="formLogin" onsubmit="fazerLogin(event)" class="space-y-4">
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-          <i class="fa-solid fa-envelope text-xs"></i>
+    <form id="formLogin" onsubmit="fazerLogin(event)" class="space-y-5 relative z-10">
+      <div class="relative group">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-5 text-slate-500 group-focus-within:text-blue-500 transition-colors">
+          <i class="fa-solid fa-envelope text-sm"></i>
         </span>
-        <input type="email" id="loginEmail" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="E-mail">
+        <input type="email" id="loginEmail" required class="w-full bg-slate-900/80 border-none rounded-[1.5rem] pl-12 pr-5 py-4 text-sm font-bold text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-inner transition-all" placeholder="E-mail">
       </div>
 
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-          <i class="fa-solid fa-lock text-xs"></i>
+      <div class="relative group">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-5 text-slate-500 group-focus-within:text-blue-500 transition-colors">
+          <i class="fa-solid fa-lock text-sm"></i>
         </span>
-        <input type="password" id="loginPassword" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="Senha">
-        <button type="button" onclick="toggleSenha('loginPassword', 'eyeIconLogin')" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-white transition">
-          <i id="eyeIconLogin" class="fa-solid fa-eye-slash text-xs"></i>
+        <input type="password" id="loginPassword" required class="w-full bg-slate-900/80 border-none rounded-[1.5rem] pl-12 pr-12 py-4 text-sm font-bold text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-inner transition-all" placeholder="Senha">
+        <button type="button" onclick="toggleSenha('loginPassword', 'eyeIconLogin')" class="absolute inset-y-0 right-0 flex items-center pr-5 text-slate-500 hover:text-white transition-colors">
+          <i id="eyeIconLogin" class="fa-solid fa-eye-slash text-sm"></i>
         </button>
       </div>
 
-      <div id="msgFeedbackLogin" class="text-xs font-bold text-rose-500 text-center hidden"></div>
+      <div id="msgFeedbackLogin" class="text-xs font-bold text-rose-400 bg-rose-950/50 py-2 rounded-xl text-center border border-rose-900/50 hidden"></div>
 
-      <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3.5 rounded-2xl transition shadow-lg shadow-amber-500/20 uppercase tracking-wider">
-        Entrar
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm py-4 rounded-[1.5rem] transition-all active:scale-95 shadow-[0_8px_24px_rgba(37,99,235,0.4)] hover:shadow-[0_12px_28px_rgba(37,99,235,0.5)] tracking-wide">
+        ENTRAR
       </button>
 
-      <div class="text-center pt-2">
-        <button type="button" onclick="mudarParaRegisto()" class="text-[11px] text-slate-400 hover:text-amber-400 transition">
+      <div class="text-center pt-3">
+        <button type="button" onclick="mudarParaRegisto()" class="text-xs font-bold text-slate-400 hover:text-blue-400 transition-colors">
           Criar Conta / Solicitar Acesso
         </button>
       </div>
     </form>
 
     <!-- FORMULÁRIO DE REGISTO (Oculto por padrão) -->
-    <form id="formRegisto" onsubmit="registarUtilizador(event)" class="space-y-4 hidden">
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-          <i class="fa-solid fa-envelope text-xs"></i>
+    <form id="formRegisto" onsubmit="registarUtilizador(event)" class="space-y-5 relative z-10 hidden">
+      <div class="relative group">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-5 text-slate-500 group-focus-within:text-blue-500 transition-colors">
+          <i class="fa-solid fa-envelope text-sm"></i>
         </span>
-        <input type="email" id="regEmail" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="Seu e-mail">
+        <input type="email" id="regEmail" required class="w-full bg-slate-900/80 border-none rounded-[1.5rem] pl-12 pr-5 py-4 text-sm font-bold text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-inner transition-all" placeholder="Seu e-mail">
       </div>
 
-      <div class="relative">
-        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-          <i class="fa-solid fa-lock text-xs"></i>
+      <div class="relative group">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-5 text-slate-500 group-focus-within:text-blue-500 transition-colors">
+          <i class="fa-solid fa-lock text-sm"></i>
         </span>
-        <input type="password" id="regPassword" required class="w-full bg-slate-950/60 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition" placeholder="Crie uma senha">
+        <input type="password" id="regPassword" required class="w-full bg-slate-900/80 border-none rounded-[1.5rem] pl-12 pr-5 py-4 text-sm font-bold text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-inner transition-all" placeholder="Crie uma senha">
       </div>
 
-      <div id="msgFeedbackReg" class="text-xs font-bold text-rose-500 text-center hidden"></div>
-      <div id="msgSucessoReg" class="text-xs font-bold text-emerald-400 text-center hidden"></div>
+      <div id="msgFeedbackReg" class="text-xs font-bold text-rose-400 bg-rose-950/50 py-2 rounded-xl text-center border border-rose-900/50 hidden"></div>
+      <div id="msgSucessoReg" class="text-xs font-bold text-emerald-400 bg-emerald-950/50 py-2 rounded-xl text-center border border-emerald-900/50 hidden"></div>
 
-      <button type="submit" id="btnRegistar" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs py-3.5 rounded-2xl transition shadow-lg shadow-amber-500/20 uppercase tracking-wider">
-        Registar / Solicitar Acesso
+      <button type="submit" id="btnRegistar" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm py-4 rounded-[1.5rem] transition-all active:scale-95 shadow-[0_8px_24px_rgba(37,99,235,0.4)] tracking-wide">
+        REGISTAR
       </button>
 
-      <div class="text-center pt-2">
-        <button type="button" onclick="mudarParaLogin()" class="text-[11px] text-slate-400 hover:text-amber-400 transition">
-          <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Login
+      <div class="text-center pt-3">
+        <button type="button" onclick="mudarParaLogin()" class="text-xs font-bold text-slate-400 hover:text-blue-400 transition-colors flex items-center justify-center gap-1.5 mx-auto">
+          <i class="fa-solid fa-arrow-left"></i> Voltar ao Login
         </button>
       </div>
     </form>
@@ -91,9 +125,9 @@
   </div>
 
   <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -175,31 +209,29 @@
         btn.disabled = true;
         btn.innerText = 'A criar conta...';
 
-        // Cria no Authentication
         const userCred = await auth.createUserWithEmailAndPassword(email, password);
         const user = userCred.user;
 
-        // Guarda na coleção 'users' com status 'pending' para o Admin aprovar
         await db.collection('users').doc(user.uid).set({
           email: email,
           status: 'pending',
           criadoEm: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        sucesso.innerText = 'Conta criada com sucesso! A redirecionar...';
+        sucesso.innerText = 'Conta criada com sucesso! Redirecionando...';
         sucesso.classList.remove('hidden');
 
         setTimeout(async () => {
           await auth.signOut();
           btn.disabled = false;
-          btn.innerText = 'Registar / Solicitar Acesso';
+          btn.innerText = 'REGISTAR';
           mudarParaLogin();
         }, 2000);
 
       } catch (err) {
         console.error(err);
         btn.disabled = false;
-        btn.innerText = 'Registar / Solicitar Acesso';
+        btn.innerText = 'REGISTAR';
         feedback.innerText = 'Erro ao registar: ' + (err.message || 'Tente novamente.');
         feedback.classList.remove('hidden');
       }
