@@ -485,7 +485,7 @@ async function carregarMembrosDoGrupo() {
     }
 
     if (membrosSnapshot.empty) {
-      containerMembros.innerHTML = `<div class="text-slate-400 text-center py-1">Nenhum membro encontrado.</div>`;
+      containerMembros.innerHTML = `<div class="text-slate-400 text-center py-2 text-xs font-bold">Nenhum membro encontrado.</div>`;
       return;
     }
 
@@ -494,6 +494,13 @@ async function carregarMembrosDoGrupo() {
       const emailMembro = dadosMembro.email || 'Utilizador';
       const nomeMembro = emailMembro.split('@')[0];
       const ehVoce = emailMembro === currentUser.email ? ' (Você)' : '';
+
+      containerMembros.innerHTML += `
+        <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+          <span class="font-extrabold text-slate-700 dark:text-slate-200 truncate text-xs"><i class="fa-solid fa-user-circle text-blue-500 text-sm mr-2"></i>${emailMembro}${ehVoce}</span>
+          <span class="text-[9px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 px-2 py-1 rounded-md font-extrabold">Ativo</span>
+        </div>
+      `;
 
       if (selectFiltroMembro) {
         selectFiltroMembro.innerHTML += `<option value="${emailMembro}">${nomeMembro}</option>`;
@@ -980,9 +987,6 @@ async function importarGastosFixosMesAnterior() {
   }
 }
 
-// ----------------------------------------------------------------------
-// RENDERIZAÇÃO PRINCIPAL DO RESUMO (IDÊNTICO À IMAGEM DE REFERÊNCIA)
-// ----------------------------------------------------------------------
 function renderAll() {
   const currentTxConfirmadas = transactions.filter(t => t.month === activeMonth && t.confirmado);
 
