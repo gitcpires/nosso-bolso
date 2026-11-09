@@ -1048,9 +1048,13 @@ function renderAll() {
   const currentTxMes = transactions.filter(t => t.month === activeMonth);
   renderTransactionsList(currentTxMes);
   renderInvestments(currentTxMes);
-  renderCharts(fixed, general, leisure, invest);
-  renderSubCategoryChart(currentTxMes);
-  renderPaymentMethodChart(currentTxMes);
+  
+  const tabResumo = document.getElementById('tab-resumo');
+  if (tabResumo && !tabResumo.classList.contains('hidden')) {
+    renderCharts(fixed, general, leisure, invest);
+    renderSubCategoryChart(currentTxMes);
+    renderPaymentMethodChart(currentTxMes);
+  }
 }
 
 function renderCharts(fixed, general, leisure, invest) {
@@ -1064,19 +1068,21 @@ function renderCharts(fixed, general, leisure, invest) {
         datasets: [{
           data: [fixed, general, leisure, invest],
           backgroundColor: ['#2563eb', '#10b981', '#a855f7', '#f59e0b'],
-          borderWidth: 0,
-          hoverOffset: 4
+          borderWidth: 0
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         cutout: '65%',
+        events: [], 
         plugins: { 
           legend: { 
             position: 'right', 
+            onClick: null, 
             labels: { boxWidth: 10, font: { size: 10, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' }, padding: 12, usePointStyle: true, pointStyle: 'circle' } 
-          } 
+          },
+          tooltip: { enabled: false } 
         }
       }
     });
@@ -1098,7 +1104,11 @@ function renderCharts(fixed, general, leisure, invest) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        events: [], 
+        plugins: { 
+          legend: { display: false },
+          tooltip: { enabled: false }
+        },
         scales: {
           y: { display: false, beginAtZero: true },
           x: { grid: { display: false }, border: {display: false}, ticks: { font: { size: 9, weight: 'bold' } } }
@@ -1145,7 +1155,11 @@ function renderSubCategoryChart(currentTx) {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      events: [], 
+      plugins: { 
+        legend: { display: false },
+        tooltip: { enabled: false }
+      },
       scales: {
         x: { display: false, beginAtZero: true },
         y: { grid: { display: false }, border: {display: false}, ticks: { font: { size: 10, weight: 'bold' } } }
@@ -1191,7 +1205,11 @@ function renderPaymentMethodChart(currentTx) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      events: [], 
+      plugins: { 
+        legend: { display: false },
+        tooltip: { enabled: false }
+      },
       scales: {
         x: { grid: { display: false }, border: {display: false}, ticks: { font: { size: 10, weight: 'bold' } } },
         y: { display: false, beginAtZero: true }
@@ -1437,7 +1455,9 @@ function switchTab(tab) {
     }
   });
 
-  if (tab === 'resumo') renderAll();
+  if (tab === 'resumo') {
+    renderAll();
+  }
 }
 
 function toggleDarkMode() {
@@ -1463,11 +1483,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function copyWorkspaceCountCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
 function logout() { auth.signOut().then(() => window.location.replace('index.html')); }
-
-
-// ==========================================
-// FUNÇÕES DA CARTEIRA LIVRE (POR MÊS)
-// ==========================================
 
 function openCarteiraLivreModal() {
   document.getElementById('carteiraLivreModal').classList.remove('hidden');
