@@ -1524,3 +1524,54 @@ function renderCarteiraLivre() {
     `;
   });
 }
+// ==========================================
+// GESTOS DE DESLIZAR (SWIPE - MUDAR DE ABA)
+// ==========================================
+
+let touchStartX = 0;
+let touchEndX = 0;
+const ordemAbas = ['resumo', 'extrato', 'invest', 'graficos'];
+
+window.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('mainSwipeContainer');
+  if (!container) return;
+
+  container.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  container.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    tratarSwipe();
+  }, { passive: true });
+});
+
+function tratarSwipe() {
+  const limiteDeslocamento = 50; // Mínimo de pixels para considerar um gesto válido
+  const diferenca = touchEndX - touchStartX;
+
+  if (Math.abs(diferenca) < limiteDeslocamento) return;
+
+  // Descobre qual aba está ativa no momento
+  let abaAtualIndex = 0;
+  for (let i = 0; i < ordemAbas.length; i++) {
+    const el = document.getElementById(`tab-${ordemAbas[i]}`);
+    if (el && !el.classList.contains('hidden')) {
+      abaAtualIndex = i;
+      break;
+    }
+  }
+
+  if (diferenca < 0) {
+    // Deslizou para a ESQUERDA (Vai para a próxima aba)
+    if (abaAtualIndex < ordemAbas.length - 1) {
+      switchTab(ordemAbas[abaAtualIndex + 1]);
+    }
+  } else {
+    // Deslizou para a DIREITA (Volta para a aba anterior)
+    if (abaAtualIndex > 0) {
+      switchTab(ordemAbas[abaAtualIndex - 1]);
+    }
+  }
+}
+
