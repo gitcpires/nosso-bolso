@@ -152,9 +152,8 @@
 
   <main class="mx-auto max-w-md px-4 pt-1 space-y-5">
 
-    <!-- ABA: RESUMO (Agora limpa, apenas cards principais) -->
+    <!-- ABA RESUMO -->
     <div id="tab-resumo" class="space-y-5">
-      
       <div class="grid grid-cols-3 gap-3">
         <div class="bg-card-entrada dark:bg-emerald-900/20 p-3.5 rounded-3xl shadow-[0_4px_10px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[4/3]">
           <div class="w-[30px] h-[30px] bg-emerald-400 text-white rounded-full flex items-center justify-center">
@@ -197,42 +196,7 @@
       </div>
     </div>
 
-    <!-- ABA: GRÁFICOS (Nova aba luxuosa) -->
-    <div id="tab-graficos" class="space-y-5 hidden">
-      
-      <!-- Card 1: Distribuição Macro -->
-      <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-slate-800 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-chart-pie"></i></div>
-          <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Distribuição de Gastos</h3>
-        </div>
-        <div class="grid grid-cols-2 gap-4 items-center pt-2">
-          <div class="h-32 relative"><canvas id="categoryPieChart"></canvas></div>
-          <div class="h-32 relative"><canvas id="categoryBarChart"></canvas></div>
-        </div>
-      </div>
-
-      <!-- Card 2: Subcategorias -->
-      <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-emerald-50 dark:bg-slate-800 text-emerald-500 flex items-center justify-center text-lg"><i class="fa-solid fa-tags"></i></div>
-          <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Uso por Subcategoria</h3>
-        </div>
-        <div class="h-44 relative w-full pt-2"><canvas id="subCategoryBarChart"></canvas></div>
-      </div>
-
-      <!-- Card 3: Formas de Pagamento -->
-      <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-5">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-amber-50 dark:bg-slate-800 text-amber-500 flex items-center justify-center text-lg"><i class="fa-solid fa-credit-card"></i></div>
-          <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Formas de Pagamento</h3>
-        </div>
-        <div class="h-44 relative w-full pt-2"><canvas id="paymentMethodBarChart"></canvas></div>
-      </div>
-      
-    </div>
-
-    <!-- ABA: EXTRATO -->
+    <!-- ABA EXTRATO -->
     <div id="tab-extrato" class="space-y-4 hidden">
        <div class="flex gap-2">
         <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-900 border-none dark:border-slate-800 dark:text-white rounded-[1.5rem] px-5 py-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-[0_4px_12px_rgba(0,0,0,0.03)]" />
@@ -254,7 +218,7 @@
       <div id="txListContainer" class="space-y-3 pt-1"></div>
     </div>
 
-    <!-- ABA: INVESTIMENTOS -->
+    <!-- ABA INVESTIMENTOS -->
     <div id="tab-invest" class="space-y-4 hidden">
        <div class="grid grid-cols-2 gap-3">
         <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-5 rounded-[2rem] text-white shadow-lg space-y-2">
@@ -269,16 +233,45 @@
       <div id="monthInvestmentsList" class="space-y-3 pt-1"></div>
     </div>
 
+    <!-- NOVA ABA GRÁFICOS (Substitui o Mural) -->
+    <div id="tab-graficos" class="space-y-4 hidden">
+      <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-5">
+        <div class="flex items-center gap-3">
+          <div class="text-blue-600 text-xl"><i class="fa-solid fa-chart-pie"></i></div>
+          <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Distribuição de Gastos</h3>
+        </div>
+        <div class="grid grid-cols-2 gap-4 items-center">
+          <div class="h-32 relative"><canvas id="categoryPieChart"></canvas></div>
+          <div class="h-32 relative"><canvas id="categoryBarChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="text-emerald-500 text-xl"><i class="fa-solid fa-tags"></i></div>
+          <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Por Subcategoria</h3>
+        </div>
+        <div class="h-40 relative w-full"><canvas id="subCategoryBarChart"></canvas></div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="text-purple-500 text-xl"><i class="fa-solid fa-credit-card"></i></div>
+          <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Formas de Pagamento</h3>
+        </div>
+        <div class="h-40 relative w-full"><canvas id="paymentMethodBarChart"></canvas></div>
+      </div>
+    </div>
   </main>
 
-  <!-- BOTÃO FLUTUANTE CENTRAL (FAB) -->
+  <!-- BOTÃO FLUTUANTE CENTRAL (+) -->
   <div class="fixed bottom-[24px] left-1/2 transform -translate-x-1/2 z-40">
     <button onclick="openNewTxModal()" class="w-[60px] h-[60px] bg-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(37,99,235,0.4)] hover:scale-105 active:scale-95 transition text-2xl border-[4px] border-white dark:border-slate-900">
       <i class="fa-solid fa-plus"></i>
     </button>
   </div>
 
-  <!-- NAVEGAÇÃO INFERIOR MODERNA -->
+  <!-- NAVEGAÇÃO INFERIOR -->
   <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-slate-900 px-3 py-2 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] dark:border-t dark:border-slate-800 transition-colors duration-200">
     <div class="mx-auto max-w-md grid grid-cols-5 items-end pb-3 pt-1">
       <button onclick="switchTab('resumo')" id="bottomNavResumo" class="relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95">
@@ -297,17 +290,15 @@
         <span class="text-[10px] font-bold">Invest</span>
         <div id="indicatorInvest" class="absolute -bottom-4 w-10 h-[4px] bg-blue-600 rounded-t-full hidden"></div>
       </button>
-      
-      <!-- NOVA ABA GRÁFICOS NO LUGAR DO MURAL -->
       <button onclick="switchTab('graficos')" id="bottomNavGraficos" class="relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95">
-        <i class="fa-solid fa-chart-simple text-[22px] mb-1"></i>
+        <i class="fa-solid fa-chart-column text-[22px] mb-1"></i>
         <span class="text-[10px] font-bold">Gráficos</span>
         <div id="indicatorGraficos" class="absolute -bottom-4 w-10 h-[4px] bg-blue-600 rounded-t-full hidden"></div>
       </button>
     </div>
   </nav>
 
-  <!-- MODAL NOVO LANÇAMENTO -->
+  <!-- MODAIS Lançamento -->
   <div id="newTxModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-6 rounded-[2rem] space-y-4 shadow-2xl">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -392,7 +383,7 @@
     </div>
   </div>
 
-  <!-- MODAL CONFIGURAÇÕES -->
+  <!-- MODAIS Configurações -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-6 rounded-[2rem] space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -477,7 +468,7 @@
     </div>
   </div>
 
-  <!-- MODAL CARTEIRA LIVRE (PRIVADA) -->
+  <!-- MODAL Carteira Livre -->
   <div id="carteiraLivreModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-6 rounded-[2rem] space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
       
