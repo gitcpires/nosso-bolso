@@ -32,7 +32,6 @@ let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
 let subCategoryBarChartInstance = null;
 let paymentMethodBarChartInstance = null;
-let lousaDocId = null;
 let modoMetasAtual = 'perc';
 let editingTxId = null;
 
@@ -280,7 +279,7 @@ async function deixarGrupo() {
     const éOUltimo = membrosSnapshot.size <= 1;
 
     if (éOUltimo) {
-      const confirmacao = confirm("Atenção: Você é o último utilizador deste grupo. Se sair, todos os dados financeiros e recados do mural serão apagados permanentemente. Deseja continuar?");
+      const confirmacao = confirm("Atenção: Você é o último utilizador deste grupo. Se sair, todos os dados financeiros e recados serão apagados permanentemente. Deseja continuar?");
       if (!confirmacao) return;
     } else {
       const confirmacao = confirm("Tem certeza que deseja sair deste grupo?");
@@ -296,9 +295,6 @@ async function deixarGrupo() {
       const batch = db.batch();
       const txsQuery = await db.collection('transacoes').where('workspaceId', '==', wsIdAtual).get();
       txsQuery.forEach(doc => batch.delete(doc.ref));
-
-      const lousaQuery = await db.collection('lousa').where('workspaceId', '==', wsIdAtual).get();
-      lousaQuery.forEach(doc => batch.delete(doc.ref));
 
       const wsRef = db.collection('workspaces').doc(wsIdAtual);
       batch.delete(wsRef);
@@ -433,7 +429,6 @@ function initUserSession() {
   carregarDadosDoBanco();
   ouvinteWorkspaceWorkspace();
   carregarMembrosDoGrupo();
-  ouvinteLousaGrupo();
   ouvinteCarteiraLivre();
 }
 
@@ -508,100 +503,6 @@ async function carregarMembrosDoGrupo() {
     });
   } catch (err) {
     console.log("Erro carregar membros", err);
-  }
-}
-
-function atualizarContador(input) {
-  const restantes = 25 - input.value.length;
-  document.getElementById('charCount').innerText = `${restantes} restantes`;
-}
-
-function ouvinteLousaGrupo() {
-  if (!currentWorkspace.id) return;
-  db.collection('lousa')
-    .where('workspaceId', '==', currentWorkspace.id)
-    .onSnapshot((snapshot) => {
-      const lousaConteudo = document.getElementById('lousaConteudo');
-      const lousaAutorContainer = document.getElementById('lousaAutorContainer');
-      const lousaAutorNome = document.getElementById('lousaAutorNome');
-      const btnLimparLousa = document.getElementById('btnLimparLousa');
-
-      if (snapshot.empty) {
-        lousaDocId = null;
-        lousaConteudo.innerHTML = `<p class="text-sm text-slate-500 italic">Mural limpo. Escreva um recado!</p>`;
-        lousaAutorContainer.classList.add('hidden');
-        btnLimparLousa.classList.add('hidden');
-        return;
-      }
-
-      const docLousa = snapshot.docs[0];
-      lousaDocId = docLousa.id;
-      const dados = docLousa.data();
-      const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
-
-      lousaConteudo.innerHTML = `
-        <div class="py-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-[1.5rem] p-5 inline-block max-w-full">
-          <p class="text-[22px] font-extrabold tracking-wide text-slate-900 dark:text-white fonte-manuscrita break-words">"${dados.texto}"</p>
-        </div>
-      `;
-      
-      lousaAutorNome.innerText = autor;
-      lousaAutorContainer.classList.remove('hidden');
-      btnLimparLousa.classList.remove('hidden');
-    });
-}
-
-async function escreverNaLousa(e) {
-  e.preventDefault();
-  const input = document.getElementById('inputLousaTexto');
-  const texto = input.value.trim();
-
-  if (!texto || texto.length > 25) {
-    alert("O recado deve ter no máximo 25 caracteres.");
-    return;
-  }
-
-  if (!currentWorkspace.id) {
-    alert("Erro de segurança: Utilizador sem grupo válido.");
-    return;
-  }
-
-  try {
-    if (lousaDocId) {
-      await db.collection('lousa').doc(lousaDocId).update({
-        texto: texto,
-        userId: currentUser.id,
-        userEmail: currentUser.email,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    } else {
-      await db.collection('lousa').add({
-        workspaceId: currentWorkspace.id,
-        userId: currentUser.id,
-        userEmail: currentUser.email,
-        texto: texto,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
-
-    input.value = '';
-    document.getElementById('charCount').innerText = '25 restantes';
-  } catch (err) {
-    alert("Erro ao escrever na lousa.");
-  }
-}
-
-async function apagarLousa() {
-  if (!lousaDocId) return;
-  const confirmacao = confirm("Deseja limpar o mural para que outro membro possa escrever?");
-  if (!confirmacao) return;
-
-  try {
-    await db.collection('lousa').doc(lousaDocId).delete();
-    lousaDocId = null;
-  } catch (err) {
-    alert("Erro ao limpar a lousa.");
   }
 }
 
@@ -1049,8 +950,8 @@ function renderAll() {
   renderTransactionsList(currentTxMes);
   renderInvestments(currentTxMes);
   
-  const tabResumo = document.getElementById('tab-resumo');
-  if (tabResumo && !tabResumo.classList.contains('hidden')) {
+  const tabGraficos = document.getElementById('tab-graficos');
+  if (tabGraficos && !tabGraficos.classList.contains('hidden')) {
     renderCharts(fixed, general, leisure, invest);
     renderSubCategoryChart(currentTxMes);
     renderPaymentMethodChart(currentTxMes);
@@ -1428,7 +1329,7 @@ function exportarParaExcel() {
 }
 
 function switchTab(tab) {
-  ['resumo', 'extrato', 'invest', 'mural'].forEach(t => {
+  ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     if (el) el.classList.add('hidden');
   });
@@ -1440,7 +1341,7 @@ function switchTab(tab) {
     renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   }
 
-  ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
+  ['resumo', 'extrato', 'invest', 'graficos'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
     
@@ -1455,9 +1356,7 @@ function switchTab(tab) {
     }
   });
 
-  if (tab === 'resumo') {
-    renderAll();
-  }
+  renderAll();
 }
 
 function toggleDarkMode() {
@@ -1483,6 +1382,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function copyWorkspaceCountCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
 function logout() { auth.signOut().then(() => window.location.replace('index.html')); }
+
+
+// ==========================================
+// FUNÇÕES DA CARTEIRA LIVRE (POR MÊS)
+// ==========================================
 
 function openCarteiraLivreModal() {
   document.getElementById('carteiraLivreModal').classList.remove('hidden');
