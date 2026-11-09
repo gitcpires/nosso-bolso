@@ -36,8 +36,8 @@ let lousaDocId = null;
 let modoMetasAtual = 'perc';
 let editingTxId = null;
 
-let carteiraLivreSaldos = {}; // Guardará os saldos base de cada mês
-let gastosLivresGlobais = []; // Guardará todos os gastos livres privados
+let carteiraLivreSaldos = {}; 
+let gastosLivresGlobais = []; 
 
 auth.onAuthStateChanged(async (userAuth) => {
   if (!userAuth) {
@@ -65,7 +65,7 @@ auth.onAuthStateChanged(async (userAuth) => {
     }
 
     const userData = userDoc.data();
-    carteiraLivreSaldos = userData.carteiraLivreSaldos || {}; // Inicializa os saldos livres
+    carteiraLivreSaldos = userData.carteiraLivreSaldos || {}; 
     
     if (userData.status !== 'approved') {
       document.getElementById('loadingScreen').classList.add('hidden');
@@ -115,11 +115,11 @@ function mudarModoMetas(modo) {
   const btnDinheiro = document.getElementById('btnModoDinheiro');
   
   if (modo === 'perc') {
-    btnPerc.className = "px-2.5 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
-    btnDinheiro.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300 transition";
+    btnPerc.className = "px-3 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
+    btnDinheiro.className = "px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300 transition";
   } else {
-    btnDinheiro.className = "px-2.5 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
-    btnPerc.className = "px-2.5 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300 transition";
+    btnDinheiro.className = "px-3 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
+    btnPerc.className = "px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300 transition";
   }
   carregarDadosMetasNoConfig();
   calcularConversaoMetas('fixos');
@@ -401,7 +401,7 @@ async function entrarGrupoExistente() {
 function mostrarSetupMsg(texto, tipo) {
   const div = document.getElementById('setupMsg');
   div.className = `text-xs font-semibold text-center p-2 rounded-xl block mt-2 ${
-    tipo === 'erro' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
+    tipo === 'erro' ? 'bg-rose-50 text-rose-700' : 'bg-blue-50 text-blue-700'
   }`;
   div.innerText = texto;
   div.classList.remove('hidden');
@@ -412,7 +412,7 @@ function changeActiveMonthCombo() {
   const anoSelect = document.getElementById('selectYear').value;
   activeMonth = `${mesSelect} ${anoSelect}`;
   renderAll();
-  renderCarteiraLivre(); // Atualiza a carteira livre para o novo mês selecionado
+  renderCarteiraLivre(); 
 }
 
 function initUserSession() {
@@ -427,11 +427,6 @@ function initUserSession() {
   document.getElementById('headerUserName').innerText = currentUser.name;
   document.getElementById('headerWelcomeMsg').innerText = `Grupo: ${currentWorkspace.code}`;
   document.getElementById('profileWorkspaceCodeDisplay').innerText = currentWorkspace.code;
-
-  ['badgeExtrato', 'badgeInvest', 'badgeMural'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.add('hidden');
-  });
 
   renderSubCatCheckboxes();
   renderAll();
@@ -455,8 +450,8 @@ function renderSubCatCheckboxes() {
   container.innerHTML = '';
   subcategoriasDisponiveis.forEach(sub => {
     container.innerHTML += `
-      <label class="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300">
-        <input type="checkbox" value="${sub}" onchange="renderTransactionsList(transactions)" class="subcat-filter-checkbox rounded border-slate-300 text-blue-600 focus:ring-0 w-3.5 h-3.5" />
+      <label class="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
+        <input type="checkbox" value="${sub}" onchange="renderTransactionsList(transactions)" class="subcat-filter-checkbox rounded text-blue-600 focus:ring-0 w-3.5 h-3.5" />
         <span class="truncate">${sub}</span>
       </label>
     `;
@@ -500,19 +495,12 @@ async function carregarMembrosDoGrupo() {
       const nomeMembro = emailMembro.split('@')[0];
       const ehVoce = emailMembro === currentUser.email ? ' (Você)' : '';
 
-      containerMembros.innerHTML += `
-        <div class="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
-          <span class="font-bold text-slate-700 dark:text-slate-200 truncate text-[11px]"><i class="fa-solid fa-user-circle text-blue-500 mr-1.5"></i>${emailMembro}${ehVoce}</span>
-          <span class="text-[9px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 px-1.5 py-0.5 rounded font-extrabold">Ativo</span>
-        </div>
-      `;
-
       if (selectFiltroMembro) {
         selectFiltroMembro.innerHTML += `<option value="${emailMembro}">${nomeMembro}</option>`;
       }
     });
   } catch (err) {
-    containerMembros.innerHTML = `<div class="text-rose-500 text-center py-1">Erro ao carregar membros.</div>`;
+    console.log("Erro carregar membros", err);
   }
 }
 
@@ -533,7 +521,7 @@ function ouvinteLousaGrupo() {
 
       if (snapshot.empty) {
         lousaDocId = null;
-        lousaConteudo.innerHTML = `<p class="text-xs text-slate-500 dark:text-slate-400 italic">Mural limpo. Escreva um recado!</p>`;
+        lousaConteudo.innerHTML = `<p class="text-sm text-slate-500 italic">Mural limpo. Escreva um recado!</p>`;
         lousaAutorContainer.classList.add('hidden');
         btnLimparLousa.classList.add('hidden');
         return;
@@ -545,8 +533,8 @@ function ouvinteLousaGrupo() {
       const autor = dados.userEmail ? dados.userEmail.split('@')[0] : 'Membro';
 
       lousaConteudo.innerHTML = `
-        <div class="py-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xs rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 inline-block max-w-full">
-          <p class="text-xl sm:text-2xl font-extrabold tracking-wide text-slate-900 dark:text-white fonte-manuscrita break-words">"${dados.texto}"</p>
+        <div class="py-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-[1.5rem] p-5 inline-block max-w-full">
+          <p class="text-[22px] font-extrabold tracking-wide text-slate-900 dark:text-white fonte-manuscrita break-words">"${dados.texto}"</p>
         </div>
       `;
       
@@ -882,8 +870,8 @@ function toggleTxTypeUI() {
   if (!selectCat || !selectPayment) return;
 
   if (radioEntrada && radioEntrada.checked) {
-    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs transition";
-    if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 dark:text-slate-400 transition";
+    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm transition";
+    if (labelSaida) labelSaida.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer text-slate-500 dark:text-slate-400 transition";
     
     if (containerSubCat) containerSubCat.classList.add('hidden');
 
@@ -898,8 +886,8 @@ function toggleTxTypeUI() {
       <option value="Renda Extra">💵 Renda Extra</option>
     `;
   } else {
-    if (labelSaida) labelSaida.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-2xs transition";
-    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2 text-xs font-extrabold rounded-lg cursor-pointer text-slate-500 dark:text-slate-400 transition";
+    if (labelSaida) labelSaida.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-sm transition";
+    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer text-slate-500 dark:text-slate-400 transition";
     
     if (containerSubCat) containerSubCat.classList.remove('hidden');
 
@@ -992,6 +980,9 @@ async function importarGastosFixosMesAnterior() {
   }
 }
 
+// ----------------------------------------------------------------------
+// RENDERIZAÇÃO PRINCIPAL DO RESUMO (IDÊNTICO À IMAGEM DE REFERÊNCIA)
+// ----------------------------------------------------------------------
 function renderAll() {
   const currentTxConfirmadas = transactions.filter(t => t.month === activeMonth && t.confirmado);
 
@@ -1013,77 +1004,40 @@ function renderAll() {
   const invest = currentTxConfirmadas.filter(t => t.cat === 'Investimentos').reduce((a, b) => a + b.amount, 0);
 
   const metas = getMetasAtuais();
-
   const baseEntradas = income > 0 ? income : 1; 
-  const metaFixosVal = baseEntradas * (metas.fixos / 100);
-  const metaGeraisVal = baseEntradas * (metas.gerais / 100);
-  const metaLazerVal = baseEntradas * (metas.lazer / 100);
-  const metaInvestVal = baseEntradas * (metas.invest / 100);
 
-  const gerarBarraProgressoEStatus = (gasto, meta, corHex) => {
-    if (meta <= 0) return { html: `<div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-1"></div>`, texto: `<span class="text-[9px] text-slate-400 dark:text-slate-500 font-semibold">Sem renda cadastrada</span>` };
+  const criarCardMetaSoftUI = (titulo, icone, corTexto, corBarra, gasto, pctMeta) => {
+    const metaEmReais = baseEntradas * (pctMeta / 100);
+    const pctGasto = metaEmReais > 0 ? (gasto / metaEmReais) * 100 : 0;
+    const barraPreenchida = Math.min(pctGasto, 100);
     
-    const pctGasto = (gasto / meta) * 100;
-    const larguraPreenchida = Math.min(pctGasto, 100);
-    let larguraUltrapassada = 0;
-    if (pctGasto > 100) {
-      larguraUltrapassada = Math.min(pctGasto - 100, 100);
-    }
-
-    const diferenca = meta - gasto;
-    let textoStatus = '';
-    if (diferenca >= 0) {
-      textoStatus = `<span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">Faltam R$ ${diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
-    } else {
-      textoStatus = `<span class="text-[9px] text-rose-600 dark:text-rose-400 font-bold">Passou R$ ${Math.abs(diferenca).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
-    }
-
-    const htmlBarra = `
-      <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-1 relative overflow-hidden flex">
-        <div class="h-full transition-all duration-300" style="width: ${larguraPreenchida}%; background-color: ${corHex};"></div>
-        <div class="bg-rose-600 dark:bg-rose-50 h-full transition-all duration-300" style="width: ${larguraUltrapassada}%"></div>
+    return `
+      <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fa-solid ${icone} ${corTexto} text-base"></i>
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">${titulo}</span>
+          </div>
+          <div class="text-sm font-black text-slate-900 dark:text-white">R$ ${gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+          <div class="text-[9px] font-medium text-slate-400 dark:text-slate-500 mt-1 mb-3">Meta: R$ ${metaEmReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        </div>
+        <div class="flex items-center gap-2 mt-auto">
+          <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-300" style="width: ${barraPreenchida}%; background-color: ${corBarra};"></div>
+          </div>
+          <span class="text-[10px] font-black text-slate-700 dark:text-slate-300">${pctGasto.toFixed(1)}%</span>
+        </div>
       </div>
     `;
-
-    return { html: htmlBarra, texto: textoStatus };
   };
-
-  const resFixos = gerarBarraProgressoEStatus(fixed, metaFixosVal, '#3b82f6');
-  const resGerais = gerarBarraProgressoEStatus(general, metaGeraisVal, '#10b981');
-  const resLazer = gerarBarraProgressoEStatus(leisure, metaLazerVal, '#8b5cf6');
-  const resInvest = gerarBarraProgressoEStatus(invest, metaInvestVal, '#f59e0b');
 
   const containerCat = document.getElementById('cardsCategoryContainer');
   if (containerCat) {
     containerCat.innerHTML = `
-      <div class="rounded-2xl bg-white dark:bg-slate-900 p-3 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
-        <span class="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase block">Gastos Fixos</span>
-        <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">R$ ${fixed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-bold">Meta (${metas.fixos.toFixed(1)}%): R$ ${metaFixosVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div>${resFixos.texto}</div>
-        ${resFixos.html}
-      </div>
-      <div class="rounded-2xl bg-white dark:bg-slate-900 p-3 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
-        <span class="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase block">Gastos Gerais</span>
-        <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">R$ ${general.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-bold">Meta (${metas.gerais.toFixed(1)}%): R$ ${metaGeraisVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div>${resGerais.texto}</div>
-        ${resGerais.html}
-      </div>
-      <div class="rounded-2xl bg-white dark:bg-slate-900 p-3 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
-        <span class="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase block">Lazer</span>
-        <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">R$ ${leisure.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-bold">Meta (${metas.lazer.toFixed(1)}%): R$ ${metaLazerVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div>${resLazer.texto}</div>
-        ${resLazer.html}
-      </div>
-      <div class="rounded-2xl bg-white dark:bg-slate-900 p-3 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
-        <span class="text-[9px] font-extrabold text-slate-400 dark:text-slate-500 uppercase block">Investimentos</span>
-        <div class="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400">R$ ${invest.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-bold">Meta (${metas.invest.toFixed(1)}%): R$ ${metaInvestVal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-        <div>${resInvest.texto}</div>
-        ${resInvest.html}
-      </div>
+      ${criarCardMetaSoftUI('Gastos Fixos', 'fa-bullseye', 'text-blue-600', '#2563eb', fixed, metas.fixos)}
+      ${criarCardMetaSoftUI('Gastos Gerais', 'fa-star', 'text-amber-500', '#10b981', general, metas.gerais)}
+      ${criarCardMetaSoftUI('Lazer', 'fa-cart-shopping', 'text-purple-500', '#a855f7', leisure, metas.lazer)}
+      ${criarCardMetaSoftUI('Investimentos', 'fa-chart-column', 'text-amber-500', '#f59e0b', invest, metas.invest)}
     `;
   }
 
@@ -1105,18 +1059,19 @@ function renderCharts(fixed, general, leisure, invest) {
         labels: ['Fixos', 'Gerais', 'Lazer', 'Invest'],
         datasets: [{
           data: [fixed, general, leisure, invest],
-          backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'],
-          borderWidth: 0
+          backgroundColor: ['#2563eb', '#10b981', '#a855f7', '#f59e0b'],
+          borderWidth: 0,
+          hoverOffset: 4
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: 2 },
+        cutout: '65%',
         plugins: { 
           legend: { 
-            position: 'bottom', 
-            labels: { boxWidth: 8, font: { size: 9 }, padding: 8, usePointStyle: true } 
+            position: 'right', 
+            labels: { boxWidth: 10, font: { size: 10, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' }, padding: 12, usePointStyle: true, pointStyle: 'circle' } 
           } 
         }
       }
@@ -1131,9 +1086,8 @@ function renderCharts(fixed, general, leisure, invest) {
       data: {
         labels: ['Fixos', 'Gerais', 'Lazer', 'Invest'],
         datasets: [{
-          label: 'Gasto (R$)',
           data: [fixed, general, leisure, invest],
-          backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'],
+          backgroundColor: ['#2563eb', '#10b981', '#a855f7', '#f59e0b'],
           borderRadius: 4
         }]
       },
@@ -1142,8 +1096,8 @@ function renderCharts(fixed, general, leisure, invest) {
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          y: { beginAtZero: true, ticks: { font: { size: 9 }, callback: val => 'R$ ' + val } },
-          x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+          y: { display: false, beginAtZero: true },
+          x: { grid: { display: false }, border: {display: false}, ticks: { font: { size: 9, weight: 'bold' } } }
         }
       }
     });
@@ -1179,7 +1133,7 @@ function renderSubCategoryChart(currentTx) {
       datasets: [{
         label: 'Gasto (R$)',
         data: dados,
-        backgroundColor: '#3b82f6',
+        backgroundColor: '#2563eb',
         borderRadius: 4
       }]
     },
@@ -1189,8 +1143,8 @@ function renderSubCategoryChart(currentTx) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { beginAtZero: true, ticks: { font: { size: 9 }, callback: val => 'R$ ' + val } },
-        y: { grid: { display: false }, ticks: { font: { size: 9 } } }
+        x: { display: false, beginAtZero: true },
+        y: { grid: { display: false }, border: {display: false}, ticks: { font: { size: 10, weight: 'bold' } } }
       }
     }
   });
@@ -1235,8 +1189,8 @@ function renderPaymentMethodChart(currentTx) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 9 } } },
-        y: { beginAtZero: true, ticks: { font: { size: 9 }, callback: val => 'R$ ' + val } }
+        x: { grid: { display: false }, border: {display: false}, ticks: { font: { size: 10, weight: 'bold' } } },
+        y: { display: false, beginAtZero: true }
       }
     }
   });
@@ -1294,22 +1248,8 @@ function renderTransactionsList(currentTx) {
     if (filterTotalBox) filterTotalBox.classList.add('hidden');
   }
 
-  const btnImportar = document.getElementById('btnImportarFixos');
-  if (btnImportar) {
-    const jaTemFixos = currentTx.some(t => t.cat === 'Gastos Fixos');
-    if (jaTemFixos) {
-      btnImportar.innerText = "✓ Importado";
-      btnImportar.className = "px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-lg text-[10px] font-extrabold cursor-not-allowed shadow-none";
-      btnImportar.disabled = true;
-    } else {
-      btnImportar.innerHTML = `<i class="fa-solid fa-file-arrow-down"></i> Importar`;
-      btnImportar.className = "px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold transition shadow-xs flex items-center gap-1";
-      btnImportar.disabled = false;
-    }
-  }
-
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">Nenhuma movimentação encontrada neste mês com estes filtros.</div>`;
+    container.innerHTML = `<div class="p-6 text-center text-sm font-bold text-slate-400 bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm">Nenhuma movimentação encontrada neste mês.</div>`;
     return;
   }
 
@@ -1318,15 +1258,15 @@ function renderTransactionsList(currentTx) {
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
     const confirmado = t.confirmado === true;
     
-    const catBadge = t.cat ? `<span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold">${t.cat}</span>` : '';
-    const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded font-bold">${t.subCat}</span>` : '';
-    const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded font-bold">${t.paymentMethod}</span>` : '';
-    const userBadge = `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-semibold"><i class="fa-solid fa-user text-[8px] mr-0.5"></i>${autorNome}</span>`;
+    const catBadge = t.cat ? `<span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full font-bold">${t.cat}</span>` : '';
+    const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full font-bold">${t.subCat}</span>` : '';
+    const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold">${t.paymentMethod}</span>` : '';
+    const userBadge = `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full font-semibold"><i class="fa-solid fa-user text-[8px] mr-1"></i>${autorNome}</span>`;
 
     container.innerHTML += `
-      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-        <div class="space-y-1 pr-2 overflow-hidden w-full">
-          <div class="text-xs font-extrabold text-slate-900 dark:text-white truncate">${t.desc}</div>
+      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:border dark:border-slate-800">
+        <div class="space-y-1.5 pr-2 overflow-hidden w-full">
+          <div class="text-sm font-extrabold text-slate-900 dark:text-white truncate">${t.desc}</div>
           
           <div class="flex flex-wrap items-center gap-1.5">
             ${catBadge}
@@ -1335,27 +1275,27 @@ function renderTransactionsList(currentTx) {
             ${userBadge}
           </div>
 
-          <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 pt-0.5">
-            <span><i class="fa-regular fa-calendar mr-1"></i>${t.date}</span>
-            <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-2 py-0.5 rounded transition ${
+          <div class="text-[10px] text-slate-500 flex items-center gap-2 pt-1">
+            <span class="font-bold"><i class="fa-regular fa-calendar mr-1"></i>${t.date.split('-').reverse().join('/')}</span>
+            <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-2 py-0.5 rounded-md transition ${
               confirmado 
-                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 hover:bg-emerald-200' 
-                : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 hover:bg-emerald-200 animate-pulse'
+                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' 
+                : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 animate-pulse'
             }">
-              ${confirmado ? '✓ Registado' : '⏳ Pendente (Clique p/ Confirmar)'}
+              ${confirmado ? '✓ Registado' : '⏳ Pendente'}
             </button>
           </div>
         </div>
 
         <div class="flex flex-col items-end pl-2 shrink-0">
-          <span class="text-sm sm:text-base font-black whitespace-nowrap ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
+          <span class="text-sm sm:text-base font-black whitespace-nowrap ${isIncome ? 'text-text-entrada dark:text-emerald-400' : 'text-text-saida dark:text-rose-400'}">
             ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
           </span>
-          <div class="flex items-center gap-3 mt-1.5">
-            <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1 transition" title="Editar">
+          <div class="flex items-center gap-3 mt-2">
+            <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1 transition" title="Editar">
               <i class="fa-solid fa-pen-to-square text-sm"></i>
             </button>
-            <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1 transition" title="Excluir">
+            <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1 transition" title="Excluir">
               <i class="fa-solid fa-trash-can text-sm"></i>
             </button>
           </div>
@@ -1394,7 +1334,7 @@ function renderInvestments(currentTx) {
   });
 
   if (invests.length === 0) {
-    investList.innerHTML = `<div class="p-6 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">Nenhum aporte registrado neste mês.</div>`;
+    investList.innerHTML = `<div class="p-6 text-center text-sm font-bold text-slate-400 bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm">Nenhum aporte registrado neste mês.</div>`;
     return;
   }
 
@@ -1402,12 +1342,12 @@ function renderInvestments(currentTx) {
   invests.forEach(t => {
     const confirmado = t.confirmado === true;
     investList.innerHTML += `
-      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-        <div class="space-y-1 pr-2 overflow-hidden w-full">
-          <div class="text-xs font-extrabold text-slate-900 dark:text-white">${t.desc}</div>
-          <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
-            <span>${t.date}</span>
-            <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-1.5 py-0.2 rounded transition ${
+      <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:border dark:border-slate-800">
+        <div class="space-y-1.5 pr-2 overflow-hidden w-full">
+          <div class="text-sm font-extrabold text-slate-900 dark:text-white">${t.desc}</div>
+          <div class="text-[10px] text-slate-500 flex items-center gap-2 mt-1">
+            <span class="font-bold"><i class="fa-regular fa-calendar mr-1"></i>${t.date.split('-').reverse().join('/')}</span>
+            <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-2 py-0.5 rounded-md transition ${
               confirmado ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
             }">
               ${confirmado ? '✓ Registado' : '⏳ Pendente'}
@@ -1419,11 +1359,11 @@ function renderInvestments(currentTx) {
           <span class="text-sm sm:text-base font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">
             R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
           </span>
-          <div class="flex items-center gap-3 mt-1.5">
-            <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-blue-600 p-1 transition" title="Editar">
+          <div class="flex items-center gap-3 mt-2">
+            <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1 transition" title="Editar">
               <i class="fa-solid fa-pen-to-square text-sm"></i>
             </button>
-            <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-1 transition" title="Excluir">
+            <button onclick="deleteTransaction('${t.id}')" class="text-slate-400 hover:text-rose-600 p-1 transition" title="Excluir">
               <i class="fa-solid fa-trash-can text-sm"></i>
             </button>
           </div>
@@ -1480,8 +1420,16 @@ function switchTab(tab) {
 
   ['resumo', 'extrato', 'invest', 'mural'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
+    const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
+    
     if (btn) {
-      btn.className = name === tab ? 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95 py-0.5' : 'relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95 py-0.5';
+      if (name === tab) {
+        btn.className = 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95';
+        if (indicator) indicator.classList.remove('hidden');
+      } else {
+        btn.className = 'relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95';
+        if (indicator) indicator.classList.add('hidden');
+      }
     }
   });
 
@@ -1497,7 +1445,7 @@ function toggleDarkMode() {
 function atualizarIconeDarkMode(isDark) {
   const icon = document.getElementById('darkModeIcon');
   if (icon) {
-    icon.className = isDark ? 'fa-solid fa-sun text-xs text-amber-400' : 'fa-solid fa-moon text-xs text-slate-700';
+    icon.className = isDark ? 'fa-solid fa-sun text-sm text-amber-400' : 'fa-solid fa-moon text-sm text-white';
   }
 }
 
@@ -1617,9 +1565,9 @@ function renderCarteiraLivre() {
   if(displayEl) {
     displayEl.innerText = `R$ ${saldoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
     if(saldoAtual < 0) {
-      displayEl.className = "text-xl font-black text-rose-600 dark:text-rose-400";
+      displayEl.className = "text-2xl font-black text-rose-600 dark:text-rose-400";
     } else {
-      displayEl.className = "text-xl font-black text-emerald-700 dark:text-emerald-400";
+      displayEl.className = "text-2xl font-black text-emerald-700 dark:text-emerald-400";
     }
   }
 
@@ -1629,7 +1577,7 @@ function renderCarteiraLivre() {
   lista.innerHTML = '';
   
   if(gastosDoMes.length === 0) {
-    lista.innerHTML = '<p class="text-[10px] text-slate-400 italic text-center py-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">Nenhum gasto livre registrado neste mês.</p>';
+    lista.innerHTML = '<p class="text-xs font-bold text-slate-400 text-center py-5 bg-white rounded-2xl shadow-sm">Nenhum gasto livre registrado neste mês.</p>';
     return;
   }
 
@@ -1637,14 +1585,14 @@ function renderCarteiraLivre() {
     const dataFormatada = g.date ? g.date.split('-').reverse().join('/') : '';
     
     lista.innerHTML += `
-      <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
+      <div class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm dark:border dark:border-slate-700">
         <div class="truncate pr-2 w-full">
-          <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block truncate">${g.desc}</span>
-          <span class="text-[9px] font-semibold text-slate-500">${dataFormatada}</span>
+          <span class="text-sm font-extrabold text-slate-800 dark:text-slate-200 block truncate">${g.desc}</span>
+          <span class="text-[10px] font-bold text-slate-500 mt-1 block"><i class="fa-regular fa-calendar mr-1"></i>${dataFormatada}</span>
         </div>
-        <div class="flex items-center gap-3 shrink-0 pl-2 border-l border-slate-200 dark:border-slate-700">
-          <span class="text-xs font-black text-rose-600 dark:text-rose-400">- R$ ${g.amount.toFixed(2).replace('.', ',')}</span>
-          <button onclick="deletarGastoLivre('${g.id}')" class="text-slate-400 hover:text-rose-500 transition p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+        <div class="flex items-center gap-3 shrink-0 pl-2">
+          <span class="text-sm font-black text-rose-600 dark:text-rose-400">- R$ ${g.amount.toFixed(2).replace('.', ',')}</span>
+          <button onclick="deletarGastoLivre('${g.id}')" class="text-slate-400 hover:text-rose-500 transition p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
         </div>
       </div>
     `;
