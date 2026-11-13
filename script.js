@@ -911,17 +911,21 @@ function renderAll() {
   const metas = getMetasAtuais();
   const baseEntradas = income > 0 ? income : 1; 
 
+  // ATUALIZAÇÃO: Agora os cards têm um evento onClick que abre os detalhes da categoria
   const criarCardMetaSoftUI = (titulo, icone, corTexto, corBarra, gasto, pctMeta) => {
     const metaEmReais = baseEntradas * (pctMeta / 100);
     const pctGasto = metaEmReais > 0 ? (gasto / metaEmReais) * 100 : 0;
     const barraPreenchida = Math.min(pctGasto, 100);
     
     return `
-      <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform bg-slate-50 dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
         <div>
-          <div class="flex items-center gap-2 mb-2">
-            <i class="fa-solid ${icone} ${corTexto} text-base"></i>
-            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">${titulo}</span>
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid ${icone} ${corTexto} text-base"></i>
+              <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">${titulo}</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
           </div>
           <div class="text-sm font-black text-slate-900 dark:text-white">R$ ${gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
           <div class="text-[9px] font-medium text-slate-400 dark:text-slate-500 mt-1 mb-3">Meta: R$ ${metaEmReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
@@ -1329,13 +1333,11 @@ function exportarParaExcel() {
 }
 
 function switchTab(tab) {
-  // Lista atualizada com todas as abas existentes no painel
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     if (el) el.classList.add('hidden');
   });
 
-  // Mostra estritamente a aba clicada
   const activeEl = document.getElementById(`tab-${tab}`);
   if (activeEl) activeEl.classList.remove('hidden');
 
@@ -1343,7 +1345,6 @@ function switchTab(tab) {
     renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   }
 
-  // Atualiza o destaque visual e o indicador azul na barra inferior
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
@@ -1524,54 +1525,153 @@ function renderCarteiraLivre() {
     `;
   });
 }
+
 // ==========================================
-// GESTOS DE DESLIZAR (SWIPE - MUDAR DE ABA)
+// DETALHES DE CATEGORIAS (METAS - CLICK)
 // ==========================================
 
-let touchStartX = 0;
-let touchEndX = 0;
-const ordemAbas = ['resumo', 'extrato', 'invest', 'graficos'];
+function abrirDetalhesCategoria(nomeCategoria, metaValor) {
+  const currentTxConfirmadas = transactions.filter(t => t.month === activeMonth && t.confirmado && t.cat === nomeCategoria);
+  
+  const totalGasto = currentTxConfirmadas.reduce((s, t) => s + t.amount, 0);
+  const diferenca = metaValor - totalGasto;
 
-window.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('mainSwipeContainer');
-  if (!container) return;
+  document.getElementById('detalheCatTitulo').innerText = nomeCategoria;
+  
+  let iconeClass = "fa-list";
+  let bgIcon = "bg-blue-100 text-blue-600";
+  if (nomeCategoria === 'Gastos Fixos') { iconeClass = "fa-bullseye"; bgIcon = "bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400"; }
+  if (nomeCategoria === 'Gastos Gerais') { iconeClass = "fa-star"; bgIcon = "bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400"; }
+  if (nomeCategoria === 'Lazer') { iconeClass = "fa-cart-shopping"; bgIcon = "bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400"; }
+  if (nomeCategoria === 'Investimentos') { iconeClass = "fa-chart-column"; bgIcon = "bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400"; }
+  
+  const iconeEl = document.getElementById('detalheCatIcone');
+  iconeEl.className = `w-10 h-10 rounded-full flex items-center justify-center text-lg ${bgIcon}`;
+  iconeEl.innerHTML = `<i class="fa-solid ${iconeClass}"></i>`;
 
-  container.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
-  }, { passive: true });
+  document.getElementById('detalheCatTotalGasto').innerText = `R$ ${totalGasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  document.getElementById('detalheCatMetaValor').innerText = `R$ ${metaValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
-  container.addEventListener('touchend', e => {
-    touchEndX = e.changedTouches[0].screenX;
-    tratarSwipe();
-  }, { passive: true });
-});
-
-function tratarSwipe() {
-  const limiteDeslocamento = 50; // Mínimo de pixels para considerar um gesto válido
-  const diferenca = touchEndX - touchStartX;
-
-  if (Math.abs(diferenca) < limiteDeslocamento) return;
-
-  // Descobre qual aba está ativa no momento
-  let abaAtualIndex = 0;
-  for (let i = 0; i < ordemAbas.length; i++) {
-    const el = document.getElementById(`tab-${ordemAbas[i]}`);
-    if (el && !el.classList.contains('hidden')) {
-      abaAtualIndex = i;
-      break;
-    }
-  }
-
-  if (diferenca < 0) {
-    // Deslizou para a ESQUERDA (Vai para a próxima aba)
-    if (abaAtualIndex < ordemAbas.length - 1) {
-      switchTab(ordemAbas[abaAtualIndex + 1]);
-    }
+  const statusEl = document.getElementById('detalheCatStatus');
+  if (diferenca >= 0) {
+    statusEl.innerText = `Sobra: R$ ${diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    statusEl.className = "text-[11px] font-extrabold px-2 py-1 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400";
   } else {
-    // Deslizou para a DIREITA (Volta para a aba anterior)
-    if (abaAtualIndex > 0) {
-      switchTab(ordemAbas[abaAtualIndex - 1]);
-    }
+    statusEl.innerText = `Passou: R$ ${Math.abs(diferenca).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    statusEl.className = "text-[11px] font-extrabold px-2 py-1 rounded-md bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400";
   }
+
+  const listaEl = document.getElementById('detalheCatLista');
+  listaEl.innerHTML = '';
+
+  if (currentTxConfirmadas.length === 0) {
+    listaEl.innerHTML = '<p class="text-xs font-bold text-slate-400 text-center py-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">Nenhum lançamento registado.</p>';
+  } else {
+    currentTxConfirmadas.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(t => {
+      const dataFormatada = t.date ? t.date.split('-').reverse().join('/') : '';
+      const subCatBadge = t.subCat ? `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">${t.subCat}</span>` : '';
+      
+      listaEl.innerHTML += `
+        <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-50 dark:border-slate-700">
+          <div class="pr-2 truncate w-full">
+            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block truncate">${t.desc}</span>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px] font-bold text-slate-500"><i class="fa-regular fa-calendar mr-1"></i> ${dataFormatada}</span>
+              ${subCatBadge}
+            </div>
+          </div>
+          <span class="text-sm font-black text-rose-600 dark:text-rose-400 shrink-0">R$ ${t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+        </div>
+      `;
+    });
+  }
+
+  document.getElementById('detalhesCategoriaModal').classList.remove('hidden');
 }
 
+function fecharDetalhesCategoria() {
+  document.getElementById('detalhesCategoriaModal').classList.add('hidden');
+}
+
+
+// ==========================================
+// GESTOS DE DESLIZAR (SWIPE REAL TIME)
+// ==========================================
+
+const containerSwipe = document.getElementById('mainSwipeContainer');
+let inicioX = 0;
+let movimentoX = 0;
+let deslizando = false;
+const ordemAbas = ['resumo', 'extrato', 'invest', 'graficos'];
+
+if (containerSwipe) {
+  containerSwipe.addEventListener('touchstart', (e) => {
+    inicioX = e.touches[0].clientX;
+    movimentoX = 0;
+    deslizando = true;
+    containerSwipe.style.transition = 'none'; // Remove delay para grudar no dedo
+  }, { passive: true });
+
+  containerSwipe.addEventListener('touchmove', (e) => {
+    if (!deslizando) return;
+    const atualX = e.touches[0].clientX;
+    movimentoX = atualX - inicioX;
+    containerSwipe.style.transform = `translateX(${movimentoX}px)`; // Move visualmente
+  }, { passive: true });
+
+  containerSwipe.addEventListener('touchend', () => {
+    deslizando = false;
+    containerSwipe.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+
+    const limite = 80; // pixels necessários para aceitar a troca de aba
+    
+    // Descobre qual aba está ativa
+    let abaAtualIndex = 0;
+    for (let i = 0; i < ordemAbas.length; i++) {
+      const el = document.getElementById(`tab-${ordemAbas[i]}`);
+      if (el && !el.classList.contains('hidden')) {
+        abaAtualIndex = i;
+        break;
+      }
+    }
+
+    if (movimentoX < -limite && abaAtualIndex < ordemAbas.length - 1) {
+      // Arrastou para a ESQUERDA (Vai para a próxima aba)
+      containerSwipe.style.transform = `translateX(-100%)`;
+      containerSwipe.style.opacity = '0';
+      
+      setTimeout(() => {
+        switchTab(ordemAbas[abaAtualIndex + 1]);
+        containerSwipe.style.transition = 'none'; // Tira animação para reposicionar do outro lado
+        containerSwipe.style.transform = `translateX(100%)`; 
+        
+        setTimeout(() => {
+          containerSwipe.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+          containerSwipe.style.transform = `translateX(0px)`;
+          containerSwipe.style.opacity = '1';
+        }, 50);
+      }, 300);
+
+    } else if (movimentoX > limite && abaAtualIndex > 0) {
+      // Arrastou para a DIREITA (Volta para a aba anterior)
+      containerSwipe.style.transform = `translateX(100%)`;
+      containerSwipe.style.opacity = '0';
+      
+      setTimeout(() => {
+        switchTab(ordemAbas[abaAtualIndex - 1]);
+        containerSwipe.style.transition = 'none';
+        containerSwipe.style.transform = `translateX(-100%)`; 
+        
+        setTimeout(() => {
+          containerSwipe.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+          containerSwipe.style.transform = `translateX(0px)`;
+          containerSwipe.style.opacity = '1';
+        }, 50);
+      }, 300);
+
+    } else {
+      // Cancelou (Volta ao centro normal)
+      containerSwipe.style.transform = `translateX(0px)`;
+    }
+  });
+}
