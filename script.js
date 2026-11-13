@@ -911,7 +911,6 @@ function renderAll() {
   const metas = getMetasAtuais();
   const baseEntradas = income > 0 ? income : 1; 
 
-  // ATUALIZAÇÃO: Agora os cards têm um evento onClick que abre os detalhes da categoria
   const criarCardMetaSoftUI = (titulo, icone, corTexto, corBarra, gasto, pctMeta) => {
     const metaEmReais = baseEntradas * (pctMeta / 100);
     const pctGasto = metaEmReais > 0 ? (gasto / metaEmReais) * 100 : 0;
@@ -955,7 +954,7 @@ function renderAll() {
   renderInvestments(currentTxMes);
   
   const tabGraficos = document.getElementById('tab-graficos');
-  if (tabGraficos && !tabGraficos.classList.contains('hidden')) {
+  if (tabGraficos) {
     renderCharts(fixed, general, leisure, invest);
     renderSubCategoryChart(currentTxMes);
     renderPaymentMethodChart(currentTxMes);
@@ -1332,37 +1331,6 @@ function exportarParaExcel() {
   document.body.removeChild(link);
 }
 
-function switchTab(tab) {
-  ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
-    const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.add('hidden');
-  });
-
-  const activeEl = document.getElementById(`tab-${tab}`);
-  if (activeEl) activeEl.classList.remove('hidden');
-
-  if (tab === 'extrato') {
-    renderTransactionsList(transactions.filter(t => t.month === activeMonth));
-  }
-
-  ['resumo', 'extrato', 'invest', 'graficos'].forEach(name => {
-    const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
-    const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
-    
-    if (btn) {
-      if (name === tab) {
-        btn.className = 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95';
-        if (indicator) indicator.classList.remove('hidden');
-      } else {
-        btn.className = 'relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95';
-        if (indicator) indicator.classList.add('hidden');
-      }
-    }
-  });
-
-  renderAll();
-}
-
 function toggleDarkMode() {
   const isDark = document.documentElement.classList.toggle('dark');
   localStorage.setItem('nossoBolsoDarkMode', isDark ? 'enabled' : 'disabled');
@@ -1593,85 +1561,78 @@ function fecharDetalhesCategoria() {
   document.getElementById('detalhesCategoriaModal').classList.add('hidden');
 }
 
-
 // ==========================================
-// GESTOS DE DESLIZAR (SWIPE REAL TIME)
+// NAVEGAÇÃO E GESTOS (CARROSSEL COM DEDO)
 // ==========================================
 
-const containerSwipe = document.getElementById('mainSwipeContainer');
+let abaAtivaIndex = 0;
+const ordemAbas = ['resumo', 'extrato', 'invest', 'graficos'];
+
+function switchTab(tab) {
+  abaAtivaIndex = ordemAbas.indexOf(tab);
+
+  const wrapper = document.getElementById('swipeWrapper');
+  if (wrapper) {
+    wrapper.style.transition = 'transform 0.3s ease-out';
+    wrapper.style.transform = `translateX(-${abaAtivaIndex * 100}%)`;
+  }
+
+  if (tab === 'extrato') {
+    renderTransactionsList(transactions.filter(t => t.month === activeMonth));
+  }
+
+  ordemAbas.forEach(name => {
+    const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
+    const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
+    
+    if (btn) {
+      if (name === tab) {
+        btn.className = 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95';
+        if (indicator) indicator.classList.remove('hidden');
+      } else {
+        btn.className = 'relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95';
+        if (indicator) indicator.classList.add('hidden');
+      }
+    }
+  });
+
+  renderAll();
+}
+
+const containerSwipe = document.getElementById('swipeWrapper');
 let inicioX = 0;
 let movimentoX = 0;
 let deslizando = false;
-const ordemAbas = ['resumo', 'extrato', 'invest', 'graficos'];
 
 if (containerSwipe) {
   containerSwipe.addEventListener('touchstart', (e) => {
     inicioX = e.touches[0].clientX;
     movimentoX = 0;
     deslizando = true;
-    containerSwipe.style.transition = 'none'; // Remove delay para grudar no dedo
+    containerSwipe.style.transition = 'none'; 
   }, { passive: true });
 
   containerSwipe.addEventListener('touchmove', (e) => {
     if (!deslizando) return;
     const atualX = e.touches[0].clientX;
     movimentoX = atualX - inicioX;
-    containerSwipe.style.transform = `translateX(${movimentoX}px)`; // Move visualmente
+    
+    if (abaAtivaIndex === 0 && movimentoX > 0) movimentoX = movimentoX * 0.3; 
+    if (abaAtivaIndex === ordemAbas.length - 1 && movimentoX < 0) movimentoX = movimentoX * 0.3;
+
+    containerSwipe.style.transform = `translateX(calc(-${abaAtivaIndex * 100}% + ${movimentoX}px))`;
   }, { passive: true });
 
   containerSwipe.addEventListener('touchend', () => {
     deslizando = false;
-    containerSwipe.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+    const limite = 60; 
 
-    const limite = 80; // pixels necessários para aceitar a troca de aba
-    
-    // Descobre qual aba está ativa
-    let abaAtualIndex = 0;
-    for (let i = 0; i < ordemAbas.length; i++) {
-      const el = document.getElementById(`tab-${ordemAbas[i]}`);
-      if (el && !el.classList.contains('hidden')) {
-        abaAtualIndex = i;
-        break;
-      }
-    }
-
-    if (movimentoX < -limite && abaAtualIndex < ordemAbas.length - 1) {
-      // Arrastou para a ESQUERDA (Vai para a próxima aba)
-      containerSwipe.style.transform = `translateX(-100%)`;
-      containerSwipe.style.opacity = '0';
-      
-      setTimeout(() => {
-        switchTab(ordemAbas[abaAtualIndex + 1]);
-        containerSwipe.style.transition = 'none'; // Tira animação para reposicionar do outro lado
-        containerSwipe.style.transform = `translateX(100%)`; 
-        
-        setTimeout(() => {
-          containerSwipe.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
-          containerSwipe.style.transform = `translateX(0px)`;
-          containerSwipe.style.opacity = '1';
-        }, 50);
-      }, 300);
-
-    } else if (movimentoX > limite && abaAtualIndex > 0) {
-      // Arrastou para a DIREITA (Volta para a aba anterior)
-      containerSwipe.style.transform = `translateX(100%)`;
-      containerSwipe.style.opacity = '0';
-      
-      setTimeout(() => {
-        switchTab(ordemAbas[abaAtualIndex - 1]);
-        containerSwipe.style.transition = 'none';
-        containerSwipe.style.transform = `translateX(-100%)`; 
-        
-        setTimeout(() => {
-          containerSwipe.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
-          containerSwipe.style.transform = `translateX(0px)`;
-          containerSwipe.style.opacity = '1';
-        }, 50);
-      }, 300);
-
+    if (movimentoX < -limite && abaAtivaIndex < ordemAbas.length - 1) {
+      switchTab(ordemAbas[abaAtivaIndex + 1]);
+    } else if (movimentoX > limite && abaAtivaIndex > 0) {
+      switchTab(ordemAbas[abaAtivaIndex - 1]);
     } else {
-      // Cancelou (Volta ao centro normal)
-      containerSwipe.style.transform = `translateX(0px)`;
+      switchTab(ordemAbas[abaAtivaIndex]);
     }
   });
 }
