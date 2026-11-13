@@ -954,7 +954,7 @@ function renderAll() {
   renderInvestments(currentTxMes);
   
   const tabGraficos = document.getElementById('tab-graficos');
-  if (tabGraficos) {
+  if (tabGraficos && !tabGraficos.classList.contains('hidden')) {
     renderCharts(fixed, general, leisure, invest);
     renderSubCategoryChart(currentTxMes);
     renderPaymentMethodChart(currentTxMes);
@@ -1562,28 +1562,26 @@ function fecharDetalhesCategoria() {
 }
 
 // ==========================================
-// NAVEGAÇÃO E GESTOS (CARROSSEL COM DEDO)
+// FUNÇÕES DE NAVEGAÇÃO E MUDANÇA DE ABA
 // ==========================================
 
-let abaAtivaIndex = 0;
-const ordemAbas = ['resumo', 'extrato', 'invest', 'graficos'];
-
 function switchTab(tab) {
-  abaAtivaIndex = ordemAbas.indexOf(tab);
+  // 1. Esconde todas as abas (Remove o problema de altura da página!)
+  ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
+    const el = document.getElementById(`tab-${t}`);
+    if (el) el.classList.add('hidden');
+  });
 
-  const wrapper = document.getElementById('swipeWrapper');
-  if (wrapper) {
-    wrapper.style.transition = 'transform 0.3s ease-out, height 0.3s ease-out';
-    wrapper.style.transform = `translateX(-${abaAtivaIndex * 100}%)`;
-  }
-
-  atualizarAlturaTela();
+  // 2. Mostra apenas a aba solicitada
+  const activeEl = document.getElementById(`tab-${tab}`);
+  if (activeEl) activeEl.classList.remove('hidden');
 
   if (tab === 'extrato') {
     renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   }
 
-  ordemAbas.forEach(name => {
+  // 3. Atualiza as cores do menu inferior
+  ['resumo', 'extrato', 'invest', 'graficos'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
     
@@ -1601,10 +1599,15 @@ function switchTab(tab) {
   renderAll();
 }
 
-const containerSwipe = document.getElementById('swipeWrapper');
+// ==========================================
+// GESTOS DE DESLIZAR (SWIPE REAL TIME)
+// ==========================================
+
+const containerSwipe = document.getElementById('mainSwipeContainer');
 let inicioX = 0;
 let movimentoX = 0;
 let deslizando = false;
+const ordemAbas = ['resumo', 'extrato', 'invest', 'graficos'];
 
 if (containerSwipe) {
   containerSwipe.addEventListener('touchstart', (e) => {
@@ -1616,46 +1619,71 @@ if (containerSwipe) {
 
   containerSwipe.addEventListener('touchmove', (e) => {
     if (!deslizando) return;
-    const atualX = e.touches[0].clientX;
-    movimentoX = atualX - inicioX;
+    movimentoX = e.touches[0].clientX - inicioX;
     
-    if (abaAtivaIndex === 0 && movimentoX > 0) movimentoX = movimentoX * 0.3; 
-    if (abaAtivaIndex === ordemAbas.length - 1 && movimentoX < 0) movimentoX = movimentoX * 0.3;
+    // Descobre a aba atual
+    let abaAtivaIndex = 0;
+    for (let i = 0; i < ordemAbas.length; i++) {
+      const el = document.getElementById(`tab-${ordemAbas[i]}`);
+      if (el && !el.classList.contains('hidden')) {
+        abaAtivaIndex = i;
+        break;
+      }
+    }
+    
+    // Efeito de resistência nas pontas (primeira e última aba)
+    if (abaAtivaIndex === 0 && movimentoX > 0) movimentoX *= 0.3; 
+    if (abaAtivaIndex === ordemAbas.length - 1 && movimentoX < 0) movimentoX *= 0.3;
 
-    containerSwipe.style.transform = `translateX(calc(-${abaAtivaIndex * 100}% + ${movimentoX}px))`;
+    containerSwipe.style.transform = `translateX(${movimentoX}px)`;
   }, { passive: true });
 
   containerSwipe.addEventListener('touchend', () => {
     deslizando = false;
     const limite = 60; 
+    
+    let abaAtivaIndex = 0;
+    for (let i = 0; i < ordemAbas.length; i++) {
+      const el = document.getElementById(`tab-${ordemAbas[i]}`);
+      if (el && !el.classList.contains('hidden')) {
+        abaAtivaIndex = i;
+        break;
+      }
+    }
 
     if (movimentoX < -limite && abaAtivaIndex < ordemAbas.length - 1) {
-      switchTab(ordemAbas[abaAtivaIndex + 1]);
+      // Vai para a próxima aba (desliza pra esquerda)
+      animarTrocaAba(abaAtivaIndex + 1, -1);
     } else if (movimentoX > limite && abaAtivaIndex > 0) {
-      switchTab(ordemAbas[abaAtivaIndex - 1]);
+      // Vai para a aba anterior (desliza pra direita)
+      animarTrocaAba(abaAtivaIndex - 1, 1);
     } else {
-      switchTab(ordemAbas[abaAtivaIndex]);
+      // Cancela e volta ao centro
+      containerSwipe.style.transition = 'transform 0.3s ease-out';
+      containerSwipe.style.transform = 'translateX(0px)';
     }
   });
 }
 
-// ==========================================
-// CONTROLE DE ALTURA DINÂMICA DO CARROSSEL
-// ==========================================
-function atualizarAlturaTela() {
-  const wrapper = document.getElementById('swipeWrapper');
-  const abaAtiva = document.getElementById(`tab-${ordemAbas[abaAtivaIndex]}`);
-  
-  if (wrapper && abaAtiva) {
-    wrapper.style.height = abaAtiva.offsetHeight + 'px';
-  }
+function animarTrocaAba(novoIndex, direcao) {
+  // 1. Tira a tela atual completando o movimento pro lado
+  containerSwipe.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out';
+  containerSwipe.style.transform = `translateX(${direcao * -100}%)`;
+  containerSwipe.style.opacity = '0';
+
+  setTimeout(() => {
+    // 2. Troca as abas no HTML (AQUI A ALTURA SE AJUSTA AUTOMATICAMENTE AO CONTEÚDO NOVO!)
+    switchTab(ordemAbas[novoIndex]); 
+    
+    // 3. Joga o container invisível para o lado oposto
+    containerSwipe.style.transition = 'none';
+    containerSwipe.style.transform = `translateX(${direcao * 100}%)`; 
+    
+    // 4. Traz a nova tela deslizando para o centro
+    setTimeout(() => {
+      containerSwipe.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+      containerSwipe.style.transform = 'translateX(0px)';
+      containerSwipe.style.opacity = '1';
+    }, 50);
+  }, 200);
 }
-
-const observadorTamanho = new ResizeObserver(() => {
-  atualizarAlturaTela();
-});
-
-ordemAbas.forEach(aba => {
-  const el = document.getElementById(`tab-${aba}`);
-  if (el) observadorTamanho.observe(el);
-});
