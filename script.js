@@ -1600,7 +1600,7 @@ function switchTab(tab) {
 }
 
 // ==========================================
-// GESTOS DE DESLIZAR (SWIPE REAL TIME)
+// GESTOS DE DESLIZAR (SWIPE RÁPIDO)
 // ==========================================
 
 const containerSwipe = document.getElementById('mainSwipeContainer');
@@ -1621,7 +1621,6 @@ if (containerSwipe) {
     if (!deslizando) return;
     movimentoX = e.touches[0].clientX - inicioX;
     
-    // Descobre a aba atual
     let abaAtivaIndex = 0;
     for (let i = 0; i < ordemAbas.length; i++) {
       const el = document.getElementById(`tab-${ordemAbas[i]}`);
@@ -1631,7 +1630,6 @@ if (containerSwipe) {
       }
     }
     
-    // Efeito de resistência nas pontas (primeira e última aba)
     if (abaAtivaIndex === 0 && movimentoX > 0) movimentoX *= 0.3; 
     if (abaAtivaIndex === ordemAbas.length - 1 && movimentoX < 0) movimentoX *= 0.3;
 
@@ -1652,22 +1650,22 @@ if (containerSwipe) {
     }
 
     if (movimentoX < -limite && abaAtivaIndex < ordemAbas.length - 1) {
-      // Vai para a próxima aba (desliza pra ESQUERDA, sai pra ESQUERDA)
+      // Vai para a próxima aba (desliza pra ESQUERDA) -> A direção agora vai certa (-1)
       animarTrocaAba(abaAtivaIndex + 1, -1);
     } else if (movimentoX > limite && abaAtivaIndex > 0) {
-      // Vai para a aba anterior (desliza pra DIREITA, sai pra DIREITA)
+      // Vai para a aba anterior (desliza pra DIREITA) -> Direção (1)
       animarTrocaAba(abaAtivaIndex - 1, 1);
     } else {
-      // Cancela e volta ao centro
-      containerSwipe.style.transition = 'transform 0.3s ease-out';
+      // Cancela rápido
+      containerSwipe.style.transition = 'transform 0.2s ease-out';
       containerSwipe.style.transform = 'translateX(0px)';
     }
   });
 }
 
 function animarTrocaAba(novoIndex, direcao) {
-  // 1. Tira a tela atual completando o movimento pro lado certo
-  containerSwipe.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out';
+  // 1. Tira a tela atual BEM RÁPIDO para o lado
+  containerSwipe.style.transition = 'transform 0.15s ease-in, opacity 0.15s ease-in';
   containerSwipe.style.transform = `translateX(${direcao * 100}%)`; 
   containerSwipe.style.opacity = '0';
 
@@ -1675,15 +1673,15 @@ function animarTrocaAba(novoIndex, direcao) {
     // 2. Troca as abas no HTML
     switchTab(ordemAbas[novoIndex]); 
     
-    // 3. Joga o container invisível para o lado oposto para ele entrar deslizando certinho
+    // 3. Joga o container invisível para o lado oposto um pouco mais perto (-50%)
     containerSwipe.style.transition = 'none';
-    containerSwipe.style.transform = `translateX(${direcao * -100}%)`; 
+    containerSwipe.style.transform = `translateX(${direcao * -50}%)`; 
     
-    // 4. Traz a nova tela deslizando para o centro
+    // 4. Traz a nova tela deslizando rapidamente (snap elástico)
     setTimeout(() => {
-      containerSwipe.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+      containerSwipe.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out';
       containerSwipe.style.transform = 'translateX(0px)';
       containerSwipe.style.opacity = '1';
-    }, 50);
-  }, 200);
+    }, 30);
+  }, 150); // O tempo está bem menor, gerando aquele "arranque" ágil
 }
