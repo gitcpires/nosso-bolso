@@ -1566,7 +1566,7 @@ function fecharDetalhesCategoria() {
 // ==========================================
 
 function switchTab(tab) {
-  // 1. Esconde todas as abas (Remove o problema de altura da página!)
+  // 1. Esconde todas as abas
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     if (el) el.classList.add('hidden');
@@ -1652,10 +1652,10 @@ if (containerSwipe) {
     }
 
     if (movimentoX < -limite && abaAtivaIndex < ordemAbas.length - 1) {
-      // Vai para a próxima aba (desliza pra esquerda)
+      // Vai para a próxima aba (desliza pra ESQUERDA, sai pra ESQUERDA)
       animarTrocaAba(abaAtivaIndex + 1, -1);
     } else if (movimentoX > limite && abaAtivaIndex > 0) {
-      // Vai para a aba anterior (desliza pra direita)
+      // Vai para a aba anterior (desliza pra DIREITA, sai pra DIREITA)
       animarTrocaAba(abaAtivaIndex - 1, 1);
     } else {
       // Cancela e volta ao centro
@@ -1666,18 +1666,18 @@ if (containerSwipe) {
 }
 
 function animarTrocaAba(novoIndex, direcao) {
-  // 1. Tira a tela atual completando o movimento pro lado
+  // 1. Tira a tela atual completando o movimento pro lado certo
   containerSwipe.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out';
-  containerSwipe.style.transform = `translateX(${direcao * -100}%)`;
+  containerSwipe.style.transform = `translateX(${direcao * 100}%)`; 
   containerSwipe.style.opacity = '0';
 
   setTimeout(() => {
-    // 2. Troca as abas no HTML (AQUI A ALTURA SE AJUSTA AUTOMATICAMENTE AO CONTEÚDO NOVO!)
+    // 2. Troca as abas no HTML
     switchTab(ordemAbas[novoIndex]); 
     
-    // 3. Joga o container invisível para o lado oposto
+    // 3. Joga o container invisível para o lado oposto para ele entrar deslizando certinho
     containerSwipe.style.transition = 'none';
-    containerSwipe.style.transform = `translateX(${direcao * 100}%)`; 
+    containerSwipe.style.transform = `translateX(${direcao * -100}%)`; 
     
     // 4. Traz a nova tela deslizando para o centro
     setTimeout(() => {
