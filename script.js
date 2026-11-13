@@ -1573,9 +1573,11 @@ function switchTab(tab) {
 
   const wrapper = document.getElementById('swipeWrapper');
   if (wrapper) {
-    wrapper.style.transition = 'transform 0.3s ease-out';
+    wrapper.style.transition = 'transform 0.3s ease-out, height 0.3s ease-out';
     wrapper.style.transform = `translateX(-${abaAtivaIndex * 100}%)`;
   }
+
+  atualizarAlturaTela();
 
   if (tab === 'extrato') {
     renderTransactionsList(transactions.filter(t => t.month === activeMonth));
@@ -1636,3 +1638,24 @@ if (containerSwipe) {
     }
   });
 }
+
+// ==========================================
+// CONTROLE DE ALTURA DINÂMICA DO CARROSSEL
+// ==========================================
+function atualizarAlturaTela() {
+  const wrapper = document.getElementById('swipeWrapper');
+  const abaAtiva = document.getElementById(`tab-${ordemAbas[abaAtivaIndex]}`);
+  
+  if (wrapper && abaAtiva) {
+    wrapper.style.height = abaAtiva.offsetHeight + 'px';
+  }
+}
+
+const observadorTamanho = new ResizeObserver(() => {
+  atualizarAlturaTela();
+});
+
+ordemAbas.forEach(aba => {
+  const el = document.getElementById(`tab-${aba}`);
+  if (el) observadorTamanho.observe(el);
+});
