@@ -740,7 +740,6 @@ const subcategoriasDisponiveis = [
   'Transporte',
   'Alimentação',
   'Telefonia',
-  'Ticket Alimentação',
   'Serviços Públicos',
   'Outros'
 ];
