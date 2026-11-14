@@ -18,6 +18,8 @@ const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
 
 const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
+
+// AQUI ESTÁ A VARIÁVEL DE OCULTAÇÃO (Inicia escondido)
 let showBigBalance = false; 
 
 // Banco com 60 Mensagens (Dicas Financeiras e Motivacionais)
@@ -148,7 +150,6 @@ auth.onAuthStateChanged(async (userAuth) => {
   }
 });
 
-// Inicializa a dica com base no dia do ano (para mudar todo dia e não apenas todo mês)
 function iniciarMensagemMotivacionalDiaria() {
   const agora = new Date();
   const diaDoAno = Math.floor((agora - new Date(agora.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
@@ -167,7 +168,6 @@ function renderizarDica() {
   }
 }
 
-// Avança para a próxima dica no click (loop)
 function proximaDica() {
   currentDicaIndex = (currentDicaIndex + 1) % mensagensDiarias.length;
   renderizarDica();
@@ -1278,67 +1278,6 @@ function renderTransactionsList(currentTx) {
       return ehEntrada ? acc + t.amount : acc - t.amount;
     }, 0);
 
-    if (filterTotalValue) filterTotalValue.innerText = `R$ ${somaFiltro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-    if (filterTotalBox) filterTotalBox.classList.remove('hidden');
-  } else {
-    if (filterTotalBox) filterTotalBox.classList.add('hidden');
-  }
-
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-sm font-bold text-slate-400 bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm">Nenhuma movimentação encontrada neste mês.</div>`;
-    return;
-  }
-
-  filtered.forEach(t => {
-    const isIncome = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
-    const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
-    const confirmado = t.confirmado === true;
-function renderTransactionsList(currentTx) {
-  const container = document.getElementById('txListContainer');
-  if (!container) return;
-
-  const transacoesDoMesAtivo = transactions.filter(t => t.month === activeMonth);
-
-  const search = (document.getElementById('searchExpense')?.value || '').toLowerCase();
-  const filtroMembro = document.getElementById('filterMember')?.value || '';
-  const filtroCat = document.getElementById('filterCategory')?.value || '';
-  
-  const checkboxesSubCat = document.querySelectorAll('.subcat-filter-checkbox');
-  const subCatsSelecionadas = Array.from(checkboxesSubCat).filter(cb => cb.checked).map(cb => cb.value);
-  
-  const filtroPaymentMethod = document.getElementById('filterPaymentMethod')?.value || '';
-
-  container.innerHTML = '';
-  
-  const filtered = transacoesDoMesAtivo.filter(t => {
-    const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search) || (t.subCat && t.subCat.toLowerCase().includes(search));
-    const matchMembro = filtroMembro === '' || t.userEmail === filtroMembro;
-    const matchCat = filtroCat === '' || t.cat === filtroCat;
-    const matchSubCat = subCatsSelecionadas.length === 0 || subCatsSelecionadas.includes(t.subCat);
-    const matchPayment = filtroPaymentMethod === '' || t.paymentMethod === filtroPaymentMethod;
-
-    return matchSearch && matchMembro && matchCat && matchSubCat && matchPayment;
-  });
-
-  filtered.sort((a, b) => {
-    const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
-    const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
-    if (timeA !== timeB) {
-      return timeB - timeA;
-    }
-    return new Date(b.date) - new Date(a.date);
-  });
-
-  const filterTotalBox = document.getElementById('filterTotalBox');
-  const filterTotalValue = document.getElementById('filterTotalValue');
-  const isAlgumFiltroAtivo = search !== '' || filtroMembro !== '' || filtroCat !== '' || subCatsSelecionadas.length > 0 || filtroPaymentMethod !== '';
-  
-  if (isAlgumFiltroAtivo) {
-    const somaFiltro = filtered.reduce((acc, t) => {
-      const ehEntrada = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
-      return ehEntrada ? acc + t.amount : acc - t.amount;
-    }, 0);
-
     if (filterTotalValue) {
       filterTotalValue.innerText = showBigBalance ? `R$ ${somaFiltro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
     }
@@ -1405,7 +1344,6 @@ function renderTransactionsList(currentTx) {
     `;
   });
 }
-
 
 function renderInvestments(currentTx) {
   const investConfirmadosMes = currentTx.filter(t => t.cat === 'Investimentos' && t.confirmado);
@@ -1478,7 +1416,6 @@ function renderInvestments(currentTx) {
     `;
   });
 }
-
 
 function exportarParaExcel() {
   const currentTx = transactions.filter(t => t.month === activeMonth);
