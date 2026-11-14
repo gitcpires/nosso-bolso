@@ -54,7 +54,7 @@
     ::-webkit-scrollbar { width: 0px; background: transparent; }
   </style>
 </head>
-<body class="bg-app-bg dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-28 antialiased transition-colors duration-200 min-h-screen overflow-x-hidden">
+<body class="bg-app-bg dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-[110px] antialiased transition-colors duration-200 min-h-screen overflow-x-hidden">
 
   <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-white space-y-4">
     <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
@@ -150,14 +150,13 @@
     </div>
   </header>
 
-  <!-- Estrutura principal sem margins extras atrapalhando -->
-  <main id="mainSwipeContainer" class="mx-auto max-w-md px-4 pt-1 relative h-full">
+  <main id="mainSwipeContainer" class="mx-auto max-w-md px-4 pt-1 space-y-5 relative">
     
-    <!-- ABA RESUMO: Transformada em coluna flexível que preenche a tela -->
-    <div id="tab-resumo" class="w-full flex flex-col" style="min-height: calc(100vh - 100px);">
+    <!-- ABA RESUMO -->
+    <div id="tab-resumo" class="w-full space-y-4">
       
       <!-- CARDS TOPO -->
-      <div class="grid grid-cols-3 gap-1.5 -mx-2 shrink-0">
+      <div class="grid grid-cols-3 gap-1.5 -mx-2">
         <div class="bg-card-entrada dark:bg-emerald-900/20 p-2.5 rounded-[1.25rem] shadow-[0_4px_10px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[4/3]">
           <div class="w-[26px] h-[26px] bg-emerald-400 text-white rounded-full flex items-center justify-center">
             <i class="fa-solid fa-arrow-trend-up text-[10px]"></i>
@@ -189,24 +188,21 @@
         </div>
       </div>
 
-      <!-- ESPAÇADOR: Empurra as Metas lá pra baixo -->
-      <div class="flex-grow"></div>
-
-      <!-- CONTAINER METAS: -mb-28 e pb-[85px] fazem ele tocar no fundo e abraçar o botão -->
-      <div class="bg-white dark:bg-slate-900 p-3 pt-6 rounded-t-[2.5rem] shadow-[0_-8px_24px_rgba(0,0,0,0.03)] dark:border-t dark:border-slate-800 -mx-4 -mb-28 pb-[85px] mt-6 flex flex-col relative z-10">
-        <div class="flex items-center justify-between cursor-pointer px-3 mb-4" onclick="openProfileModal()">
+      <!-- CONTAINER METAS: Retirado o Flexbox. Agora ele tem margens naturais -->
+      <div class="bg-white dark:bg-slate-900 p-3 pt-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-3 -mx-2 mb-8">
+        <div class="flex items-center justify-between cursor-pointer px-2" onclick="openProfileModal()">
           <div class="flex items-center gap-3">
             <div class="text-amber-500 text-xl"><i class="fa-solid fa-trophy"></i></div>
             <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Progresso de Metas</h3>
           </div>
           <i class="fa-solid fa-chevron-right text-slate-400 text-sm"></i>
         </div>
-        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2 px-1"></div>
+        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2"></div>
       </div>
     </div>
 
     <!-- ABA EXTRATO -->
-    <div id="tab-extrato" class="w-full space-y-4 hidden pb-12 mt-5">
+    <div id="tab-extrato" class="w-full space-y-4 hidden">
        <div class="flex gap-2">
         <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-900 border-none dark:border-slate-800 dark:text-white rounded-[1.5rem] px-5 py-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-[0_4px_12px_rgba(0,0,0,0.03)]" />
       </div>
@@ -224,7 +220,7 @@
     </div>
 
     <!-- ABA INVESTIMENTOS -->
-    <div id="tab-invest" class="w-full space-y-4 hidden pb-12 mt-5">
+    <div id="tab-invest" class="w-full space-y-4 hidden">
        <div class="grid grid-cols-2 gap-3">
         <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-5 rounded-[2rem] text-white shadow-lg space-y-2"><span class="text-[10px] font-bold text-indigo-300 uppercase block">Investido no Mês</span><div id="monthInvestTotalHeader" class="text-lg sm:text-xl font-black text-emerald-400 truncate">R$ 0,00</div></div>
         <div class="bg-gradient-to-br from-emerald-900 to-teal-950 p-5 rounded-[2rem] text-white shadow-lg space-y-2"><span class="text-[10px] font-bold text-emerald-300 uppercase block">Acumulado (Ano)</span><div id="yearInvestTotalHeader" class="text-lg sm:text-xl font-black text-white truncate">R$ 0,00</div></div>
@@ -233,7 +229,7 @@
     </div>
 
     <!-- ABA GRÁFICOS -->
-    <div id="tab-graficos" class="w-full space-y-4 hidden pb-12 mt-5">
+    <div id="tab-graficos" class="w-full space-y-4 hidden">
       <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-5">
         <div class="flex items-center gap-3"><div class="text-blue-600 text-xl"><i class="fa-solid fa-chart-pie"></i></div><h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Distribuição de Gastos</h3></div>
         <div class="grid grid-cols-2 gap-4 items-center"><div class="h-32 relative"><canvas id="categoryPieChart"></canvas></div><div class="h-32 relative"><canvas id="categoryBarChart"></canvas></div></div>
