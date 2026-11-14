@@ -18,16 +18,73 @@ const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
 
 const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
+let showBigBalance = false; 
 
-const subcategoriasDisponiveis = [
-  'Transporte',
-  'Alimentação',
-  'Telefonia',
-  'Ticket Alimentação',
-  'Serviços Públicos',
-  'Outros'
+// Banco com 60 Mensagens (Dicas Financeiras e Motivacionais)
+const mensagensDiarias = [
+  { titulo: "Dia de planejar!", subtitulo: "O primeiro passo para o sucesso é o planejamento." },
+  { titulo: "Pequenos passos", subtitulo: "Cada economia conta para sua meta maior." },
+  { titulo: "Foco no futuro", subtitulo: "Invista hoje para colher amanhã." },
+  { titulo: "Você no controle!", subtitulo: "Organização é a chave para a liberdade." },
+  { titulo: "Dia de revisar", subtitulo: "Veja se seus gastos estão alinhados com suas metas." },
+  { titulo: "Mente milionária", subtitulo: "O segredo é gastar menos do que se ganha." },
+  { titulo: "Semana produtiva", subtitulo: "Mantenha o foco e evite compras por impulso." },
+  { titulo: "Disciplina é ouro", subtitulo: "Suas escolhas financeiras definem seu futuro." },
+  { titulo: "Progresso constante", subtitulo: "Um passo por vez em direção aos seus sonhos." },
+  { titulo: "Celebre vitórias", subtitulo: "Atingiu uma meta hoje? Comemore!" },
+  { titulo: "Visão além de hoje", subtitulo: "A prosperidade é construída a longo prazo." },
+  { titulo: "Controle os impulsos", subtitulo: "A gratificação adiada é um superpoder." },
+  { titulo: "Conhecimento é poder", subtitulo: "Quanto mais entende seu dinheiro, mais ele cresce." },
+  { titulo: "Equilíbrio financeiro", subtitulo: "Aproveite o hoje sem esquecer de poupar." },
+  { titulo: "Orçamento em dia", subtitulo: "Anotar tudo é o que te mantém focado." },
+  { titulo: "Aja com sabedoria", subtitulo: "Seu dinheiro é a ferramenta para construir sua vida." },
+  { titulo: "Menos é mais", subtitulo: "Reduza o excesso e foque no que importa." },
+  { titulo: "Resiliência sempre", subtitulo: "Imprevistos acontecem, reforce a reserva." },
+  { titulo: "Você é capaz!", subtitulo: "Qualquer objetivo financeiro é alcançável com tempo." },
+  { titulo: "Hábitos enriquecem", subtitulo: "A repetição diária constrói fortunas." },
+  { titulo: "Atenção aos detalhes", subtitulo: "Pequenos vazamentos afundam grandes navios." },
+  { titulo: "Pense em investir", subtitulo: "Faça seu dinheiro trabalhar por você hoje." },
+  { titulo: "Força na reta final", subtitulo: "Mantenha a firmeza para fechar no azul." },
+  { titulo: "Educação financeira", subtitulo: "Sempre há algo novo para aprender hoje." },
+  { titulo: "Rumo à liberdade", subtitulo: "Cada centavo economizado é um passo a mais." },
+  { titulo: "Agradeça sempre", subtitulo: "A gratidão atrai mais prosperidade." },
+  { titulo: "Mantenha a rota", subtitulo: "A consistência é o que traz o resultado real." },
+  { titulo: "Avalie seus gastos", subtitulo: "O que deu certo? O que pode melhorar?" },
+  { titulo: "Mais um passo!", subtitulo: "Parabéns por cuidar bem do seu dinheiro!" },
+  { titulo: "Pague-se primeiro", subtitulo: "Guarde uma parte do seu ganho antes de gastar." },
+  { titulo: "Regra do 50-30-20", subtitulo: "Uma ótima forma de dividir seu orçamento." },
+  { titulo: "Cuidado com o crédito", subtitulo: "Cartão é ferramenta, não extensão do salário." },
+  { titulo: "Invista em si mesmo", subtitulo: "O melhor rendimento vem do seu conhecimento." },
+  { titulo: "O tempo a seu favor", subtitulo: "Os juros compostos são a oitava maravilha do mundo." },
+  { titulo: "Revise assinaturas", subtitulo: "Você realmente usa tudo que paga mensalmente?" },
+  { titulo: "Evite dívidas ruins", subtitulo: "Só financie se for para multiplicar capital." },
+  { titulo: "Metas claras", subtitulo: "Quem não sabe para onde vai, não chega a lugar nenhum." },
+  { titulo: "Dinheiro é energia", subtitulo: "Canalize-o para o que realmente te faz feliz." },
+  { titulo: "Diversifique", subtitulo: "Não coloque todos os ovos na mesma cesta." },
+  { titulo: "Viva abaixo do limite", subtitulo: "Gaste sempre menos do que você pode pagar." },
+  { titulo: "Automatize poupanças", subtitulo: "Facilite o ato de guardar dinheiro." },
+  { titulo: "Descontos contam", subtitulo: "Negociar é uma habilidade que gera riqueza." },
+  { titulo: "Valorize seu suor", subtitulo: "Pense em quantas horas de trabalho algo custa." },
+  { titulo: "Mude a mentalidade", subtitulo: "Pense como investidor, não só como consumidor." },
+  { titulo: "Dinheiro não aceita desaforo", subtitulo: "Seja intencional com cada real gasto." },
+  { titulo: "Crie novas rendas", subtitulo: "Não dependa de apenas uma fonte de dinheiro." },
+  { titulo: "A paciência paga", subtitulo: "Grandes fortunas não nascem da noite para o dia." },
+  { titulo: "Seja realista", subtitulo: "Metas impossíveis só geram frustração." },
+  { titulo: "Faça listas de compra", subtitulo: "Ir ao mercado com fome e sem lista é perigoso." },
+  { titulo: "Você está no caminho", subtitulo: "Apenas continue fazendo o básico bem feito." },
+  { titulo: "O poder do não", subtitulo: "Dizer não hoje é dizer sim para o seu futuro." },
+  { titulo: "Reveja prioridades", subtitulo: "Onde você gasta mostra o que você valoriza." },
+  { titulo: "Elimine os juros", subtitulo: "Quite as dívidas mais caras o quanto antes." },
+  { titulo: "Simplifique", subtitulo: "Uma vida financeira simples é uma vida em paz." },
+  { titulo: "Foque na solução", subtitulo: "Reclamar não aumenta saldo bancário." },
+  { titulo: "Você contra você", subtitulo: "Não compare seus bastidores com o palco dos outros." },
+  { titulo: "Cuide da saúde", subtitulo: "Saúde física é o seu maior ativo financeiro." },
+  { titulo: "Seja grato", subtitulo: "A abundância começa na mente." },
+  { titulo: "Construa o seu império", subtitulo: "Tijolo por tijolo, dia após dia." },
+  { titulo: "Amanhã é um novo dia", subtitulo: "Errou no orçamento? Recomece amanhã!" }
 ];
 
+let currentDicaIndex = 0;
 let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
 let subCategoryBarChartInstance = null;
@@ -83,12 +140,49 @@ auth.onAuthStateChanged(async (userAuth) => {
 
     document.getElementById('loadingScreen').classList.add('hidden');
     initUserSession();
+    iniciarMensagemMotivacionalDiaria(); 
 
   } catch (err) {
     console.error(err);
     document.getElementById('loadingScreen').innerHTML = `<p class="text-xs text-rose-600 font-bold">Erro ao carregar dados. Tente atualizar a página.</p>`;
   }
 });
+
+function iniciarMensagemMotivacionalDiaria() {
+  const agora = new Date();
+  const diaDoAno = Math.floor((agora - new Date(agora.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+  currentDicaIndex = diaDoAno % mensagensDiarias.length;
+  renderizarDica();
+}
+
+function renderizarDica() {
+  const msg = mensagensDiarias[currentDicaIndex];
+  const tituloEl = document.getElementById('bannerTitulo');
+  const subEl = document.getElementById('bannerSubtitulo');
+  
+  if (tituloEl && subEl) {
+    tituloEl.innerText = msg.titulo;
+    subEl.innerText = msg.subtitulo;
+  }
+}
+
+function proximaDica() {
+  currentDicaIndex = (currentDicaIndex + 1) % mensagensDiarias.length;
+  renderizarDica();
+}
+
+function toggleVisibility() {
+  showBigBalance = !showBigBalance;
+  const icon = document.getElementById('eyeIcon');
+  
+  if(showBigBalance) {
+    icon.className = "fa-solid fa-eye text-[11px]";
+  } else {
+    icon.className = "fa-solid fa-eye-slash text-[11px] text-white/50";
+  }
+  
+  renderAll(); 
+}
 
 function getMetasAtuais() {
   if (!currentWorkspace.metasPorMes) currentWorkspace.metasPorMes = {};
@@ -114,10 +208,10 @@ function mudarModoMetas(modo) {
   const btnDinheiro = document.getElementById('btnModoDinheiro');
   
   if (modo === 'perc') {
-    btnPerc.className = "px-3 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
+    btnPerc.className = "px-3 py-1 text-[10px] font-bold rounded-md bg-brand-green text-white transition";
     btnDinheiro.className = "px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300 transition";
   } else {
-    btnDinheiro.className = "px-3 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
+    btnDinheiro.className = "px-3 py-1 text-[10px] font-bold rounded-md bg-brand-green text-white transition";
     btnPerc.className = "px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300 transition";
   }
   carregarDadosMetasNoConfig();
@@ -421,7 +515,6 @@ function initUserSession() {
   }
 
   document.getElementById('headerUserName').innerText = currentUser.name;
-  document.getElementById('headerWelcomeMsg').innerText = `Grupo: ${currentWorkspace.code}`;
   document.getElementById('profileWorkspaceCodeDisplay').innerText = currentWorkspace.code;
 
   renderSubCatCheckboxes();
@@ -439,6 +532,15 @@ function toggleFiltroAvancado() {
   }
 }
 
+const subcategoriasDisponiveis = [
+  'Transporte',
+  'Alimentação',
+  'Telefonia',
+  'Ticket Alimentação',
+  'Serviços Públicos',
+  'Outros'
+];
+
 function renderSubCatCheckboxes() {
   const container = document.getElementById('filterSubCatCheckboxes');
   if (!container) return;
@@ -446,7 +548,7 @@ function renderSubCatCheckboxes() {
   subcategoriasDisponiveis.forEach(sub => {
     container.innerHTML += `
       <label class="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
-        <input type="checkbox" value="${sub}" onchange="renderTransactionsList(transactions)" class="subcat-filter-checkbox rounded text-blue-600 focus:ring-0 w-3.5 h-3.5" />
+        <input type="checkbox" value="${sub}" onchange="renderTransactionsList(transactions)" class="subcat-filter-checkbox rounded text-brand-green focus:ring-0 w-3.5 h-3.5" />
         <span class="truncate">${sub}</span>
       </label>
     `;
@@ -778,7 +880,7 @@ function toggleTxTypeUI() {
   if (!selectCat || !selectPayment) return;
 
   if (radioEntrada && radioEntrada.checked) {
-    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm transition";
+    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer bg-white dark:bg-slate-900 text-brand-green shadow-sm transition";
     if (labelSaida) labelSaida.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer text-slate-500 dark:text-slate-400 transition";
     
     if (containerSubCat) containerSubCat.classList.add('hidden');
@@ -897,11 +999,11 @@ function renderAll() {
 
   const statIncome = document.getElementById('statIncome');
   const statExpense = document.getElementById('statExpense');
-  const statBalance = document.getElementById('statBalance');
+  const statBigBalance = document.getElementById('statBigBalance');
 
-  if (statIncome) statIncome.innerText = `R$ ${income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-  if (statExpense) statExpense.innerText = `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-  if (statBalance) statBalance.innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  if (statIncome) statIncome.innerText = showBigBalance ? `R$ ${income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
+  if (statExpense) statExpense.innerText = showBigBalance ? `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
+  if (statBigBalance) statBigBalance.innerText = showBigBalance ? `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : `•••••`;
 
   const fixed = currentTxConfirmadas.filter(t => t.cat === 'Gastos Fixos').reduce((a, b) => a + b.amount, 0);
   const general = currentTxConfirmadas.filter(t => t.cat === 'Gastos Gerais').reduce((a, b) => a + b.amount, 0);
@@ -911,29 +1013,35 @@ function renderAll() {
   const metas = getMetasAtuais();
   const baseEntradas = income > 0 ? income : 1; 
 
-  const criarCardMetaSoftUI = (titulo, icone, corTexto, corBarra, gasto, pctMeta) => {
+  const criarCardMetaVisualNovo = (titulo, icone, corBgIcon, corTextoIcon, corBarra, gasto, pctMeta, extraClass = 'rounded-[1rem]') => {
     const metaEmReais = baseEntradas * (pctMeta / 100);
     const pctGasto = metaEmReais > 0 ? (gasto / metaEmReais) * 100 : 0;
     const barraPreenchida = Math.min(pctGasto, 100);
     
+    const txtGasto = showBigBalance ? `R$ ${gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
+    const txtMeta = showBigBalance ? `R$ ${metaEmReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
+    const txtPerc = showBigBalance ? `${pctGasto.toFixed(0)}%` : '••%';
+    
     return `
-      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform bg-slate-50 dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <i class="fa-solid ${icone} ${corTexto} text-base"></i>
-              <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">${titulo}</span>
-            </div>
-            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
+      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="bg-slate-50 dark:bg-slate-800 p-2 border border-slate-100 dark:border-slate-700 relative cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform flex flex-col justify-between ${extraClass}">
+        
+        <div class="flex items-center gap-1.5 mb-1.5">
+          <div class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] ${corBgIcon} ${corTextoIcon}">
+            <i class="fa-solid ${icone}"></i>
           </div>
-          <div class="text-sm font-black text-slate-900 dark:text-white">R$ ${gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-          <div class="text-[9px] font-medium text-slate-400 dark:text-slate-500 mt-1 mb-3">Meta: R$ ${metaEmReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+          <span class="text-[10px] font-bold text-slate-700 dark:text-slate-200">${titulo}</span>
         </div>
-        <div class="flex items-center gap-2 mt-auto">
-          <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+        
+        <div>
+          <div class="text-[12px] font-black text-slate-900 dark:text-white leading-tight truncate">${txtGasto}</div>
+          <div class="text-[8px] font-medium text-slate-400 dark:text-slate-500 mt-0.5 truncate">Meta: ${txtMeta}</div>
+        </div>
+        
+        <div class="flex items-center gap-1.5 mt-2">
+          <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
             <div class="h-full rounded-full transition-all duration-300" style="width: ${barraPreenchida}%; background-color: ${corBarra};"></div>
           </div>
-          <span class="text-[10px] font-black text-slate-700 dark:text-slate-300">${pctGasto.toFixed(1)}%</span>
+          <span class="text-[8px] font-black text-slate-600 dark:text-slate-300">${txtPerc}</span>
         </div>
       </div>
     `;
@@ -942,10 +1050,10 @@ function renderAll() {
   const containerCat = document.getElementById('cardsCategoryContainer');
   if (containerCat) {
     containerCat.innerHTML = `
-      ${criarCardMetaSoftUI('Gastos Fixos', 'fa-bullseye', 'text-blue-600', '#2563eb', fixed, metas.fixos)}
-      ${criarCardMetaSoftUI('Gastos Gerais', 'fa-star', 'text-amber-500', '#10b981', general, metas.gerais)}
-      ${criarCardMetaSoftUI('Lazer', 'fa-cart-shopping', 'text-purple-500', '#a855f7', leisure, metas.lazer)}
-      ${criarCardMetaSoftUI('Investimentos', 'fa-chart-column', 'text-amber-500', '#f59e0b', invest, metas.invest)}
+      ${criarCardMetaVisualNovo('Gastos Fixos', 'fa-bullseye', 'bg-blue-50 dark:bg-blue-900/30', 'text-blue-600 dark:text-blue-400', '#2563eb', fixed, metas.fixos)}
+      ${criarCardMetaVisualNovo('Gastos Gerais', 'fa-star', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#10b981', general, metas.gerais)}
+      ${criarCardMetaVisualNovo('Lazer', 'fa-cart-shopping', 'bg-purple-50 dark:bg-purple-900/30', 'text-purple-600 dark:text-purple-400', '#a855f7', leisure, metas.lazer, 'rounded-[1rem] rounded-br-[2rem]')}
+      ${criarCardMetaVisualNovo('Investimentos', 'fa-chart-column', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#f59e0b', invest, metas.invest, 'rounded-[1rem] rounded-bl-[2rem]')}
     `;
   }
 
@@ -961,7 +1069,18 @@ function renderAll() {
   }
 }
 
+// ==========================================
+// GRÁFICOS INTERATIVOS COM VALORES AO CLICAR
+// ==========================================
+
+function formatarValorTooltip(valor) {
+  if (!showBigBalance) return '•••••';
+  return `R$ ${Number(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 function renderCharts(fixed, general, leisure, invest) {
+  const totalCategorias = fixed + general + leisure + invest;
+
   const ctxPie = document.getElementById('categoryPieChart');
   if (ctxPie) {
     if (categoryPieChartInstance) categoryPieChartInstance.destroy();
@@ -972,21 +1091,35 @@ function renderCharts(fixed, general, leisure, invest) {
         datasets: [{
           data: [fixed, general, leisure, invest],
           backgroundColor: ['#2563eb', '#10b981', '#a855f7', '#f59e0b'],
-          borderWidth: 0
+          borderWidth: 0,
+          hoverOffset: 6
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         cutout: '65%',
-        events: [], 
         plugins: { 
           legend: { 
             position: 'right', 
-            onClick: null, 
             labels: { boxWidth: 10, font: { size: 10, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' }, padding: 12, usePointStyle: true, pointStyle: 'circle' } 
           },
-          tooltip: { enabled: false } 
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleFont: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+            bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: '800' },
+            padding: 10,
+            cornerRadius: 10,
+            displayColors: true,
+            callbacks: {
+              label: function(context) {
+                const valor = context.parsed || 0;
+                const perc = totalCategorias > 0 ? ((valor / totalCategorias) * 100).toFixed(1) : '0.0';
+                return ` ${formatarValorTooltip(valor)} (${showBigBalance ? perc + '%' : '••%'})`;
+              }
+            }
+          }
         }
       }
     });
@@ -1002,20 +1135,32 @@ function renderCharts(fixed, general, leisure, invest) {
         datasets: [{
           data: [fixed, general, leisure, invest],
           backgroundColor: ['#2563eb', '#10b981', '#a855f7', '#f59e0b'],
-          borderRadius: 4
+          borderRadius: 6
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        events: [], 
         plugins: { 
           legend: { display: false },
-          tooltip: { enabled: false }
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleFont: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+            bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: '800' },
+            padding: 10,
+            cornerRadius: 10,
+            displayColors: false,
+            callbacks: {
+              label: function(context) {
+                return formatarValorTooltip(context.parsed.y);
+              }
+            }
+          }
         },
         scales: {
           y: { display: false, beginAtZero: true },
-          x: { grid: { display: false }, border: {display: false}, ticks: { font: { size: 9, weight: 'bold' } } }
+          x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 9, weight: 'bold' } } }
         }
       }
     });
@@ -1049,24 +1194,36 @@ function renderSubCategoryChart(currentTx) {
     data: {
       labels: labels,
       datasets: [{
-        label: 'Gasto (R$)',
+        label: 'Gasto',
         data: dados,
         backgroundColor: '#2563eb',
-        borderRadius: 4
+        borderRadius: 6
       }]
     },
     options: {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
-      events: [], 
       plugins: { 
         legend: { display: false },
-        tooltip: { enabled: false }
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          titleFont: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+          bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: '800' },
+          padding: 10,
+          cornerRadius: 10,
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              return formatarValorTooltip(context.parsed.x);
+            }
+          }
+        }
       },
       scales: {
         x: { display: false, beginAtZero: true },
-        y: { grid: { display: false }, border: {display: false}, ticks: { font: { size: 10, weight: 'bold' } } }
+        y: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } }
       }
     }
   });
@@ -1100,22 +1257,34 @@ function renderPaymentMethodChart(currentTx) {
     data: {
       labels: ['PIX', 'Cartão de Crédito', 'Outros'],
       datasets: [{
-        label: 'Gasto (R$)',
+        label: 'Gasto',
         data: [totalPix, totalCartao, totalOutros],
         backgroundColor: ['#0ea5e9', '#6366f1', '#64748b'],
-        borderRadius: 4
+        borderRadius: 6
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      events: [], 
       plugins: { 
         legend: { display: false },
-        tooltip: { enabled: false }
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          titleFont: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+          bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: '800' },
+          padding: 10,
+          cornerRadius: 10,
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              return formatarValorTooltip(context.parsed.y);
+            }
+          }
+        }
       },
       scales: {
-        x: { grid: { display: false }, border: {display: false}, ticks: { font: { size: 10, weight: 'bold' } } },
+        x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } },
         y: { display: false, beginAtZero: true }
       }
     }
@@ -1168,7 +1337,9 @@ function renderTransactionsList(currentTx) {
       return ehEntrada ? acc + t.amount : acc - t.amount;
     }, 0);
 
-    if (filterTotalValue) filterTotalValue.innerText = `R$ ${somaFiltro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    if (filterTotalValue) {
+      filterTotalValue.innerText = showBigBalance ? `R$ ${somaFiltro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
+    }
     if (filterTotalBox) filterTotalBox.classList.remove('hidden');
   } else {
     if (filterTotalBox) filterTotalBox.classList.add('hidden');
@@ -1188,6 +1359,8 @@ function renderTransactionsList(currentTx) {
     const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full font-bold">${t.subCat}</span>` : '';
     const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold">${t.paymentMethod}</span>` : '';
     const userBadge = `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full font-semibold"><i class="fa-solid fa-user text-[8px] mr-1"></i>${autorNome}</span>`;
+
+    const valorExibicao = showBigBalance ? `${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}` : '•••••';
 
     container.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:border dark:border-slate-800">
@@ -1214,8 +1387,8 @@ function renderTransactionsList(currentTx) {
         </div>
 
         <div class="flex flex-col items-end pl-2 shrink-0">
-          <span class="text-sm sm:text-base font-black whitespace-nowrap ${isIncome ? 'text-text-entrada dark:text-emerald-400' : 'text-text-saida dark:text-rose-400'}">
-            ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
+          <span class="text-sm sm:text-base font-black whitespace-nowrap ${isIncome ? 'text-brand-green' : 'text-rose-500 dark:text-rose-400'}">
+            ${valorExibicao}
           </span>
           <div class="flex items-center gap-3 mt-2">
             <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1 transition" title="Editar">
@@ -1236,7 +1409,9 @@ function renderInvestments(currentTx) {
   const totalMes = investConfirmadosMes.reduce((s, t) => s + t.amount, 0);
 
   const monthInvestEl = document.getElementById('monthInvestTotalHeader');
-  if (monthInvestEl) monthInvestEl.innerText = `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  if (monthInvestEl) {
+    monthInvestEl.innerText = showBigBalance ? `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
+  }
 
   const anoAtualSelecionado = activeMonth.split(' ')[1] || '2026';
   const totalYearInvested = transactions
@@ -1245,7 +1420,7 @@ function renderInvestments(currentTx) {
 
   const yearHeader = document.getElementById('yearInvestTotalHeader');
   if (yearHeader) {
-    yearHeader.innerText = `R$ ${totalYearInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    yearHeader.innerText = showBigBalance ? `R$ ${totalYearInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
   }
 
   const investList = document.getElementById('monthInvestmentsList');
@@ -1267,6 +1442,8 @@ function renderInvestments(currentTx) {
   investList.innerHTML = '';
   invests.forEach(t => {
     const confirmado = t.confirmado === true;
+    const valorExibicao = showBigBalance ? `R$ ${Number(t.amount).toFixed(2).replace('.', ',')}` : '•••••';
+
     investList.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:border dark:border-slate-800">
         <div class="space-y-1.5 pr-2 overflow-hidden w-full">
@@ -1283,7 +1460,7 @@ function renderInvestments(currentTx) {
 
         <div class="flex flex-col items-end pl-2 shrink-0">
           <span class="text-sm sm:text-base font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">
-            R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
+            ${valorExibicao}
           </span>
           <div class="flex items-center gap-3 mt-2">
             <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1 transition" title="Editar">
@@ -1340,7 +1517,7 @@ function toggleDarkMode() {
 function atualizarIconeDarkMode(isDark) {
   const icon = document.getElementById('darkModeIcon');
   if (icon) {
-    icon.className = isDark ? 'fa-solid fa-sun text-sm text-amber-400' : 'fa-solid fa-moon text-sm text-white';
+    icon.className = isDark ? 'fa-solid fa-sun text-[10px] text-amber-400' : 'fa-solid fa-moon text-[10px] text-white';
   }
 }
 
@@ -1566,31 +1743,34 @@ function fecharDetalhesCategoria() {
 // ==========================================
 
 function switchTab(tab) {
-  // 1. Esconde todas as abas
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.add('hidden');
+    if (el) {
+      el.classList.add('hidden');
+      el.style = '';
+    }
   });
 
-  // 2. Mostra apenas a aba solicitada
   const activeEl = document.getElementById(`tab-${tab}`);
-  if (activeEl) activeEl.classList.remove('hidden');
+  if (activeEl) {
+    activeEl.classList.remove('hidden');
+    activeEl.style = '';
+  }
 
   if (tab === 'extrato') {
     renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   }
 
-  // 3. Atualiza as cores do menu inferior
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
     
     if (btn) {
       if (name === tab) {
-        btn.className = 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95';
+        btn.className = 'relative flex flex-col items-center justify-center text-brand-green pb-2 transition active:scale-95';
         if (indicator) indicator.classList.remove('hidden');
       } else {
-        btn.className = 'relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95';
+        btn.className = 'relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 pb-2 transition active:scale-95';
         if (indicator) indicator.classList.add('hidden');
       }
     }
@@ -1600,90 +1780,77 @@ function switchTab(tab) {
 }
 
 // ==========================================
-// GESTOS DE DESLIZAR (SWIPE REAL TIME HIPER-RÁPIDO)
+// GESTOS DE DESLIZAR (FADE SUAVE NATIVO)
 // ==========================================
 
 const containerSwipe = document.getElementById('mainSwipeContainer');
 let inicioX = 0;
-let movimentoX = 0;
 let deslizando = false;
 const ordemAbas = ['resumo', 'extrato', 'invest', 'graficos'];
 
 if (containerSwipe) {
   containerSwipe.addEventListener('touchstart', (e) => {
     inicioX = e.touches[0].clientX;
-    movimentoX = 0;
     deslizando = true;
-    containerSwipe.style.transition = 'none'; 
   }, { passive: true });
 
   containerSwipe.addEventListener('touchmove', (e) => {
     if (!deslizando) return;
-    movimentoX = e.touches[0].clientX - inicioX;
     
-    // Descobre a aba atual
-    let abaAtivaIndex = 0;
-    for (let i = 0; i < ordemAbas.length; i++) {
-      const el = document.getElementById(`tab-${ordemAbas[i]}`);
-      if (el && !el.classList.contains('hidden')) {
-        abaAtivaIndex = i;
-        break;
-      }
+    let movimentoX = e.touches[0].clientX - inicioX;
+    let abaAtivaIndex = ordemAbas.findIndex(t => !document.getElementById(`tab-${t}`).classList.contains('hidden'));
+    let elAbaAtual = document.getElementById(`tab-${ordemAbas[abaAtivaIndex]}`);
+    
+    if (elAbaAtual) {
+      elAbaAtual.style.transform = `translateX(${movimentoX * 0.2}px)`;
+      elAbaAtual.style.opacity = `${1 - Math.abs(movimentoX / window.innerWidth)}`;
     }
-    
-    // Efeito de resistência nas pontas (primeira e última aba)
-    if (abaAtivaIndex === 0 && movimentoX > 0) movimentoX *= 0.3; 
-    if (abaAtivaIndex === ordemAbas.length - 1 && movimentoX < 0) movimentoX *= 0.3;
-
-    containerSwipe.style.transform = `translateX(${movimentoX}px)`;
   }, { passive: true });
 
-  containerSwipe.addEventListener('touchend', () => {
+  containerSwipe.addEventListener('touchend', (e) => {
+    if (!deslizando) return;
     deslizando = false;
-    const limite = 60; 
     
-    let abaAtivaIndex = 0;
-    for (let i = 0; i < ordemAbas.length; i++) {
-      const el = document.getElementById(`tab-${ordemAbas[i]}`);
-      if (el && !el.classList.contains('hidden')) {
-        abaAtivaIndex = i;
-        break;
-      }
-    }
+    let fimX = e.changedTouches[0].clientX;
+    let diferenca = fimX - inicioX;
+    let abaAtivaIndex = ordemAbas.findIndex(t => !document.getElementById(`tab-${t}`).classList.contains('hidden'));
+    let elAbaAtual = document.getElementById(`tab-${ordemAbas[abaAtivaIndex]}`);
+    
+    const limite = 50; 
 
-    if (movimentoX < -limite && abaAtivaIndex < ordemAbas.length - 1) {
-      // Vai para a próxima aba (desliza pra ESQUERDA)
-      animarTrocaAba(abaAtivaIndex + 1, -1);
-    } else if (movimentoX > limite && abaAtivaIndex > 0) {
-      // Vai para a aba anterior (desliza pra DIREITA)
-      animarTrocaAba(abaAtivaIndex - 1, 1);
+    if (Math.abs(diferenca) > limite) {
+       if (diferenca < 0 && abaAtivaIndex < ordemAbas.length - 1) {
+         mudarAbaComFade(abaAtivaIndex + 1);
+       } else if (diferenca > 0 && abaAtivaIndex > 0) {
+         mudarAbaComFade(abaAtivaIndex - 1);
+       } else {
+         resetarAbaAtual(elAbaAtual);
+       }
     } else {
-      // Cancela hiper rápido (caso desista no meio do caminho)
-      containerSwipe.style.transition = 'transform 0.1s ease-out';
-      containerSwipe.style.transform = 'translateX(0px)';
+       resetarAbaAtual(elAbaAtual);
     }
   });
 }
 
-function animarTrocaAba(novoIndex, direcao) {
-  // 1. Tira a tela atual BEM RÁPIDO para o lado (80ms)
-  containerSwipe.style.transition = 'transform 0.08s ease-in, opacity 0.08s ease-in';
-  containerSwipe.style.transform = `translateX(${direcao * 100}%)`; 
-  containerSwipe.style.opacity = '0';
+function resetarAbaAtual(elAba) {
+  if(elAba) {
+    elAba.style.transform = 'translateX(0px)';
+    elAba.style.opacity = '1';
+  }
+}
 
-  setTimeout(() => {
-    // 2. Troca as abas no HTML
-    switchTab(ordemAbas[novoIndex]); 
-    
-    // 3. Joga o container invisível para o lado oposto mais perto (-30%)
-    containerSwipe.style.transition = 'none';
-    containerSwipe.style.transform = `translateX(${direcao * -30}%)`; 
-    
-    // 4. Traz a nova tela deslizando quase que instantaneamente (120ms)
-    setTimeout(() => {
-      containerSwipe.style.transition = 'transform 0.12s ease-out, opacity 0.12s ease-out';
-      containerSwipe.style.transform = 'translateX(0px)';
-      containerSwipe.style.opacity = '1';
-    }, 10);
-  }, 80); 
+function mudarAbaComFade(novoIndex) {
+  const abaAtivaIndex = ordemAbas.findIndex(t => !document.getElementById(`tab-${t}`).classList.contains('hidden'));
+  const elAbaAtual = document.getElementById(`tab-${ordemAbas[abaAtivaIndex]}`);
+  
+  if(elAbaAtual) {
+     elAbaAtual.style.opacity = '0';
+     setTimeout(() => {
+        elAbaAtual.style.transform = 'translateX(0px)';
+        elAbaAtual.style.opacity = '1';
+        switchTab(ordemAbas[novoIndex]);
+     }, 150);
+  } else {
+     switchTab(ordemAbas[novoIndex]);
+  }
 }
