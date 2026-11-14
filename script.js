@@ -911,7 +911,6 @@ function renderAll() {
   const metas = getMetasAtuais();
   const baseEntradas = income > 0 ? income : 1; 
 
-  // FUNÇÃO ATUALIZADA: Agora recebe extraClass para podermos modelar a quina dos cartões
   const criarCardMetaSoftUI = (titulo, icone, corTexto, corBarra, gasto, pctMeta, extraClass = 'rounded-[1.25rem]') => {
     const metaEmReais = baseEntradas * (pctMeta / 100);
     const pctGasto = metaEmReais > 0 ? (gasto / metaEmReais) * 100 : 0;
@@ -1567,13 +1566,11 @@ function fecharDetalhesCategoria() {
 // ==========================================
 
 function switchTab(tab) {
-  // 1. Esconde todas as abas
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     if (el) el.classList.add('hidden');
   });
 
-  // 2. Mostra apenas a aba solicitada
   const activeEl = document.getElementById(`tab-${tab}`);
   if (activeEl) activeEl.classList.remove('hidden');
 
@@ -1581,7 +1578,6 @@ function switchTab(tab) {
     renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   }
 
-  // 3. Atualiza as cores do menu inferior
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
@@ -1600,91 +1596,107 @@ function switchTab(tab) {
   renderAll();
 }
 
+
 // ==========================================
-// GESTOS DE DESLIZAR (SWIPE REAL TIME HIPER-RÁPIDO)
+// GESTOS DE DESLIZAR (SWIPE NATIVO + OVERLAY)
 // ==========================================
 
 const containerSwipe = document.getElementById('mainSwipeContainer');
 let inicioX = 0;
 let movimentoX = 0;
 let deslizando = false;
+let abaAtivaIndex = 0;
+let elAbaAtual = null;
+let elAbaProxima = null;
 const ordemAbas = ['resumo', 'extrato', 'invest', 'graficos'];
 
 if (containerSwipe) {
   containerSwipe.addEventListener('touchstart', (e) => {
+    abaAtivaIndex = ordemAbas.findIndex(t => !document.getElementById(`tab-${t}`).classList.contains('hidden'));
+    elAbaAtual = document.getElementById(`tab-${ordemAbas[abaAtivaIndex]}`);
+    
     inicioX = e.touches[0].clientX;
     movimentoX = 0;
     deslizando = true;
-    containerSwipe.style.transition = 'none'; 
+    containerSwipe.style.position = 'relative';
   }, { passive: true });
 
   containerSwipe.addEventListener('touchmove', (e) => {
-    if (!deslizando) return;
+    if (!deslizando || !elAbaAtual) return;
     movimentoX = e.touches[0].clientX - inicioX;
     
-    // Descobre a aba atual
-    let abaAtivaIndex = 0;
-    for (let i = 0; i < ordemAbas.length; i++) {
-      const el = document.getElementById(`tab-${ordemAbas[i]}`);
-      if (el && !el.classList.contains('hidden')) {
-        abaAtivaIndex = i;
-        break;
-      }
-    }
-    
-    // Efeito de resistência nas pontas (primeira e última aba)
     if (abaAtivaIndex === 0 && movimentoX > 0) movimentoX *= 0.3; 
     if (abaAtivaIndex === ordemAbas.length - 1 && movimentoX < 0) movimentoX *= 0.3;
 
-    containerSwipe.style.transform = `translateX(${movimentoX}px)`;
+    elAbaAtual.style.transition = 'none';
+    elAbaAtual.style.transform = `translateX(${movimentoX}px)`;
+
+    let novoIndex = movimentoX < 0 ? abaAtivaIndex + 1 : abaAtivaIndex - 1;
+    
+    if (novoIndex >= 0 && novoIndex < ordemAbas.length) {
+      if (elAbaProxima && elAbaProxima.id !== `tab-${ordemAbas[novoIndex]}`) {
+         elAbaProxima.classList.add('hidden');
+         elAbaProxima.style = '';
+      }
+      elAbaProxima = document.getElementById(`tab-${ordemAbas[novoIndex]}`);
+      
+      let larguraTela = window.innerWidth;
+      let offsetInicial = movimentoX < 0 ? larguraTela : -larguraTela;
+      
+      elAbaProxima.classList.remove('hidden');
+      elAbaProxima.style.position = 'absolute';
+      elAbaProxima.style.top = '0';
+      elAbaProxima.style.left = '0';
+      elAbaProxima.style.width = '100%';
+      elAbaProxima.style.transition = 'none';
+      elAbaProxima.style.transform = `translateX(${offsetInicial + movimentoX}px)`;
+    }
   }, { passive: true });
 
   containerSwipe.addEventListener('touchend', () => {
+    if (!deslizando || !elAbaAtual) return;
     deslizando = false;
     const limite = 60; 
-    
-    let abaAtivaIndex = 0;
-    for (let i = 0; i < ordemAbas.length; i++) {
-      const el = document.getElementById(`tab-${ordemAbas[i]}`);
-      if (el && !el.classList.contains('hidden')) {
-        abaAtivaIndex = i;
-        break;
-      }
-    }
 
-    if (movimentoX < -limite && abaAtivaIndex < ordemAbas.length - 1) {
-      // Vai para a próxima aba (desliza pra ESQUERDA)
-      animarTrocaAba(abaAtivaIndex + 1, -1);
-    } else if (movimentoX > limite && abaAtivaIndex > 0) {
-      // Vai para a aba anterior (desliza pra DIREITA)
-      animarTrocaAba(abaAtivaIndex - 1, 1);
+    let novoIndex = movimentoX < 0 ? abaAtivaIndex + 1 : abaAtivaIndex - 1;
+    let larguraTela = window.innerWidth;
+
+    if (Math.abs(movimentoX) > limite && novoIndex >= 0 && novoIndex < ordemAbas.length) {
+      let offsetFinalAtual = movimentoX < 0 ? -larguraTela : larguraTela;
+      
+      elAbaAtual.style.transition = 'transform 0.2s ease-out';
+      elAbaAtual.style.transform = `translateX(${offsetFinalAtual}px)`;
+
+      if (elAbaProxima) {
+        elAbaProxima.style.transition = 'transform 0.2s ease-out';
+        elAbaProxima.style.transform = `translateX(0px)`;
+      }
+
+      setTimeout(() => {
+        elAbaAtual.style = '';
+        if (elAbaProxima) elAbaProxima.style = '';
+        elAbaProxima = null;
+        switchTab(ordemAbas[novoIndex]);
+      }, 200);
+
     } else {
-      // Cancela rápido
-      containerSwipe.style.transition = 'transform 0.1s ease-out';
-      containerSwipe.style.transform = 'translateX(0px)';
+      elAbaAtual.style.transition = 'transform 0.2s ease-out';
+      elAbaAtual.style.transform = 'translateX(0px)';
+      
+      if (elAbaProxima) {
+        let offsetRetorno = movimentoX < 0 ? larguraTela : -larguraTela;
+        elAbaProxima.style.transition = 'transform 0.2s ease-out';
+        elAbaProxima.style.transform = `translateX(${offsetRetorno}px)`;
+      }
+
+      setTimeout(() => {
+         elAbaAtual.style = '';
+         if (elAbaProxima) {
+            elAbaProxima.classList.add('hidden');
+            elAbaProxima.style = '';
+            elAbaProxima = null;
+         }
+      }, 200);
     }
   });
-}
-
-function animarTrocaAba(novoIndex, direcao) {
-  // 1. Tira a tela atual BEM RÁPIDO para o lado (80ms)
-  containerSwipe.style.transition = 'transform 0.08s ease-in, opacity 0.08s ease-in';
-  containerSwipe.style.transform = `translateX(${direcao * 100}%)`; 
-  containerSwipe.style.opacity = '0';
-
-  setTimeout(() => {
-    // 2. Troca as abas no HTML
-    switchTab(ordemAbas[novoIndex]); 
-    
-    // 3. Joga o container invisível para o lado oposto mais perto (-30%)
-    containerSwipe.style.transition = 'none';
-    containerSwipe.style.transform = `translateX(${direcao * -30}%)`; 
-    
-    // 4. Traz a nova tela deslizando instantaneamente (120ms)
-    setTimeout(() => {
-      containerSwipe.style.transition = 'transform 0.12s ease-out, opacity 0.12s ease-out';
-      containerSwipe.style.transform = 'translateX(0px)';
-      containerSwipe.style.opacity = '1';
-    }, 10);
-  }, 80); 
 }
