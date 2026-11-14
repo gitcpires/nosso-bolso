@@ -1229,6 +1229,8 @@ function toggleTxTypeUI() {
     if (containerRec && !editingTxId) containerRec.classList.remove('hidden');
 
     let opcoesPagamento = `<option value="PIX">⚡ PIX</option>`;
+    opcoesPagamento += `<option value="Ticket Alimentação">🎫 Ticket Alimentação</option>`; // <--- Adicionado aqui
+    
     const cartoes = currentWorkspace.cartoes || [];
     if (cartoes.length > 0) {
       cartoes.forEach(c => {
@@ -1239,6 +1241,7 @@ function toggleTxTypeUI() {
     }
     opcoesPagamento += `<option value="Outros">🔄 Outros</option>`;
     selectPayment.innerHTML = opcoesPagamento;
+
 
     selectCat.innerHTML = `
       <option value="Gastos Fixos">🏠 Gastos Fixos</option>
