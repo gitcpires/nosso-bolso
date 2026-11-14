@@ -18,8 +18,6 @@ const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
 
 const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
-
-// AQUI ESTÁ A VARIÁVEL DE OCULTAÇÃO (Inicia escondido)
 let showBigBalance = false; 
 
 // Banco com 60 Mensagens (Dicas Financeiras e Motivacionais)
@@ -1071,7 +1069,18 @@ function renderAll() {
   }
 }
 
+// ==========================================
+// GRÁFICOS INTERATIVOS COM VALORES AO CLICAR
+// ==========================================
+
+function formatarValorTooltip(valor) {
+  if (!showBigBalance) return '•••••';
+  return `R$ ${Number(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 function renderCharts(fixed, general, leisure, invest) {
+  const totalCategorias = fixed + general + leisure + invest;
+
   const ctxPie = document.getElementById('categoryPieChart');
   if (ctxPie) {
     if (categoryPieChartInstance) categoryPieChartInstance.destroy();
@@ -1082,21 +1091,35 @@ function renderCharts(fixed, general, leisure, invest) {
         datasets: [{
           data: [fixed, general, leisure, invest],
           backgroundColor: ['#2563eb', '#10b981', '#a855f7', '#f59e0b'],
-          borderWidth: 0
+          borderWidth: 0,
+          hoverOffset: 6
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         cutout: '65%',
-        events: [], 
         plugins: { 
           legend: { 
             position: 'right', 
-            onClick: null, 
             labels: { boxWidth: 10, font: { size: 10, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' }, padding: 12, usePointStyle: true, pointStyle: 'circle' } 
           },
-          tooltip: { enabled: false } 
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleFont: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+            bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: '800' },
+            padding: 10,
+            cornerRadius: 10,
+            displayColors: true,
+            callbacks: {
+              label: function(context) {
+                const valor = context.parsed || 0;
+                const perc = totalCategorias > 0 ? ((valor / totalCategorias) * 100).toFixed(1) : '0.0';
+                return ` ${formatarValorTooltip(valor)} (${showBigBalance ? perc + '%' : '••%'})`;
+              }
+            }
+          }
         }
       }
     });
@@ -1112,20 +1135,32 @@ function renderCharts(fixed, general, leisure, invest) {
         datasets: [{
           data: [fixed, general, leisure, invest],
           backgroundColor: ['#2563eb', '#10b981', '#a855f7', '#f59e0b'],
-          borderRadius: 4
+          borderRadius: 6
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        events: [], 
         plugins: { 
           legend: { display: false },
-          tooltip: { enabled: false }
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleFont: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+            bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: '800' },
+            padding: 10,
+            cornerRadius: 10,
+            displayColors: false,
+            callbacks: {
+              label: function(context) {
+                return formatarValorTooltip(context.parsed.y);
+              }
+            }
+          }
         },
         scales: {
           y: { display: false, beginAtZero: true },
-          x: { grid: { display: false }, border: {display: false}, ticks: { font: { size: 9, weight: 'bold' } } }
+          x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 9, weight: 'bold' } } }
         }
       }
     });
@@ -1159,24 +1194,36 @@ function renderSubCategoryChart(currentTx) {
     data: {
       labels: labels,
       datasets: [{
-        label: 'Gasto (R$)',
+        label: 'Gasto',
         data: dados,
         backgroundColor: '#2563eb',
-        borderRadius: 4
+        borderRadius: 6
       }]
     },
     options: {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
-      events: [], 
       plugins: { 
         legend: { display: false },
-        tooltip: { enabled: false }
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          titleFont: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+          bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: '800' },
+          padding: 10,
+          cornerRadius: 10,
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              return formatarValorTooltip(context.parsed.x);
+            }
+          }
+        }
       },
       scales: {
         x: { display: false, beginAtZero: true },
-        y: { grid: { display: false }, border: {display: false}, ticks: { font: { size: 10, weight: 'bold' } } }
+        y: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } }
       }
     }
   });
@@ -1210,22 +1257,34 @@ function renderPaymentMethodChart(currentTx) {
     data: {
       labels: ['PIX', 'Cartão de Crédito', 'Outros'],
       datasets: [{
-        label: 'Gasto (R$)',
+        label: 'Gasto',
         data: [totalPix, totalCartao, totalOutros],
         backgroundColor: ['#0ea5e9', '#6366f1', '#64748b'],
-        borderRadius: 4
+        borderRadius: 6
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      events: [], 
       plugins: { 
         legend: { display: false },
-        tooltip: { enabled: false }
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          titleFont: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
+          bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: '800' },
+          padding: 10,
+          cornerRadius: 10,
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              return formatarValorTooltip(context.parsed.y);
+            }
+          }
+        }
       },
       scales: {
-        x: { grid: { display: false }, border: {display: false}, ticks: { font: { size: 10, weight: 'bold' } } },
+        x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } },
         y: { display: false, beginAtZero: true }
       }
     }
