@@ -20,6 +20,41 @@ const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
 let showBigBalance = true; 
 
+// Banco de Mensagens Motivacionais Diárias (1 para cada dia do mês)
+const mensagensDiarias = [
+  { titulo: "Dia de planejar!", subtitulo: "O primeiro passo para o sucesso é o planejamento." },
+  { titulo: "Pequenos passos", subtitulo: "Cada economia conta para sua meta maior." },
+  { titulo: "Foco no futuro", subtitulo: "Invista hoje para colher amanhã." },
+  { titulo: "Você está no controle!", subtitulo: "Organização é a chave para a liberdade." },
+  { titulo: "Dia de revisar", subtitulo: "Veja se seus gastos estão alinhados com suas metas." },
+  { titulo: "Mente milionária", subtitulo: "O segredo é gastar menos do que se ganha." },
+  { titulo: "Semana produtiva", subtitulo: "Mantenha o foco e evite compras por impulso." },
+  { titulo: "Disciplina é liberdade", subtitulo: "Suas escolhas financeiras definem seu futuro." },
+  { titulo: "Progresso constante", subtitulo: "Um passo por vez em direção aos seus sonhos." },
+  { titulo: "Celebre vitórias", subtitulo: "Atingiu uma meta hoje? Comemore!" },
+  { titulo: "Visão além do hoje", subtitulo: "A prosperidade é construída a longo prazo." },
+  { titulo: "Controle seus impulsos", subtitulo: "A gratificação adiada é um superpoder." },
+  { titulo: "Conhecimento é poder", subtitulo: "Quanto mais você entende seu dinheiro, mais ele cresce." },
+  { titulo: "Metade do mês!", subtitulo: "Como está seu saldo até aqui? Reajuste a rota." },
+  { titulo: "Equilíbrio", subtitulo: "Aproveite o hoje sem esquecer de poupar para o amanhã." },
+  { titulo: "Orçamento em dia", subtitulo: "Anotar tudo é o que te mantém focado." },
+  { titulo: "Aja com sabedoria", subtitulo: "Seu dinheiro é a ferramenta para construir sua vida." },
+  { titulo: "Menos é mais", subtitulo: "Reduza o excesso e foque no que importa." },
+  { titulo: "Resiliência", subtitulo: "Imprevistos acontecem, tenha sua reserva de emergência." },
+  { titulo: "Você é capaz!", subtitulo: "Qualquer objetivo financeiro é alcançável com tempo." },
+  { titulo: "Hábitos enriquecem", subtitulo: "A repetição diária constrói fortunas." },
+  { titulo: "Atenção aos detalhes", subtitulo: "Pequenos vazamentos afundam grandes navios." },
+  { titulo: "Pense no investimento", subtitulo: "Faça seu dinheiro trabalhar por você hoje." },
+  { titulo: "Quase no fim do mês", subtitulo: "Mantenha a firmeza para fechar no azul." },
+  { titulo: "Educação financeira", subtitulo: "Sempre há algo novo para aprender." },
+  { titulo: "Rumo à liberdade", subtitulo: "Cada centavo economizado é um passo a mais." },
+  { titulo: "Agradeça", subtitulo: "A gratidão atrai mais prosperidade." },
+  { titulo: "Mantenha a rota", subtitulo: "A consistência é o que traz o resultado real." },
+  { titulo: "Fechamento chegando", subtitulo: "Prepare-se para avaliar o mês que passou." },
+  { titulo: "Dia de avaliação", subtitulo: "O que deu certo? O que pode melhorar?" },
+  { titulo: "Ciclo completo", subtitulo: "Parabéns por mais um mês cuidando do seu dinheiro!" }
+];
+
 const subcategoriasDisponiveis = [
   'Transporte',
   'Alimentação',
@@ -84,12 +119,29 @@ auth.onAuthStateChanged(async (userAuth) => {
 
     document.getElementById('loadingScreen').classList.add('hidden');
     initUserSession();
+    atualizarMensagemMotivacional(); // Ativa a mensagem do dia
 
   } catch (err) {
     console.error(err);
     document.getElementById('loadingScreen').innerHTML = `<p class="text-xs text-rose-600 font-bold">Erro ao carregar dados. Tente atualizar a página.</p>`;
   }
 });
+
+function atualizarMensagemMotivacional() {
+  const diaAtual = new Date().getDate(); // Pega o dia de 1 a 31
+  // Garante que o dia sempre pegue uma mensagem (se for dia 31 e o mês tem 30, volta pro começo)
+  const indice = (diaAtual - 1) % mensagensDiarias.length;
+  
+  const msg = mensagensDiarias[indice];
+  
+  const tituloEl = document.getElementById('bannerTitulo');
+  const subEl = document.getElementById('bannerSubtitulo');
+  
+  if (tituloEl && subEl) {
+    tituloEl.innerText = msg.titulo;
+    subEl.innerText = msg.subtitulo;
+  }
+}
 
 function toggleVisibility() {
   showBigBalance = !showBigBalance;
@@ -101,7 +153,7 @@ function toggleVisibility() {
     icon.className = "fa-solid fa-eye-slash text-sm text-white/50";
   }
   
-  renderAll(); 
+  renderAll(); // Atualiza a tela inteira para esconder TODOS os valores
 }
 
 function getMetasAtuais() {
@@ -289,7 +341,7 @@ async function deixarGrupo() {
     const wsIdAtual = currentWorkspace.id;
     const uidAtual = currentUser.id;
 
-    const membrosSnapshot = await db.collection('users').where('workspaceId', 'wsIdAtual').get();
+    const membrosSnapshot = await db.collection('users').where('workspaceId', '==', wsIdAtual).get();
     const éOUltimo = membrosSnapshot.size <= 1;
 
     if (éOUltimo) {
@@ -936,7 +988,7 @@ function renderAll() {
     const txtPerc = showBigBalance ? `${pctGasto.toFixed(0)}%` : '••%';
     
     return `
-      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="bg-slate-50 dark:bg-slate-800 p-2.5 border border-slate-100 dark:border-slate-700 relative cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform flex flex-col justify-between ${extraClass}">
+      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="bg-slate-50 dark:bg-slate-800 p-2 border border-slate-100 dark:border-slate-700 relative cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform flex flex-col justify-between ${extraClass}">
         
         <div class="flex items-center gap-1.5 mb-1.5">
           <div class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] ${corBgIcon} ${corTextoIcon}">
@@ -950,7 +1002,7 @@ function renderAll() {
           <div class="text-[8px] font-medium text-slate-400 dark:text-slate-500 mt-0.5 truncate">Meta: ${txtMeta}</div>
         </div>
         
-        <div class="flex items-center gap-2 mt-2">
+        <div class="flex items-center gap-1.5 mt-2">
           <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
             <div class="h-full rounded-full transition-all duration-300" style="width: ${barraPreenchida}%; background-color: ${corBarra};"></div>
           </div>
@@ -965,8 +1017,8 @@ function renderAll() {
     containerCat.innerHTML = `
       ${criarCardMetaVisualNovo('Gastos Fixos', 'fa-bullseye', 'bg-blue-50 dark:bg-blue-900/30', 'text-blue-600 dark:text-blue-400', '#2563eb', fixed, metas.fixos)}
       ${criarCardMetaVisualNovo('Gastos Gerais', 'fa-star', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#10b981', general, metas.gerais)}
-      ${criarCardMetaVisualNovo('Lazer', 'fa-cart-shopping', 'bg-purple-50 dark:bg-purple-900/30', 'text-purple-600 dark:text-purple-400', '#a855f7', leisure, metas.lazer, 'rounded-[1rem] rounded-br-[2.5rem]')}
-      ${criarCardMetaVisualNovo('Investimentos', 'fa-chart-column', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#f59e0b', invest, metas.invest, 'rounded-[1rem] rounded-bl-[2.5rem]')}
+      ${criarCardMetaVisualNovo('Lazer', 'fa-cart-shopping', 'bg-purple-50 dark:bg-purple-900/30', 'text-purple-600 dark:text-purple-400', '#a855f7', leisure, metas.lazer, 'rounded-[1rem] rounded-br-[2rem]')}
+      ${criarCardMetaVisualNovo('Investimentos', 'fa-chart-column', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#f59e0b', invest, metas.invest, 'rounded-[1rem] rounded-bl-[2rem]')}
     `;
   }
 
