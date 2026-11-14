@@ -71,17 +71,18 @@
     .coin-anim-3 { animation: coinDrop 1.5s infinite ease-in 1.0s; }
     .piggy-anim { animation: piggyBounce 0.5s infinite ease-in-out; }
 
+    /* Animação Toast corrigida para manter centralização perfeita */
     @keyframes slideDownFade {
-      0% { transform: translate(-50%, -20px); opacity: 0; }
-      100% { transform: translate(-50%, 0); opacity: 1; }
+      0% { transform: translateY(-20px) scale(0.95); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
     }
     .toast-enter { animation: slideDownFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   </style>
 </head>
 <body class="bg-app-bg dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors duration-200 min-h-screen overflow-x-hidden flex flex-col">
 
-  <!-- CONTAINER DE NOTIFICAÇÕES FLUTUANTES -->
-  <div id="toastContainer" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 w-[90%] max-w-sm pointer-events-none"></div>
+  <!-- CONTAINER DE NOTIFICAÇÕES FLUTUANTES CENTRALIZADO -->
+  <div id="toastContainer" class="fixed top-5 left-0 right-0 z-[100] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
 
   <!-- MODAL DE CONFIRMAÇÃO MODERNO -->
   <div id="customConfirmModal" class="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4 hidden backdrop-blur-sm">
@@ -328,9 +329,8 @@
       <div id="monthInvestmentsList" class="space-y-2 pt-1"></div>
     </div>
 
-    <!-- ABA GRÁFICOS (LIMPA, ORGANIZADA E SEM REPETIÇÕES) -->
+    <!-- ABA GRÁFICOS -->
     <div id="tab-graficos" class="w-full space-y-3.5 hidden fade-transition pb-28 pt-2">
-      <!-- 1. Evolução Mensal (Destaque principal no topo) -->
       <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.75rem] shadow-sm space-y-2">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
@@ -342,7 +342,6 @@
         <div class="h-40 relative w-full"><canvas id="evolutionBarChart"></canvas></div>
       </div>
 
-      <!-- 2. Distribuição por Categoria -->
       <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.75rem] shadow-sm space-y-2">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
@@ -354,7 +353,6 @@
         <div class="h-40 relative w-full"><canvas id="categoryPieChart"></canvas></div>
       </div>
 
-      <!-- 3. Gastos por Subcategoria -->
       <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.75rem] shadow-sm space-y-2">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
