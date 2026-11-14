@@ -941,12 +941,11 @@ function renderAll() {
 
   const containerCat = document.getElementById('cardsCategoryContainer');
   if (containerCat) {
-    // Quinas arredondadas com 3rem para contornar melhor o botão circular
     containerCat.innerHTML = `
       ${criarCardMetaSoftUI('Gastos Fixos', 'fa-bullseye', 'text-blue-600', '#2563eb', fixed, metas.fixos, 'rounded-[1.25rem]')}
       ${criarCardMetaSoftUI('Gastos Gerais', 'fa-star', 'text-amber-500', '#10b981', general, metas.gerais, 'rounded-[1.25rem]')}
-      ${criarCardMetaSoftUI('Lazer', 'fa-cart-shopping', 'text-purple-500', '#a855f7', leisure, metas.lazer, 'rounded-[1.25rem] rounded-br-[3rem]')}
-      ${criarCardMetaSoftUI('Investimentos', 'fa-chart-column', 'text-amber-500', '#f59e0b', invest, metas.invest, 'rounded-[1.25rem] rounded-bl-[3rem]')}
+      ${criarCardMetaSoftUI('Lazer', 'fa-cart-shopping', 'text-purple-500', '#a855f7', leisure, metas.lazer, 'rounded-[1.25rem] rounded-br-[3.5rem]')}
+      ${criarCardMetaSoftUI('Investimentos', 'fa-chart-column', 'text-amber-500', '#f59e0b', invest, metas.invest, 'rounded-[1.25rem] rounded-bl-[3.5rem]')}
     `;
   }
 
@@ -1569,11 +1568,17 @@ function fecharDetalhesCategoria() {
 function switchTab(tab) {
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.add('hidden');
+    if (el) {
+      el.classList.add('hidden');
+      el.style = '';
+    }
   });
 
   const activeEl = document.getElementById(`tab-${tab}`);
-  if (activeEl) activeEl.classList.remove('hidden');
+  if (activeEl) {
+    activeEl.classList.remove('hidden');
+    activeEl.style = '';
+  }
 
   if (tab === 'extrato') {
     renderTransactionsList(transactions.filter(t => t.month === activeMonth));
@@ -1597,9 +1602,8 @@ function switchTab(tab) {
   renderAll();
 }
 
-
 // ==========================================
-// GESTOS DE DESLIZAR (SWIPE NATIVO + OVERLAY)
+// GESTOS DE DESLIZAR (SWIPE REAL TIME SEGURO)
 // ==========================================
 
 const containerSwipe = document.getElementById('mainSwipeContainer');
@@ -1619,13 +1623,13 @@ if (containerSwipe) {
     inicioX = e.touches[0].clientX;
     movimentoX = 0;
     deslizando = true;
-    containerSwipe.style.position = 'relative';
   }, { passive: true });
 
   containerSwipe.addEventListener('touchmove', (e) => {
     if (!deslizando || !elAbaAtual) return;
     movimentoX = e.touches[0].clientX - inicioX;
     
+    // Efeito de resistência nas pontas
     if (abaAtivaIndex === 0 && movimentoX > 0) movimentoX *= 0.3; 
     if (abaAtivaIndex === ordemAbas.length - 1 && movimentoX < 0) movimentoX *= 0.3;
 
@@ -1665,11 +1669,11 @@ if (containerSwipe) {
     if (Math.abs(movimentoX) > limite && novoIndex >= 0 && novoIndex < ordemAbas.length) {
       let offsetFinalAtual = movimentoX < 0 ? -larguraTela : larguraTela;
       
-      elAbaAtual.style.transition = 'transform 0.2s ease-out';
+      elAbaAtual.style.transition = 'transform 0.15s ease-out';
       elAbaAtual.style.transform = `translateX(${offsetFinalAtual}px)`;
 
       if (elAbaProxima) {
-        elAbaProxima.style.transition = 'transform 0.2s ease-out';
+        elAbaProxima.style.transition = 'transform 0.15s ease-out';
         elAbaProxima.style.transform = `translateX(0px)`;
       }
 
@@ -1678,15 +1682,15 @@ if (containerSwipe) {
         if (elAbaProxima) elAbaProxima.style = '';
         elAbaProxima = null;
         switchTab(ordemAbas[novoIndex]);
-      }, 200);
+      }, 150);
 
     } else {
-      elAbaAtual.style.transition = 'transform 0.2s ease-out';
+      elAbaAtual.style.transition = 'transform 0.15s ease-out';
       elAbaAtual.style.transform = 'translateX(0px)';
       
       if (elAbaProxima) {
         let offsetRetorno = movimentoX < 0 ? larguraTela : -larguraTela;
-        elAbaProxima.style.transition = 'transform 0.2s ease-out';
+        elAbaProxima.style.transition = 'transform 0.15s ease-out';
         elAbaProxima.style.transform = `translateX(${offsetRetorno}px)`;
       }
 
@@ -1697,7 +1701,7 @@ if (containerSwipe) {
             elAbaProxima.style = '';
             elAbaProxima = null;
          }
-      }, 200);
+      }, 150);
     }
   });
 }
