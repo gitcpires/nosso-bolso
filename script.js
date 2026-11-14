@@ -11,7 +11,7 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let currentWorkspace = { id: '', code: '', metasPorMes: {} };
+let currentWorkspace = { id: '', code: '', metasPorMes: {}, cartoes: [] };
 let currentUser = { id: '', name: '', email: '' };
 let transactions = [];
 const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -20,7 +20,84 @@ const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
 let showBigBalance = false; 
 
-// Banco com 60 Mensagens (Dicas Financeiras e Motivacionais)
+// ==========================================
+// SISTEMA DE NOTIFICAÇÕES MODERNAS (TOASTS & MODAIS)
+// ==========================================
+
+function showToast(msg, tipo = 'success') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  const cores = {
+    success: 'bg-emerald-600 text-white border-emerald-500',
+    error: 'bg-rose-600 text-white border-rose-500',
+    info: 'bg-slate-800 text-white border-slate-700'
+  };
+  const icones = {
+    success: 'fa-circle-check',
+    error: 'fa-circle-exclamation',
+    info: 'fa-circle-info'
+  };
+
+  toast.className = `toast-enter flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl border text-xs font-extrabold pointer-events-auto ${cores[tipo] || cores.info}`;
+  toast.innerHTML = `<i class="fa-solid ${icones[tipo] || icones.info} text-sm shrink-0"></i><span class="leading-tight">${msg}</span>`;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translate(-50%, -15px)';
+    toast.style.transition = 'all 0.25s ease';
+    setTimeout(() => toast.remove(), 250);
+  }, 3000);
+}
+
+function showConfirmDialog({ title, text, confirmText = 'Confirmar', cancelText = 'Cancelar', isDanger = false, extraButton = null }) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('customConfirmModal');
+    const titleEl = document.getElementById('confirmModalTitle');
+    const textEl = document.getElementById('confirmModalText');
+    const iconEl = document.getElementById('confirmModalIcon');
+    const btnsEl = document.getElementById('confirmModalButtons');
+
+    titleEl.innerText = title;
+    textEl.innerText = text;
+    iconEl.className = isDanger 
+      ? 'w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl'
+      : 'w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-xl';
+    iconEl.innerHTML = isDanger ? '<i class="fa-solid fa-triangle-exclamation"></i>' : '<i class="fa-solid fa-circle-question"></i>';
+
+    btnsEl.innerHTML = '';
+
+    const btnConfirm = document.createElement('button');
+    btnConfirm.className = `w-full py-3 rounded-xl text-xs font-extrabold text-white transition ${isDanger ? 'bg-rose-600 hover:bg-rose-700' : 'bg-brand-green hover:bg-emerald-600'}`;
+    btnConfirm.innerText = confirmText;
+    btnConfirm.onclick = () => { modal.classList.add('hidden'); resolve('confirm'); };
+    btnsEl.appendChild(btnConfirm);
+
+    if (extraButton) {
+      const btnExtra = document.createElement('button');
+      btnExtra.className = 'w-full py-3 rounded-xl text-xs font-extrabold bg-amber-100 text-amber-800 hover:bg-amber-200 transition';
+      btnExtra.innerText = extraButton;
+      btnExtra.onclick = () => { modal.classList.add('hidden'); resolve('extra'); };
+      btnsEl.appendChild(btnExtra);
+    }
+
+    const btnCancel = document.createElement('button');
+    btnCancel.className = 'w-full py-2.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition';
+    btnCancel.innerText = cancelText;
+    btnCancel.onclick = () => { modal.classList.add('hidden'); resolve('cancel'); };
+    btnsEl.appendChild(btnCancel);
+
+    modal.classList.remove('hidden');
+  });
+}
+
+// ==========================================
+// BANCO DE DICAS E MENSAGENS DIÁRIAS (60 FRASES)
+// ==========================================
+
 const mensagensDiarias = [
   { titulo: "Dia de planejar!", subtitulo: "O primeiro passo para o sucesso é o planejamento." },
   { titulo: "Pequenos passos", subtitulo: "Cada economia conta para sua meta maior." },
@@ -86,7 +163,7 @@ const mensagensDiarias = [
 
 let currentDicaIndex = 0;
 let categoryPieChartInstance = null;
-let categoryBarChartInstance = null;
+let evolutionBarChartInstance = null;
 let subCategoryBarChartInstance = null;
 let paymentMethodBarChartInstance = null;
 let modoMetasAtual = 'perc';
@@ -184,6 +261,103 @@ function toggleVisibility() {
   renderAll(); 
 }
 
+// ==========================================
+// GESTÃO DE CARTÕES DE CRÉDITO DO GRUPO
+// ==========================================
+
+function renderizarCartoesConfig() {
+  const lista = document.getElementById('listaCartoesConfig');
+  if (!lista) return;
+
+  const cartoes = currentWorkspace.cartoes || [];
+  if (cartoes.length === 0) {
+    lista.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-1">Nenhum cartão cadastrado (usando padrão).</p>`;
+    return;
+  }
+
+  lista.innerHTML = '';
+  cartoes.forEach((c, idx) => {
+    lista.innerHTML += `
+      <div class="flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-700 text-xs">
+        <div>
+          <span class="font-extrabold text-slate-700 dark:text-slate-200">💳 ${c.nome}</span>
+          <span class="text-[10px] text-slate-400 ml-1.5">Fecha dia ${c.fechamento}</span>
+        </div>
+        <button type="button" onclick="removerCartaoGrupo(${idx})" class="text-slate-400 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+      </div>
+    `;
+  });
+}
+
+async function adicionarCartaoGrupo(e) {
+  e.preventDefault();
+  const nome = document.getElementById('novoCartaoNome').value.trim();
+  const fechamento = parseInt(document.getElementById('novoCartaoFechamento').value, 10);
+
+  if (!nome || isNaN(fechamento) || fechamento < 1 || fechamento > 31) {
+    showToast("Informe o nome e um dia de fechamento entre 1 e 31.", "error");
+    return;
+  }
+
+  const cartoesAtuais = currentWorkspace.cartoes || [];
+  if (cartoesAtuais.some(c => c.nome.toLowerCase() === nome.toLowerCase())) {
+    showToast("Já existe um cartão com esse nome.", "error");
+    return;
+  }
+
+  cartoesAtuais.push({ nome, fechamento });
+
+  try {
+    await db.collection('workspaces').doc(currentWorkspace.id).set({
+      cartoes: cartoesAtuais
+    }, { merge: true });
+
+    document.getElementById('novoCartaoNome').value = '';
+    document.getElementById('novoCartaoFechamento').value = '';
+    showToast(`Cartão ${nome} adicionado!`);
+  } catch (err) {
+    showToast("Erro ao salvar cartão.", "error");
+  }
+}
+
+async function removerCartaoGrupo(index) {
+  const cartoesAtuais = [...(currentWorkspace.cartoes || [])];
+  cartoesAtuais.splice(index, 1);
+
+  try {
+    await db.collection('workspaces').doc(currentWorkspace.id).set({
+      cartoes: cartoesAtuais
+    }, { merge: true });
+    showToast("Cartão removido.");
+  } catch (err) {
+    showToast("Erro ao remover cartão.", "error");
+  }
+}
+
+function atualizarOpcoesPagamentoFiltro() {
+  const selectFiltro = document.getElementById('filterPaymentMethod');
+  if (!selectFiltro) return;
+
+  const valorAtual = selectFiltro.value;
+  let html = `
+    <option value="">Todos</option>
+    <option value="PIX">⚡ PIX</option>
+    <option value="Cartão de Crédito">💳 Cartão (Geral)</option>
+  `;
+
+  (currentWorkspace.cartoes || []).forEach(c => {
+    html += `<option value="Cartão: ${c.nome}">💳 ${c.nome}</option>`;
+  });
+
+  html += `<option value="Outros">🔄 Outros</option>`;
+  selectFiltro.innerHTML = html;
+  selectFiltro.value = valorAtual;
+}
+
+// ==========================================
+// METAS E PERFIL
+// ==========================================
+
 function getMetasAtuais() {
   if (!currentWorkspace.metasPorMes) currentWorkspace.metasPorMes = {};
   return currentWorkspace.metasPorMes[activeMonth] || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
@@ -193,6 +367,7 @@ function openProfileModal() {
   document.getElementById('profileModal').classList.remove('hidden');
   const labelMesModal = document.getElementById('labelModalMetasMes');
   if (labelMesModal) labelMesModal.innerText = `Definir Metas (${activeMonth})`;
+  renderizarCartoesConfig();
   carregarMembrosDoGrupo();
   carregarDadosMetasNoConfig();
   calcularConversaoMetas('fixos');
@@ -357,10 +532,10 @@ async function salvarMetasGrupoConfig(e) {
 
     closeProfileModal();
     renderAll();
-    alert(`Metas de ${activeMonth} atualizadas para todo o grupo com sucesso!`);
+    showToast(`Metas de ${activeMonth} atualizadas!`);
   } catch (err) {
     console.error(err);
-    alert("Erro ao salvar metas.");
+    showToast("Erro ao salvar metas.", "error");
   }
 }
 
@@ -372,13 +547,16 @@ async function deixarGrupo() {
     const membrosSnapshot = await db.collection('users').where('workspaceId', '==', wsIdAtual).get();
     const éOUltimo = membrosSnapshot.size <= 1;
 
-    if (éOUltimo) {
-      const confirmacao = confirm("Atenção: Você é o último utilizador deste grupo. Se sair, todos os dados financeiros e recados serão apagados permanentemente. Deseja continuar?");
-      if (!confirmacao) return;
-    } else {
-      const confirmacao = confirm("Tem certeza que deseja sair deste grupo?");
-      if (!confirmacao) return;
-    }
+    const resp = await showConfirmDialog({
+      title: éOUltimo ? 'Apagar Grupo?' : 'Sair do Grupo?',
+      text: éOUltimo 
+        ? 'Você é o último membro. Se sair, todos os dados financeiros deste grupo serão apagados permanentemente.'
+        : 'Tem certeza que deseja sair deste grupo compartilhado?',
+      confirmText: 'Sim, Sair',
+      isDanger: true
+    });
+
+    if (resp !== 'confirm') return;
 
     await db.collection('users').doc(uidAtual).update({
       workspaceId: firebase.firestore.FieldValue.delete(),
@@ -396,11 +574,11 @@ async function deixarGrupo() {
       await batch.commit();
     }
 
-    alert("Você saiu do grupo com sucesso.");
-    window.location.reload();
+    showToast("Você saiu do grupo.");
+    setTimeout(() => window.location.reload(), 800);
   } catch (err) {
     console.error(err);
-    alert("Erro ao tentar deixar o grupo. Tente novamente.");
+    showToast("Erro ao tentar deixar o grupo.", "error");
   }
 }
 
@@ -426,6 +604,7 @@ async function criarNovoWorkspace() {
     await db.collection('workspaces').doc(workspaceId).set({
       code: novoCodigo,
       metasPorMes: { [activeMonth]: metasPadrao },
+      cartoes: [],
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
@@ -467,7 +646,6 @@ async function entrarGrupoExistente() {
     const wsDoc = wsQuery.docs[0];
     const targetWorkspaceId = wsDoc.id;
     const wsData = wsDoc.data();
-    const metasPorMesGrupo = wsData.metasPorMes || {};
 
     await db.collection('users').doc(currentUser.id).set({
       workspaceId: targetWorkspaceId,
@@ -478,7 +656,8 @@ async function entrarGrupoExistente() {
 
     currentWorkspace.id = targetWorkspaceId;
     currentWorkspace.code = codigoInput;
-    currentWorkspace.metasPorMes = metasPorMesGrupo;
+    currentWorkspace.metasPorMes = wsData.metasPorMes || {};
+    currentWorkspace.cartoes = wsData.cartoes || [];
 
     document.getElementById('setupWorkspaceModal').classList.add('hidden');
     initUserSession();
@@ -561,10 +740,11 @@ function ouvinteWorkspaceWorkspace() {
     .onSnapshot((doc) => {
       if (doc.exists) {
         const data = doc.data();
-        if (data.metasPorMes) {
-          currentWorkspace.metasPorMes = data.metasPorMes;
-          renderAll();
-        }
+        if (data.metasPorMes) currentWorkspace.metasPorMes = data.metasPorMes;
+        currentWorkspace.cartoes = data.cartoes || [];
+        renderizarCartoesConfig();
+        atualizarOpcoesPagamentoFiltro();
+        renderAll();
       }
     });
 }
@@ -578,7 +758,7 @@ async function carregarMembrosDoGrupo() {
     const membrosSnapshot = await db.collection('users').where('workspaceId', '==', currentWorkspace.id).get();
     containerMembros.innerHTML = '';
     if (selectFiltroMembro) {
-      selectFiltroMembro.innerHTML = `<option value="">👤 Todos Membros</option>`;
+      selectFiltroMembro.innerHTML = `<option value="">Todos</option>`;
     }
 
     if (membrosSnapshot.empty) {
@@ -622,6 +802,10 @@ function carregarDadosDoBanco() {
     });
 }
 
+// ==========================================
+// LANÇAMENTOS (NOVO, EDIÇÃO, PARCELAS E RECORRÊNCIA)
+// ==========================================
+
 function openNewTxModal() { 
   editingTxId = null;
   const modalTitle = document.getElementById('modalTxTitle');
@@ -635,6 +819,9 @@ function openNewTxModal() {
   
   const subCatEl = document.getElementById('txSubCat');
   if (subCatEl) subCatEl.value = 'Transporte';
+
+  const recEl = document.getElementById('txRecorrente');
+  if (recEl) recEl.checked = false;
 
   selecionarTipoTx('EXPENSE'); 
   document.getElementById('newTxModal').classList.remove('hidden'); 
@@ -666,6 +853,10 @@ function openEditTransaction(id) {
   
   toggleParcelasUI();
 
+  // Esconde opção de assinatura ao editar
+  const containerRec = document.getElementById('containerRecorrencia');
+  if (containerRec) containerRec.classList.add('hidden');
+
   setTimeout(() => {
     document.getElementById('txCat').value = tx.cat;
   }, 50);
@@ -678,11 +869,42 @@ function closeNewTxModal() {
   editingTxId = null;
 }
 
+function isMetodoCartao(metodo) {
+  return metodo === 'Cartão de Crédito' || metodo.startsWith('Cartão: ');
+}
+
 function toggleParcelasUI() {
   const paymentMethod = document.getElementById('txPaymentMethod').value;
   const container = document.getElementById('containerParcelas');
-  if (paymentMethod === 'Cartão de Crédito') {
+  const avisoEl = document.getElementById('avisoFechamentoCartao');
+  const recEl = document.getElementById('txRecorrente');
+
+  if (isMetodoCartao(paymentMethod)) {
     container.classList.remove('hidden');
+    if (recEl && recEl.checked) {
+      recEl.checked = false; // Evita conflito entre parcelado e assinatura
+    }
+
+    // Verifica se o cartão tem dia de fechamento configurado
+    if (paymentMethod.startsWith('Cartão: ')) {
+      const nomeCartao = paymentMethod.replace('Cartão: ', '');
+      const cartaoObj = (currentWorkspace.cartoes || []).find(c => c.nome === nomeCartao);
+      const dateStr = document.getElementById('txDate').value;
+      if (cartaoObj && dateStr) {
+        const diaCompra = parseInt(dateStr.split('-')[2], 10);
+        if (diaCompra >= cartaoObj.fechamento) {
+          avisoEl.innerText = `ℹ️ Fatura fechada (dia ${cartaoObj.fechamento}). A 1ª parcela cairá no próximo mês!`;
+          avisoEl.classList.remove('hidden');
+        } else {
+          avisoEl.innerText = `✓ Fatura aberta (fecha dia ${cartaoObj.fechamento}). Cai neste mês.`;
+          avisoEl.classList.remove('hidden');
+        }
+      } else {
+        avisoEl.classList.add('hidden');
+      }
+    } else {
+      avisoEl.classList.add('hidden');
+    }
   } else {
     container.classList.add('hidden');
     document.getElementById('txTipoCartao').value = 'AVista';
@@ -700,6 +922,24 @@ function toggleNumeroParcelas() {
   }
 }
 
+function toggleRecorrenciaUI() {
+  const recEl = document.getElementById('txRecorrente');
+  if (recEl && recEl.checked) {
+    const tipoCartaoEl = document.getElementById('txTipoCartao');
+    if (tipoCartaoEl && tipoCartaoEl.value === 'Parcelado') {
+      tipoCartaoEl.value = 'AVista';
+      toggleNumeroParcelas();
+    }
+  }
+}
+
+// Atualiza aviso de fechamento se mudar a data com o modal aberto
+document.addEventListener('change', (e) => {
+  if (e.target && e.target.id === 'txDate') {
+    toggleParcelasUI();
+  }
+});
+
 async function handleSaveTransaction(e) {
   e.preventDefault();
   const radioChecked = document.querySelector('input[name="txType"]:checked');
@@ -711,10 +951,12 @@ async function handleSaveTransaction(e) {
   
   const subCat = type === 'INCOME' ? '' : (document.getElementById('txSubCat')?.value || 'Outros');
   const paymentMethod = document.getElementById('txPaymentMethod').value;
+  const ehCartao = isMetodoCartao(paymentMethod);
+  const ehRecorrente = !editingTxId && type === 'EXPENSE' && document.getElementById('txRecorrente')?.checked;
 
-  const tipoCartao = paymentMethod === 'Cartão de Crédito' ? document.getElementById('txTipoCartao').value : 'AVista';
+  const tipoCartao = ehCartao ? document.getElementById('txTipoCartao').value : 'AVista';
   let qtdParcelas = 1;
-  if (paymentMethod === 'Cartão de Crédito' && tipoCartao === 'Parcelado') {
+  if (ehCartao && tipoCartao === 'Parcelado') {
     qtdParcelas = parseInt(document.getElementById('txQtdParcelas').value, 10) || 1;
     if (qtdParcelas < 1) qtdParcelas = 1;
   }
@@ -723,6 +965,17 @@ async function handleSaveTransaction(e) {
   let anoBase = parseInt(partesData[0], 10);
   let mesIndexBase = parseInt(partesData[1], 10) - 1;
   const diaOriginal = partesData[2] || '01';
+  const diaNum = parseInt(diaOriginal, 10);
+
+  // Lógica de deslocamento de fatura fechada do cartão
+  let offsetMesFatura = 0;
+  if (!editingTxId && paymentMethod.startsWith('Cartão: ')) {
+    const nomeCartao = paymentMethod.replace('Cartão: ', '');
+    const cartaoObj = (currentWorkspace.cartoes || []).find(c => c.nome === nomeCartao);
+    if (cartaoObj && diaNum >= cartaoObj.fechamento) {
+      offsetMesFatura = 1;
+    }
+  }
 
   try {
     const batch = db.batch();
@@ -737,17 +990,46 @@ async function handleSaveTransaction(e) {
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
       await db.collection('transacoes').doc(editingTxId).update(txData);
-    } else {
-      const parcelaGroupId = 'grp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
-
-      for (let i = 0; i < qtdParcelas; i++) {
-        let mesCalculadoIndex = mesIndexBase + i;
+      showToast("Lançamento atualizado!");
+    } else if (ehRecorrente) {
+      // Gera 12 meses de assinatura com o valor integral em cada mês
+      const groupId = 'ass_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+      for (let i = 0; i < 12; i++) {
+        let mesCalculadoIndex = mesIndexBase + offsetMesFatura + i;
         let anoCalculado = anoBase + Math.floor(mesCalculadoIndex / 12);
         mesCalculadoIndex = mesCalculadoIndex % 12;
 
-        const mesNomeCalculado = mesesNomes[mesCalculadoIndex];
-        const mesStringFinal = `${mesNomeCalculado} ${anoCalculado}`;
+        const mesStringFinal = `${mesesNomes[mesCalculadoIndex]} ${anoCalculado}`;
+        const mesNumStr = String(mesCalculadoIndex + 1).padStart(2, '0');
+        const dataParcelaStr = `${anoCalculado}-${mesNumStr}-${diaOriginal}`;
 
+        const novoDocRef = db.collection('transacoes').doc();
+        batch.set(novoDocRef, {
+          desc: `${descOriginal} (Assinatura)`,
+          amount: amountTotal,
+          type, cat, subCat, paymentMethod, tipoCartao,
+          month: mesStringFinal,
+          date: dataParcelaStr,
+          confirmado: false,
+          parcelaGroupId: groupId,
+          userId: currentUser.id,
+          userEmail: currentUser.email,
+          workspaceId: currentWorkspace.id,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      await batch.commit();
+      showToast("Assinatura gerada para os próximos 12 meses!");
+    } else {
+      const parcelaGroupId = qtdParcelas > 1 ? ('grp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7)) : null;
+
+      for (let i = 0; i < qtdParcelas; i++) {
+        let mesCalculadoIndex = mesIndexBase + offsetMesFatura + i;
+        let anoCalculado = anoBase + Math.floor(mesCalculadoIndex / 12);
+        mesCalculadoIndex = mesCalculadoIndex % 12;
+
+        const mesStringFinal = `${mesesNomes[mesCalculadoIndex]} ${anoCalculado}`;
         const mesNumStr = String(mesCalculadoIndex + 1).padStart(2, '0');
         const dataParcelaStr = `${anoCalculado}-${mesNumStr}-${diaOriginal}`;
 
@@ -755,28 +1037,23 @@ async function handleSaveTransaction(e) {
         const descFinal = qtdParcelas > 1 ? `${descOriginal} (${i + 1}/${qtdParcelas})` : descOriginal;
 
         const novoDocRef = db.collection('transacoes').doc();
-        const txData = {
+        batch.set(novoDocRef, {
           desc: descFinal,
           amount: valorParcela,
-          type, 
-          cat, 
-          subCat,
-          paymentMethod,
-          tipoCartao,
+          type, cat, subCat, paymentMethod, tipoCartao,
           month: mesStringFinal,
           date: dataParcelaStr,
           confirmado: false,
-          parcelaGroupId: qtdParcelas > 1 ? parcelaGroupId : null,
+          parcelaGroupId: parcelaGroupId,
           userId: currentUser.id,
           userEmail: currentUser.email,
           workspaceId: currentWorkspace.id,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        batch.set(novoDocRef, txData);
+        });
       }
       await batch.commit();
+      showToast(qtdParcelas > 1 ? `Compra em ${qtdParcelas}x gerada com sucesso!` : "Lançamento guardado!");
     }
 
     closeNewTxModal();
@@ -784,11 +1061,9 @@ async function handleSaveTransaction(e) {
     toggleParcelasUI();
     editingTxId = null;
 
-    alert(qtdParcelas > 1 ? `Compra parcelada em ${qtdParcelas}x gerada com sucesso nos respetivos meses!` : "Lançamento guardado com sucesso!");
-
   } catch (err) {
     console.error("Erro ao salvar transação:", err);
-    alert("Erro ao guardar o lançamento. Tente novamente.");
+    showToast("Erro ao guardar o lançamento.", "error");
   }
 }
 
@@ -802,61 +1077,91 @@ async function toggleConfirmTransaction(id) {
       confirmado: novoStatus,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    showToast(novoStatus ? "Lançamento confirmado!" : "Marcado como pendente.", "info");
   } catch (err) {
-    alert("Erro ao alterar o estado de confirmação.");
+    showToast("Erro ao alterar status.", "error");
+  }
+}
+
+async function confirmarTodosPendentes() {
+  const pendentesDoMes = transactions.filter(t => t.month === activeMonth && !t.confirmado);
+  if (pendentesDoMes.length === 0) return;
+
+  const resp = await showConfirmDialog({
+    title: 'Confirmar Pendentes',
+    text: `Deseja marcar todos os ${pendentesDoMes.length} lançamentos pendentes de ${activeMonth} como registados?`,
+    confirmText: 'Sim, Confirmar Todos'
+  });
+
+  if (resp !== 'confirm') return;
+
+  try {
+    const batch = db.batch();
+    pendentesDoMes.forEach(t => {
+      const ref = db.collection('transacoes').doc(t.id);
+      batch.update(ref, {
+        confirmado: true,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+    await batch.commit();
+    showToast(`${pendentesDoMes.length} lançamentos confirmados!`);
+  } catch (err) {
+    console.error(err);
+    showToast("Erro ao confirmar em lote.", "error");
   }
 }
 
 async function deleteTransaction(id) {
   const tx = transactions.find(t => t.id === id);
-  if (!tx) {
-    if (confirm("Deseja remover este lançamento?")) {
-      await db.collection('transacoes').doc(id).delete();
+  if (!tx) return;
+
+  if (tx.parcelaGroupId && tx.parcelaGroupId.trim() !== '') {
+    const resp = await showConfirmDialog({
+      title: 'Lançamento Recorrente / Parcelado',
+      text: 'Este item faz parte de uma série mensal. Como deseja excluir?',
+      confirmText: 'Apagar TODAS as parcelas/meses',
+      extraButton: 'Apagar APENAS este mês',
+      isDanger: true
+    });
+
+    if (resp === 'confirm') {
+      try {
+        const batch = db.batch();
+        const parcelasQuery = await db.collection('transacoes')
+          .where('workspaceId', '==', currentWorkspace.id)
+          .where('parcelaGroupId', '==', tx.parcelaGroupId)
+          .get();
+        parcelasQuery.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        showToast("Série completa removida!");
+      } catch (err) {
+        showToast("Erro ao remover série.", "error");
+      }
+    } else if (resp === 'extra') {
+      try {
+        await db.collection('transacoes').doc(id).delete();
+        showToast("Lançamento deste mês removido!");
+      } catch (err) {
+        showToast("Erro ao remover.", "error");
+      }
     }
     return;
   }
 
-  if (tx.parcelaGroupId && tx.parcelaGroupId.trim() !== '') {
-    const escolha = confirm(
-      "Esta é uma compra parcelada!\n\n" +
-      "• Clique em [OK] para apagar TODAS as parcelas desta compra em todos os meses.\n" +
-      "• Clique em [Cancelar] se deseja apagar APENAS esta parcela do mês atual."
-    );
+  const resp = await showConfirmDialog({
+    title: 'Excluir Lançamento',
+    text: `Deseja remover "${tx.desc}"?`,
+    confirmText: 'Sim, Excluir',
+    isDanger: true
+  });
 
-    if (escolha) {
-      try {
-        const batch = db.batch();
-        const parcelasQuery = await db.collection('transacoes').where('workspaceId', '==', currentWorkspace.id).where('parcelaGroupId', '==', tx.parcelaGroupId).get();
-        
-        parcelasQuery.forEach(doc => {
-          batch.delete(doc.ref);
-        });
-
-        await batch.commit();
-        return;
-      } catch (err) {
-        console.error("Erro ao apagar parcelas em lote:", err);
-        alert("Erro ao tentar remover o lote de parcelas.");
-        return;
-      }
-    } else {
-      try {
-        await db.collection('transacoes').doc(id).delete();
-        return;
-      } catch (err) {
-        console.error("Erro ao apagar parcela individual:", err);
-        alert("Erro ao tentar remover o lançamento.");
-        return;
-      }
-    }
-  }
-
-  if (confirm("Deseja remover este lançamento?")) {
+  if (resp === 'confirm') {
     try {
       await db.collection('transacoes').doc(id).delete();
+      showToast("Lançamento removido!");
     } catch (err) {
-      console.error("Erro ao apagar transação:", err);
-      alert("Erro ao tentar remover o lançamento.");
+      showToast("Erro ao apagar transação.", "error");
     }
   }
 }
@@ -875,15 +1180,17 @@ function toggleTxTypeUI() {
   const labelSaida = document.getElementById('labelTabSaida');
   const selectCat = document.getElementById('txCat');
   const containerSubCat = document.getElementById('containerSubCat');
+  const containerRec = document.getElementById('containerRecorrencia');
   const selectPayment = document.getElementById('txPaymentMethod');
 
   if (!selectCat || !selectPayment) return;
 
   if (radioEntrada && radioEntrada.checked) {
-    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer bg-white dark:bg-slate-900 text-brand-green shadow-sm transition";
-    if (labelSaida) labelSaida.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer text-slate-500 dark:text-slate-400 transition";
+    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2.5 text-xs font-extrabold rounded-[1rem] cursor-pointer bg-white dark:bg-slate-900 text-brand-green shadow-sm transition";
+    if (labelSaida) labelSaida.className = "w-1/2 text-center py-2.5 text-xs font-extrabold rounded-[1rem] cursor-pointer text-slate-500 dark:text-slate-400 transition";
     
     if (containerSubCat) containerSubCat.classList.add('hidden');
+    if (containerRec) containerRec.classList.add('hidden');
 
     selectPayment.innerHTML = `
       <option value="PIX">⚡ PIX</option>
@@ -896,16 +1203,23 @@ function toggleTxTypeUI() {
       <option value="Renda Extra">💵 Renda Extra</option>
     `;
   } else {
-    if (labelSaida) labelSaida.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-sm transition";
-    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer text-slate-500 dark:text-slate-400 transition";
+    if (labelSaida) labelSaida.className = "w-1/2 text-center py-2.5 text-xs font-extrabold rounded-[1rem] cursor-pointer bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-sm transition";
+    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-2.5 text-xs font-extrabold rounded-[1rem] cursor-pointer text-slate-500 dark:text-slate-400 transition";
     
     if (containerSubCat) containerSubCat.classList.remove('hidden');
+    if (containerRec && !editingTxId) containerRec.classList.remove('hidden');
 
-    selectPayment.innerHTML = `
-      <option value="PIX">⚡ PIX</option>
-      <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
-      <option value="Outros">🔄 Outros</option>
-    `;
+    let opcoesPagamento = `<option value="PIX">⚡ PIX</option>`;
+    const cartoes = currentWorkspace.cartoes || [];
+    if (cartoes.length > 0) {
+      cartoes.forEach(c => {
+        opcoesPagamento += `<option value="Cartão: ${c.nome}">💳 ${c.nome}</option>`;
+      });
+    } else {
+      opcoesPagamento += `<option value="Cartão de Crédito">💳 Cartão de Crédito</option>`;
+    }
+    opcoesPagamento += `<option value="Outros">🔄 Outros</option>`;
+    selectPayment.innerHTML = opcoesPagamento;
 
     selectCat.innerHTML = `
       <option value="Gastos Fixos">🏠 Gastos Fixos</option>
@@ -932,19 +1246,23 @@ async function importarGastosFixosMesAnterior() {
 
   const jaExistemNoAtual = transactions.some(t => t.month === activeMonth && t.cat === 'Gastos Fixos');
   if (jaExistemNoAtual) {
-    alert(`⚠️ Os gastos fixos deste mês (${activeMonth}) já foram importados anteriormente.`);
+    showToast(`Os gastos fixos de ${activeMonth} já foram importados.`, "info");
     return;
   }
 
   const gastosFixosAnteriores = transactions.filter(t => t.month === mesAnteriorStr && t.cat === 'Gastos Fixos');
 
   if (gastosFixosAnteriores.length === 0) {
-    alert(`Nenhum gasto fixo encontrado no mês anterior (${mesAnteriorStr}) para importar.`);
+    showToast(`Nenhum gasto fixo encontrado em ${mesAnteriorStr}.`, "info");
     return;
   }
 
-  const confirmacao = confirm(`Deseja importar ${gastosFixosAnteriores.length} gasto(s) fixo(s) de ${mesAnteriorStr} para ${activeMonth}? Eles entrarão como pendentes.`);
-  if (!confirmacao) return;
+  const resp = await showConfirmDialog({
+    title: 'Importar Gastos Fixos',
+    text: `Deseja importar ${gastosFixosAnteriores.length} gasto(s) fixo(s) de ${mesAnteriorStr} para ${activeMonth}?`,
+    confirmText: 'Importar'
+  });
+  if (resp !== 'confirm') return;
 
   try {
     const batch = db.batch();
@@ -962,7 +1280,7 @@ async function importarGastosFixosMesAnterior() {
         novaDataStr = new Date().toISOString().split('T')[0];
       }
 
-      const novaTx = {
+      batch.set(novoDocRef, {
         desc: txAntiga.desc,
         amount: txAntiga.amount,
         type: txAntiga.type || 'EXPENSE',
@@ -976,19 +1294,21 @@ async function importarGastosFixosMesAnterior() {
         userEmail: currentUser.email,
         workspaceId: currentWorkspace.id,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      };
-
-      batch.set(novoDocRef, novaTx);
+      });
     });
 
     await batch.commit();
-    alert(`Gastos fixos importados com sucesso para ${activeMonth}!`);
+    showToast(`Gastos fixos importados para ${activeMonth}!`);
     
   } catch (err) {
     console.error("Erro ao importar gastos fixos:", err);
-    alert("Erro ao tentar importar os gastos fixos. Tente novamente.");
+    showToast("Erro ao importar gastos fixos.", "error");
   }
 }
+
+// ==========================================
+// RENDERIZAÇÃO GERAL E GRÁFICOS
+// ==========================================
 
 function renderAll() {
   const currentTxConfirmadas = transactions.filter(t => t.month === activeMonth && t.confirmado);
@@ -1024,19 +1344,16 @@ function renderAll() {
     
     return `
       <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="bg-slate-50 dark:bg-slate-800 p-2 border border-slate-100 dark:border-slate-700 relative cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform flex flex-col justify-between ${extraClass}">
-        
         <div class="flex items-center gap-1.5 mb-1.5">
           <div class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] ${corBgIcon} ${corTextoIcon}">
             <i class="fa-solid ${icone}"></i>
           </div>
           <span class="text-[10px] font-bold text-slate-700 dark:text-slate-200">${titulo}</span>
         </div>
-        
         <div>
           <div class="text-[12px] font-black text-slate-900 dark:text-white leading-tight truncate">${txtGasto}</div>
           <div class="text-[8px] font-medium text-slate-400 dark:text-slate-500 mt-0.5 truncate">Meta: ${txtMeta}</div>
         </div>
-        
         <div class="flex items-center gap-1.5 mt-2">
           <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
             <div class="h-full rounded-full transition-all duration-300" style="width: ${barraPreenchida}%; background-color: ${corBarra};"></div>
@@ -1064,14 +1381,11 @@ function renderAll() {
   const tabGraficos = document.getElementById('tab-graficos');
   if (tabGraficos && !tabGraficos.classList.contains('hidden')) {
     renderCharts(fixed, general, leisure, invest);
+    renderEvolutionChart();
     renderSubCategoryChart(currentTxMes);
     renderPaymentMethodChart(currentTxMes);
   }
 }
-
-// ==========================================
-// GRÁFICOS INTERATIVOS COM VALORES AO CLICAR
-// ==========================================
 
 function formatarValorTooltip(valor) {
   if (!showBigBalance) return '•••••';
@@ -1087,7 +1401,7 @@ function renderCharts(fixed, general, leisure, invest) {
     categoryPieChartInstance = new Chart(ctxPie, {
       type: 'doughnut',
       data: {
-        labels: ['Fixos', 'Gerais', 'Lazer', 'Invest'],
+        labels: ['Gastos Fixos', 'Gastos Gerais', 'Lazer', 'Investimentos'],
         datasets: [{
           data: [fixed, general, leisure, invest],
           backgroundColor: ['#2563eb', '#10b981', '#a855f7', '#f59e0b'],
@@ -1102,7 +1416,7 @@ function renderCharts(fixed, general, leisure, invest) {
         plugins: { 
           legend: { 
             position: 'right', 
-            labels: { boxWidth: 10, font: { size: 10, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' }, padding: 12, usePointStyle: true, pointStyle: 'circle' } 
+            labels: { boxWidth: 10, font: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' }, padding: 14, usePointStyle: true, pointStyle: 'circle' } 
           },
           tooltip: {
             enabled: true,
@@ -1111,7 +1425,6 @@ function renderCharts(fixed, general, leisure, invest) {
             bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: '800' },
             padding: 10,
             cornerRadius: 10,
-            displayColors: true,
             callbacks: {
               label: function(context) {
                 const valor = context.parsed || 0;
@@ -1124,47 +1437,87 @@ function renderCharts(fixed, general, leisure, invest) {
       }
     });
   }
+}
 
-  const ctxBar = document.getElementById('categoryBarChart');
-  if (ctxBar) {
-    if (categoryBarChartInstance) categoryBarChartInstance.destroy();
-    categoryBarChartInstance = new Chart(ctxBar, {
-      type: 'bar',
-      data: {
-        labels: ['Fixos', 'Gerais', 'Lazer', 'Invest'],
-        datasets: [{
-          data: [fixed, general, leisure, invest],
-          backgroundColor: ['#2563eb', '#10b981', '#a855f7', '#f59e0b'],
-          borderRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { 
-          legend: { display: false },
-          tooltip: {
-            enabled: true,
-            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-            titleFont: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
-            bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: '800' },
-            padding: 10,
-            cornerRadius: 10,
-            displayColors: false,
-            callbacks: {
-              label: function(context) {
-                return formatarValorTooltip(context.parsed.y);
-              }
+// Gráfico Novo: Evolução dos Últimos 6 Meses (Entradas vs Saídas)
+function renderEvolutionChart() {
+  const ctxEvo = document.getElementById('evolutionBarChart');
+  if (!ctxEvo) return;
+
+  const [nomeMesAtual, anoAtualStr] = activeMonth.split(' ');
+  const idxAtual = mesesNomes.indexOf(nomeMesAtual);
+  const anoAtual = parseInt(anoAtualStr, 10);
+
+  const labels = [];
+  const dadosEntradas = [];
+  const dadosSaidas = [];
+
+  for (let i = 5; i >= 0; i--) {
+    let mIdx = idxAtual - i;
+    let y = anoAtual;
+    while (mIdx < 0) {
+      mIdx += 12;
+      y -= 1;
+    }
+    const mesStr = `${mesesNomes[mIdx]} ${y}`;
+    labels.push(mesesNomes[mIdx].substring(0, 3));
+
+    const txsMes = transactions.filter(t => t.month === mesStr && t.confirmado);
+    const inc = txsMes.filter(t => t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra').reduce((s, t) => s + t.amount, 0);
+    const exp = txsMes.filter(t => t.type === 'EXPENSE' && t.cat !== 'Salário' && t.cat !== 'Renda Extra').reduce((s, t) => s + t.amount, 0);
+
+    dadosEntradas.push(inc);
+    dadosSaidas.push(exp);
+  }
+
+  if (evolutionBarChartInstance) evolutionBarChartInstance.destroy();
+
+  evolutionBarChartInstance = new Chart(ctxEvo, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Entradas',
+          data: dadosEntradas,
+          backgroundColor: '#10b981',
+          borderRadius: 4
+        },
+        {
+          label: 'Saídas',
+          data: dadosSaidas,
+          backgroundColor: '#f43f5e',
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          align: 'end',
+          labels: { boxWidth: 8, font: { size: 10, weight: 'bold' }, usePointStyle: true }
+        },
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          padding: 10,
+          cornerRadius: 10,
+          callbacks: {
+            label: function(context) {
+              return ` ${context.dataset.label}: ${formatarValorTooltip(context.parsed.y)}`;
             }
           }
-        },
-        scales: {
-          y: { display: false, beginAtZero: true },
-          x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 9, weight: 'bold' } } }
         }
+      },
+      scales: {
+        y: { display: false, beginAtZero: true },
+        x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10, weight: 'bold' } } }
       }
-    });
-  }
+    }
+  });
 }
 
 function renderSubCategoryChart(currentTx) {
@@ -1209,8 +1562,6 @@ function renderSubCategoryChart(currentTx) {
         tooltip: {
           enabled: true,
           backgroundColor: 'rgba(15, 23, 42, 0.95)',
-          titleFont: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
-          bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: '800' },
           padding: 10,
           cornerRadius: 10,
           displayColors: false,
@@ -1235,31 +1586,27 @@ function renderPaymentMethodChart(currentTx) {
 
   const despesasMes = currentTx.filter(t => t.type === 'EXPENSE' && t.confirmado);
 
-  let totalPix = 0;
-  let totalCartao = 0;
-  let totalOutros = 0;
-
+  const totaisPagamento = {};
   despesasMes.forEach(t => {
-    const metodo = (t.paymentMethod || '').trim();
-    if (metodo === 'PIX') {
-      totalPix += t.amount;
-    } else if (metodo === 'Cartão de Crédito') {
-      totalCartao += t.amount;
-    } else {
-      totalOutros += t.amount;
-    }
+    let metodo = (t.paymentMethod || 'Outros').trim();
+    if (metodo.startsWith('Cartão: ')) metodo = metodo.replace('Cartão: ', '');
+    totaisPagamento[metodo] = (totaisPagamento[metodo] || 0) + t.amount;
   });
+
+  const labels = Object.keys(totaisPagamento).length > 0 ? Object.keys(totaisPagamento) : ['PIX', 'Cartão', 'Outros'];
+  const dados = Object.keys(totaisPagamento).length > 0 ? Object.values(totaisPagamento) : [0, 0, 0];
+  const cores = ['#0ea5e9', '#6366f1', '#8b5cf6', '#ec4899', '#64748b'];
 
   if (paymentMethodBarChartInstance) paymentMethodBarChartInstance.destroy();
 
   paymentMethodBarChartInstance = new Chart(ctxPaymentBar, {
     type: 'bar',
     data: {
-      labels: ['PIX', 'Cartão de Crédito', 'Outros'],
+      labels: labels,
       datasets: [{
         label: 'Gasto',
-        data: [totalPix, totalCartao, totalOutros],
-        backgroundColor: ['#0ea5e9', '#6366f1', '#64748b'],
+        data: dados,
+        backgroundColor: labels.map((_, i) => cores[i % cores.length]),
         borderRadius: 6
       }]
     },
@@ -1271,8 +1618,6 @@ function renderPaymentMethodChart(currentTx) {
         tooltip: {
           enabled: true,
           backgroundColor: 'rgba(15, 23, 42, 0.95)',
-          titleFont: { size: 11, family: "'Plus Jakarta Sans', sans-serif", weight: 'bold' },
-          bodyFont: { size: 12, family: "'Plus Jakarta Sans', sans-serif", weight: '800' },
           padding: 10,
           cornerRadius: 10,
           displayColors: false,
@@ -1291,6 +1636,10 @@ function renderPaymentMethodChart(currentTx) {
   });
 }
 
+// ==========================================
+// EXTRATO E INVESTIMENTOS
+// ==========================================
+
 function renderTransactionsList(currentTx) {
   const container = document.getElementById('txListContainer');
   if (!container) return;
@@ -1298,6 +1647,7 @@ function renderTransactionsList(currentTx) {
   const transacoesDoMesAtivo = transactions.filter(t => t.month === activeMonth);
 
   const search = (document.getElementById('searchExpense')?.value || '').toLowerCase();
+  const filtroStatus = document.getElementById('filterStatus')?.value || '';
   const filtroMembro = document.getElementById('filterMember')?.value || '';
   const filtroCat = document.getElementById('filterCategory')?.value || '';
   
@@ -1310,13 +1660,32 @@ function renderTransactionsList(currentTx) {
   
   const filtered = transacoesDoMesAtivo.filter(t => {
     const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search) || (t.subCat && t.subCat.toLowerCase().includes(search));
+    const matchStatus = filtroStatus === '' || (filtroStatus === 'pending' ? !t.confirmado : t.confirmado === true);
     const matchMembro = filtroMembro === '' || t.userEmail === filtroMembro;
     const matchCat = filtroCat === '' || t.cat === filtroCat;
     const matchSubCat = subCatsSelecionadas.length === 0 || subCatsSelecionadas.includes(t.subCat);
-    const matchPayment = filtroPaymentMethod === '' || t.paymentMethod === filtroPaymentMethod;
+    
+    let matchPayment = true;
+    if (filtroPaymentMethod === 'Cartão de Crédito') {
+      matchPayment = isMetodoCartao(t.paymentMethod || '');
+    } else if (filtroPaymentMethod !== '') {
+      matchPayment = t.paymentMethod === filtroPaymentMethod;
+    }
 
-    return matchSearch && matchMembro && matchCat && matchSubCat && matchPayment;
+    return matchSearch && matchStatus && matchMembro && matchCat && matchSubCat && matchPayment;
   });
+
+  // Controla exibição do botão "Confirmar Todos os Pendentes"
+  const btnConfirmAllContainer = document.getElementById('btnConfirmAllContainer');
+  const countPendentesBtn = document.getElementById('countPendentesBtn');
+  if (btnConfirmAllContainer) {
+    if (filtroStatus === 'pending' && filtered.length > 0) {
+      if (countPendentesBtn) countPendentesBtn.innerText = filtered.length;
+      btnConfirmAllContainer.classList.remove('hidden');
+    } else {
+      btnConfirmAllContainer.classList.add('hidden');
+    }
+  }
 
   filtered.sort((a, b) => {
     const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
@@ -1329,7 +1698,7 @@ function renderTransactionsList(currentTx) {
 
   const filterTotalBox = document.getElementById('filterTotalBox');
   const filterTotalValue = document.getElementById('filterTotalValue');
-  const isAlgumFiltroAtivo = search !== '' || filtroMembro !== '' || filtroCat !== '' || subCatsSelecionadas.length > 0 || filtroPaymentMethod !== '';
+  const isAlgumFiltroAtivo = search !== '' || filtroStatus !== '' || filtroMembro !== '' || filtroCat !== '' || subCatsSelecionadas.length > 0 || filtroPaymentMethod !== '';
   
   if (isAlgumFiltroAtivo) {
     const somaFiltro = filtered.reduce((acc, t) => {
@@ -1346,7 +1715,7 @@ function renderTransactionsList(currentTx) {
   }
 
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-sm font-bold text-slate-400 bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm">Nenhuma movimentação encontrada neste mês.</div>`;
+    container.innerHTML = `<div class="p-6 text-center text-sm font-bold text-slate-400 bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm">Nenhuma movimentação encontrada neste filtro.</div>`;
     return;
   }
 
@@ -1354,10 +1723,11 @@ function renderTransactionsList(currentTx) {
     const isIncome = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
     const confirmado = t.confirmado === true;
+    const labelPagamento = (t.paymentMethod || '').replace('Cartão: ', '💳 ');
     
     const catBadge = t.cat ? `<span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full font-bold">${t.cat}</span>` : '';
     const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full font-bold">${t.subCat}</span>` : '';
-    const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold">${t.paymentMethod}</span>` : '';
+    const paymentBadge = labelPagamento ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold">${labelPagamento}</span>` : '';
     const userBadge = `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full font-semibold"><i class="fa-solid fa-user text-[8px] mr-1"></i>${autorNome}</span>`;
 
     const valorExibicao = showBigBalance ? `${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}` : '•••••';
@@ -1479,7 +1849,7 @@ function renderInvestments(currentTx) {
 function exportarParaExcel() {
   const currentTx = transactions.filter(t => t.month === activeMonth);
   if (currentTx.length === 0) {
-    alert("Não existem lançamentos neste mês para exportar.");
+    showToast("Não existem lançamentos neste mês.", "info");
     return;
   }
 
@@ -1506,6 +1876,7 @@ function exportarParaExcel() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  showToast("Planilha CSV gerada!");
 }
 
 function toggleDarkMode() {
@@ -1517,7 +1888,7 @@ function toggleDarkMode() {
 function atualizarIconeDarkMode(isDark) {
   const icon = document.getElementById('darkModeIcon');
   if (icon) {
-    icon.className = isDark ? 'fa-solid fa-sun text-[10px] text-amber-400' : 'fa-solid fa-moon text-[10px] text-white';
+    icon.className = isDark ? 'fa-solid fa-sun text-sm text-amber-400' : 'fa-solid fa-moon text-sm text-white';
   }
 }
 
@@ -1529,9 +1900,10 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-function copyWorkspaceCountCode() { navigator.clipboard.writeText(currentWorkspace.code).then(() => alert(`Código ${currentWorkspace.code} copiado com sucesso!`)); }
+function copyWorkspaceCountCode() { 
+  navigator.clipboard.writeText(currentWorkspace.code).then(() => showToast(`Código ${currentWorkspace.code} copiado!`)); 
+}
 function logout() { auth.signOut().then(() => window.location.replace('index.html')); }
-
 
 // ==========================================
 // FUNÇÕES DA CARTEIRA LIVRE (POR MÊS)
@@ -1566,8 +1938,9 @@ async function salvarSaldoLivre() {
     
     toggleEditSaldoLivre();
     renderCarteiraLivre();
+    showToast("Saldo base atualizado!");
   } catch(err) {
-    alert("Erro ao salvar saldo livre do mês. Tente novamente.");
+    showToast("Erro ao salvar saldo livre.", "error");
   }
 }
 
@@ -1608,17 +1981,26 @@ async function adicionarGastoLivre(e) {
     });
     document.getElementById('descGastoLivre').value = '';
     document.getElementById('valorGastoLivre').value = '';
+    showToast("Gasto descontado da carteira livre!");
   } catch (err) {
-    alert("Erro ao registrar gasto na carteira livre.");
+    showToast("Erro ao registrar gasto.", "error");
   }
 }
 
 async function deletarGastoLivre(id) {
-  if(confirm("Excluir este gasto do seu histórico privado?")) {
+  const resp = await showConfirmDialog({
+    title: 'Excluir Gasto Privado',
+    text: 'Deseja remover este item do seu histórico privado?',
+    confirmText: 'Excluir',
+    isDanger: true
+  });
+
+  if (resp === 'confirm') {
     try {
       await db.collection('carteira_livre').doc(id).delete();
+      showToast("Item removido.");
     } catch(err) {
-      alert("Erro ao excluir.");
+      showToast("Erro ao excluir.", "error");
     }
   }
 }
@@ -1649,7 +2031,7 @@ function renderCarteiraLivre() {
   lista.innerHTML = '';
   
   if(gastosDoMes.length === 0) {
-    lista.innerHTML = '<p class="text-xs font-bold text-slate-400 text-center py-5 bg-white rounded-2xl shadow-sm">Nenhum gasto livre registrado neste mês.</p>';
+    lista.innerHTML = '<p class="text-xs font-bold text-slate-400 text-center py-5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm">Nenhum gasto livre registrado neste mês.</p>';
     return;
   }
 
@@ -1672,7 +2054,7 @@ function renderCarteiraLivre() {
 }
 
 // ==========================================
-// DETALHES DE CATEGORIAS (METAS - CLICK)
+// DETALHES DE CATEGORIAS (METAS - PRIVACIDADE APLICADA)
 // ==========================================
 
 function abrirDetalhesCategoria(nomeCategoria, metaValor) {
@@ -1694,15 +2076,19 @@ function abrirDetalhesCategoria(nomeCategoria, metaValor) {
   iconeEl.className = `w-10 h-10 rounded-full flex items-center justify-center text-lg ${bgIcon}`;
   iconeEl.innerHTML = `<i class="fa-solid ${iconeClass}"></i>`;
 
-  document.getElementById('detalheCatTotalGasto').innerText = `R$ ${totalGasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-  document.getElementById('detalheCatMetaValor').innerText = `R$ ${metaValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  document.getElementById('detalheCatTotalGasto').innerText = showBigBalance 
+    ? `R$ ${totalGasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` 
+    : '•••••';
+  document.getElementById('detalheCatMetaValor').innerText = showBigBalance 
+    ? `R$ ${metaValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` 
+    : '•••••';
 
   const statusEl = document.getElementById('detalheCatStatus');
   if (diferenca >= 0) {
-    statusEl.innerText = `Sobra: R$ ${diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    statusEl.innerText = showBigBalance ? `Sobra: R$ ${diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Sobra: •••••';
     statusEl.className = "text-[11px] font-extrabold px-2 py-1 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400";
   } else {
-    statusEl.innerText = `Passou: R$ ${Math.abs(diferenca).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    statusEl.innerText = showBigBalance ? `Passou: R$ ${Math.abs(diferenca).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Passou: •••••';
     statusEl.className = "text-[11px] font-extrabold px-2 py-1 rounded-md bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400";
   }
 
@@ -1715,6 +2101,7 @@ function abrirDetalhesCategoria(nomeCategoria, metaValor) {
     currentTxConfirmadas.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(t => {
       const dataFormatada = t.date ? t.date.split('-').reverse().join('/') : '';
       const subCatBadge = t.subCat ? `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">${t.subCat}</span>` : '';
+      const valorItem = showBigBalance ? `R$ ${t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
       
       listaEl.innerHTML += `
         <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-50 dark:border-slate-700">
@@ -1725,7 +2112,7 @@ function abrirDetalhesCategoria(nomeCategoria, metaValor) {
               ${subCatBadge}
             </div>
           </div>
-          <span class="text-sm font-black text-rose-600 dark:text-rose-400 shrink-0">R$ ${t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+          <span class="text-sm font-black text-rose-600 dark:text-rose-400 shrink-0">${valorItem}</span>
         </div>
       `;
     });
@@ -1739,7 +2126,7 @@ function fecharDetalhesCategoria() {
 }
 
 // ==========================================
-// FUNÇÕES DE NAVEGAÇÃO E MUDANÇA DE ABA
+// NAVEGAÇÃO E GESTOS DE DESLIZAR
 // ==========================================
 
 function switchTab(tab) {
@@ -1778,10 +2165,6 @@ function switchTab(tab) {
 
   renderAll();
 }
-
-// ==========================================
-// GESTOS DE DESLIZAR (FADE SUAVE NATIVO)
-// ==========================================
 
 const containerSwipe = document.getElementById('mainSwipeContainer');
 let inicioX = 0;
