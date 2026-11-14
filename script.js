@@ -18,7 +18,7 @@ const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
 
 const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
-let showBigBalance = true; // Variável que controla a exibição de todos os saldos
+let showBigBalance = true; 
 
 const subcategoriasDisponiveis = [
   'Transporte',
@@ -101,7 +101,7 @@ function toggleVisibility() {
     icon.className = "fa-solid fa-eye-slash text-sm text-white/50";
   }
   
-  renderAll(); // Atualiza a tela inteira para esconder os valores
+  renderAll(); 
 }
 
 function getMetasAtuais() {
@@ -910,13 +910,11 @@ function renderAll() {
 
   const statIncome = document.getElementById('statIncome');
   const statExpense = document.getElementById('statExpense');
-  const statBalance = document.getElementById('statBalance');
   const statBigBalance = document.getElementById('statBigBalance');
 
-  // Máscara de Ocultar Valores Aplicada aos 4 saldos do topo
+  // Máscara de Ocultar Valores nos cartões superiores
   if (statIncome) statIncome.innerText = showBigBalance ? `R$ ${income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
   if (statExpense) statExpense.innerText = showBigBalance ? `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
-  if (statBalance) statBalance.innerText = showBigBalance ? `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
   if (statBigBalance) statBigBalance.innerText = showBigBalance ? `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : `•••••`;
 
   const fixed = currentTxConfirmadas.filter(t => t.cat === 'Gastos Fixos').reduce((a, b) => a + b.amount, 0);
@@ -938,9 +936,9 @@ function renderAll() {
     const txtPerc = showBigBalance ? `${pctGasto.toFixed(0)}%` : '••%';
     
     return `
-      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="bg-slate-50 dark:bg-slate-800 p-2 border border-slate-100 dark:border-slate-700 relative cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform flex flex-col justify-between ${extraClass}">
+      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="bg-slate-50 dark:bg-slate-800 p-2.5 border border-slate-100 dark:border-slate-700 relative cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform flex flex-col justify-between ${extraClass}">
         
-        <div class="flex items-center gap-1.5 mb-1">
+        <div class="flex items-center gap-1.5 mb-1.5">
           <div class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] ${corBgIcon} ${corTextoIcon}">
             <i class="fa-solid ${icone}"></i>
           </div>
@@ -952,7 +950,7 @@ function renderAll() {
           <div class="text-[8px] font-medium text-slate-400 dark:text-slate-500 mt-0.5 truncate">Meta: ${txtMeta}</div>
         </div>
         
-        <div class="flex items-center gap-1.5 mt-1.5">
+        <div class="flex items-center gap-2 mt-2">
           <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
             <div class="h-full rounded-full transition-all duration-300" style="width: ${barraPreenchida}%; background-color: ${corBarra};"></div>
           </div>
@@ -967,8 +965,8 @@ function renderAll() {
     containerCat.innerHTML = `
       ${criarCardMetaVisualNovo('Gastos Fixos', 'fa-bullseye', 'bg-blue-50 dark:bg-blue-900/30', 'text-blue-600 dark:text-blue-400', '#2563eb', fixed, metas.fixos)}
       ${criarCardMetaVisualNovo('Gastos Gerais', 'fa-star', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#10b981', general, metas.gerais)}
-      ${criarCardMetaVisualNovo('Lazer', 'fa-cart-shopping', 'bg-purple-50 dark:bg-purple-900/30', 'text-purple-600 dark:text-purple-400', '#a855f7', leisure, metas.lazer, 'rounded-[1rem] rounded-br-[2rem]')}
-      ${criarCardMetaVisualNovo('Investimentos', 'fa-chart-column', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#f59e0b', invest, metas.invest, 'rounded-[1rem] rounded-bl-[2rem]')}
+      ${criarCardMetaVisualNovo('Lazer', 'fa-cart-shopping', 'bg-purple-50 dark:bg-purple-900/30', 'text-purple-600 dark:text-purple-400', '#a855f7', leisure, metas.lazer, 'rounded-[1rem] rounded-br-[2.5rem]')}
+      ${criarCardMetaVisualNovo('Investimentos', 'fa-chart-column', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#f59e0b', invest, metas.invest, 'rounded-[1rem] rounded-bl-[2.5rem]')}
     `;
   }
 
