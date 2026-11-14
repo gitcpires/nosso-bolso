@@ -259,9 +259,9 @@
 
   <!-- NAVEGAÇÃO INFERIOR E BOTÃO FLUTUANTE -->
   <div class="fixed bottom-0 left-0 right-0 z-40">
-    <!-- Botão flutuante reposicionado e recolorido -->
-    <div class="absolute left-1/2 transform -translate-x-1/2 -top-7 z-50">
-      <button onclick="openNewTxModal()" class="w-14 h-14 bg-[#00b06b] text-white rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(0,176,107,0.3)] hover:scale-105 active:scale-95 transition-transform border-[4px] border-white dark:border-slate-900 text-2xl font-light">
+    <!-- Botão flutuante com gradiente escuro idêntico à referência -->
+    <div class="absolute left-1/2 transform -translate-x-1/2 -top-6 z-50">
+      <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-br from-[#0a5238] to-[#052e1f] text-white rounded-full flex items-center justify-center shadow-[0_8px_16px_rgba(5,46,31,0.5)] hover:scale-105 active:scale-95 transition-transform border-[4px] border-white dark:border-slate-900 text-xl font-light">
         <i class="fa-solid fa-plus"></i>
       </button>
     </div>
@@ -279,7 +279,7 @@
           <span class="text-[9px] font-bold">Extrato</span>
           <div id="indicatorExtrato" class="absolute bottom-0 w-6 h-1 bg-brand-green rounded-t-full hidden"></div>
         </button>
-        <div></div> 
+        <div></div> <!-- Espaço vazio central para o botão flutuante -->
         <button onclick="switchTab('invest')" id="bottomNavInvest" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 pb-2 transition">
           <i class="fa-solid fa-chart-line text-xl mb-1"></i>
           <span class="text-[9px] font-bold">Invest</span>
@@ -293,6 +293,7 @@
       </div>
     </nav>
   </div>
+
 
   <!-- MODAIS Lançamento -->
   <div id="newTxModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 hidden backdrop-blur-md">
