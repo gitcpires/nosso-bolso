@@ -941,11 +941,12 @@ function renderAll() {
 
   const containerCat = document.getElementById('cardsCategoryContainer');
   if (containerCat) {
+    // Quinas arredondadas com 3rem para contornar melhor o botão circular
     containerCat.innerHTML = `
       ${criarCardMetaSoftUI('Gastos Fixos', 'fa-bullseye', 'text-blue-600', '#2563eb', fixed, metas.fixos, 'rounded-[1.25rem]')}
       ${criarCardMetaSoftUI('Gastos Gerais', 'fa-star', 'text-amber-500', '#10b981', general, metas.gerais, 'rounded-[1.25rem]')}
-      ${criarCardMetaSoftUI('Lazer', 'fa-cart-shopping', 'text-purple-500', '#a855f7', leisure, metas.lazer, 'rounded-[1.25rem] rounded-br-[3.5rem]')}
-      ${criarCardMetaSoftUI('Investimentos', 'fa-chart-column', 'text-amber-500', '#f59e0b', invest, metas.invest, 'rounded-[1.25rem] rounded-bl-[3.5rem]')}
+      ${criarCardMetaSoftUI('Lazer', 'fa-cart-shopping', 'text-purple-500', '#a855f7', leisure, metas.lazer, 'rounded-[1.25rem] rounded-br-[3rem]')}
+      ${criarCardMetaSoftUI('Investimentos', 'fa-chart-column', 'text-amber-500', '#f59e0b', invest, metas.invest, 'rounded-[1.25rem] rounded-bl-[3rem]')}
     `;
   }
 
