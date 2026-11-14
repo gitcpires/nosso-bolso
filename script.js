@@ -263,6 +263,43 @@ function toggleVisibility() {
 }
 
 // ==========================================
+// NAVEGAÇÃO DO FICHEIRO DE CONFIGURAÇÕES
+// ==========================================
+
+function switchConfigTab(tabName) {
+  const abas = ['cartoes', 'metas', 'dados', 'membros'];
+  abas.forEach(aba => {
+    const btn = document.getElementById(`cfgTabBtn-${aba}`);
+    const panel = document.getElementById(`cfgPanel-${aba}`);
+    if (!btn || !panel) return;
+
+    if (aba === tabName) {
+      btn.className = "py-2.5 text-[10px] font-extrabold rounded-t-xl border-t border-x border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/30 text-brand-green -mb-[1px] transition";
+      panel.classList.remove('hidden');
+    } else {
+      btn.className = "py-2.5 text-[10px] font-bold rounded-t-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition";
+      panel.classList.add('hidden');
+    }
+  });
+}
+
+function openProfileModal(abaInicial = 'cartoes') {
+  document.getElementById('profileModal').classList.remove('hidden');
+  const labelMesModal = document.getElementById('labelModalMetasMes');
+  if (labelMesModal) labelMesModal.innerText = `Definir Metas (${activeMonth})`;
+  
+  switchConfigTab(abaInicial);
+  renderizarCartoesConfig();
+  carregarMembrosDoGrupo();
+  carregarDadosMetasNoConfig();
+  calcularConversaoMetas('fixos');
+}
+
+function closeProfileModal() {
+  document.getElementById('profileModal').classList.add('hidden');
+}
+
+// ==========================================
 // GESTÃO DE CARTÕES DE CRÉDITO DO GRUPO
 // ==========================================
 
@@ -272,14 +309,14 @@ function renderizarCartoesConfig() {
 
   const cartoes = currentWorkspace.cartoes || [];
   if (cartoes.length === 0) {
-    lista.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-1">Nenhum cartão cadastrado (usando padrão).</p>`;
+    lista.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">Nenhum cartão cadastrado (usando padrão).</p>`;
     return;
   }
 
   lista.innerHTML = '';
   cartoes.forEach((c, idx) => {
     lista.innerHTML += `
-      <div class="flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-700 text-xs">
+      <div class="flex items-center justify-between bg-white dark:bg-slate-900 px-3.5 py-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-xs shadow-sm">
         <div>
           <span class="font-extrabold text-slate-700 dark:text-slate-200">💳 ${c.nome}</span>
           <span class="text-[10px] text-slate-400 ml-1.5">Fecha dia ${c.fechamento}</span>
@@ -362,20 +399,6 @@ function atualizarOpcoesPagamentoFiltro() {
 function getMetasAtuais() {
   if (!currentWorkspace.metasPorMes) currentWorkspace.metasPorMes = {};
   return currentWorkspace.metasPorMes[activeMonth] || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
-}
-
-function openProfileModal() {
-  document.getElementById('profileModal').classList.remove('hidden');
-  const labelMesModal = document.getElementById('labelModalMetasMes');
-  if (labelMesModal) labelMesModal.innerText = `Definir Metas (${activeMonth})`;
-  renderizarCartoesConfig();
-  carregarMembrosDoGrupo();
-  carregarDadosMetasNoConfig();
-  calcularConversaoMetas('fixos');
-}
-
-function closeProfileModal() {
-  document.getElementById('profileModal').classList.add('hidden');
 }
 
 function mudarModoMetas(modo) {
