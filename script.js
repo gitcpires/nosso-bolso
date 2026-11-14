@@ -18,7 +18,7 @@ const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
 
 const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
-let showBigBalance = true; // Controle do olho no saldo principal
+let showBigBalance = true; // Variável que controla a exibição de todos os saldos
 
 const subcategoriasDisponiveis = [
   'Transporte',
@@ -94,16 +94,14 @@ auth.onAuthStateChanged(async (userAuth) => {
 function toggleVisibility() {
   showBigBalance = !showBigBalance;
   const icon = document.getElementById('eyeIcon');
-  const text = document.getElementById('eyeText');
   
   if(showBigBalance) {
-    icon.className = "fa-solid fa-eye";
-    text.innerText = "Toque para ocultar";
+    icon.className = "fa-solid fa-eye text-sm";
   } else {
-    icon.className = "fa-solid fa-eye-slash";
-    text.innerText = "Toque para exibir";
+    icon.className = "fa-solid fa-eye-slash text-sm text-white/50";
   }
-  renderAll(); // Re-renderiza para aplicar censura ou mostrar o saldo
+  
+  renderAll(); // Atualiza a tela inteira para esconder os valores
 }
 
 function getMetasAtuais() {
@@ -915,19 +913,11 @@ function renderAll() {
   const statBalance = document.getElementById('statBalance');
   const statBigBalance = document.getElementById('statBigBalance');
 
-  // Atualiza mini cards
-  if (statIncome) statIncome.innerText = `R$ ${income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-  if (statExpense) statExpense.innerText = `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-  if (statBalance) statBalance.innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-
-  // Atualiza Card Gigante (Com regra de visualização)
-  if (statBigBalance) {
-    if (showBigBalance) {
-      statBigBalance.innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-    } else {
-      statBigBalance.innerText = `R$ ****`;
-    }
-  }
+  // Máscara de Ocultar Valores
+  if (statIncome) statIncome.innerText = showBigBalance ? `R$ ${income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'R$ •••••';
+  if (statExpense) statExpense.innerText = showBigBalance ? `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'R$ •••••';
+  if (statBalance) statBalance.innerText = showBigBalance ? `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'R$ •••••';
+  if (statBigBalance) statBigBalance.innerText = showBigBalance ? `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : `R$ •••••`;
 
   const fixed = currentTxConfirmadas.filter(t => t.cat === 'Gastos Fixos').reduce((a, b) => a + b.amount, 0);
   const general = currentTxConfirmadas.filter(t => t.cat === 'Gastos Gerais').reduce((a, b) => a + b.amount, 0);
@@ -937,32 +927,34 @@ function renderAll() {
   const metas = getMetasAtuais();
   const baseEntradas = income > 0 ? income : 1; 
 
-  const criarCardMetaVisualNovo = (titulo, icone, corBgIcon, corTextoIcon, corBarra, gasto, pctMeta) => {
+  const criarCardMetaVisualNovo = (titulo, icone, corBgIcon, corTextoIcon, corBarra, gasto, pctMeta, extraClass = 'rounded-[1rem]') => {
     const metaEmReais = baseEntradas * (pctMeta / 100);
     const pctGasto = metaEmReais > 0 ? (gasto / metaEmReais) * 100 : 0;
     const barraPreenchida = Math.min(pctGasto, 100);
     
+    const txtGasto = showBigBalance ? `R$ ${gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'R$ •••••';
+    const txtMeta = showBigBalance ? `R$ ${metaEmReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'R$ •••••';
+    
     return `
-      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="bg-white dark:bg-slate-800 p-3.5 rounded-[1.5rem] border border-slate-100 dark:border-slate-700 shadow-[0_2px_8px_rgba(0,0,0,0.02)] relative cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform flex flex-col justify-between aspect-square">
-        <div class="absolute top-3.5 right-3.5 text-slate-300 dark:text-slate-600"><i class="fa-solid fa-ellipsis-vertical"></i></div>
+      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="bg-slate-50 dark:bg-slate-800 p-2.5 border border-slate-100 dark:border-slate-700 relative cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform flex flex-col justify-between ${extraClass}">
         
-        <div class="flex items-center gap-2 mb-2">
-          <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${corBgIcon} ${corTextoIcon}">
+        <div class="flex items-center gap-1.5 mb-1.5">
+          <div class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] ${corBgIcon} ${corTextoIcon}">
             <i class="fa-solid ${icone}"></i>
           </div>
-          <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200">${titulo}</span>
+          <span class="text-[10px] font-bold text-slate-700 dark:text-slate-200">${titulo}</span>
         </div>
         
         <div>
-          <div class="text-[15px] font-black text-slate-900 dark:text-white leading-tight">R$ ${gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-          <div class="text-[9px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">Meta: R$ ${metaEmReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+          <div class="text-[12px] font-black text-slate-900 dark:text-white leading-tight truncate">${txtGasto}</div>
+          <div class="text-[8px] font-medium text-slate-400 dark:text-slate-500 mt-0.5 truncate">Meta: ${txtMeta}</div>
         </div>
         
-        <div class="flex items-center gap-2 mt-3">
-          <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+        <div class="flex items-center gap-2 mt-2">
+          <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
             <div class="h-full rounded-full transition-all duration-300" style="width: ${barraPreenchida}%; background-color: ${corBarra};"></div>
           </div>
-          <span class="text-[9px] font-black text-slate-600 dark:text-slate-300">${pctGasto.toFixed(1)}%</span>
+          <span class="text-[8px] font-black text-slate-600 dark:text-slate-300">${pctGasto.toFixed(0)}%</span>
         </div>
       </div>
     `;
@@ -973,8 +965,8 @@ function renderAll() {
     containerCat.innerHTML = `
       ${criarCardMetaVisualNovo('Gastos Fixos', 'fa-bullseye', 'bg-blue-50 dark:bg-blue-900/30', 'text-blue-600 dark:text-blue-400', '#2563eb', fixed, metas.fixos)}
       ${criarCardMetaVisualNovo('Gastos Gerais', 'fa-star', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#10b981', general, metas.gerais)}
-      ${criarCardMetaVisualNovo('Lazer', 'fa-cart-shopping', 'bg-purple-50 dark:bg-purple-900/30', 'text-purple-600 dark:text-purple-400', '#a855f7', leisure, metas.lazer)}
-      ${criarCardMetaVisualNovo('Investimentos', 'fa-chart-column', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#f59e0b', invest, metas.invest)}
+      ${criarCardMetaVisualNovo('Lazer', 'fa-cart-shopping', 'bg-purple-50 dark:bg-purple-900/30', 'text-purple-600 dark:text-purple-400', '#a855f7', leisure, metas.lazer, 'rounded-[1rem] rounded-br-[2.5rem]')}
+      ${criarCardMetaVisualNovo('Investimentos', 'fa-chart-column', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#f59e0b', invest, metas.invest, 'rounded-[1rem] rounded-bl-[2.5rem]')}
     `;
   }
 
@@ -1595,21 +1587,24 @@ function fecharDetalhesCategoria() {
 // ==========================================
 
 function switchTab(tab) {
-  // Esconde todas as abas
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.add('hidden');
+    if (el) {
+      el.classList.add('hidden');
+      el.style = '';
+    }
   });
 
-  // Mostra apenas a aba solicitada
   const activeEl = document.getElementById(`tab-${tab}`);
-  if (activeEl) activeEl.classList.remove('hidden');
+  if (activeEl) {
+    activeEl.classList.remove('hidden');
+    activeEl.style = '';
+  }
 
   if (tab === 'extrato') {
     renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   }
 
-  // Atualiza as cores do menu inferior
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
@@ -1629,7 +1624,7 @@ function switchTab(tab) {
 }
 
 // ==========================================
-// GESTOS DE DESLIZAR (SWIPE SEGURO)
+// GESTOS DE DESLIZAR (FADE SUAVE NATIVO)
 // ==========================================
 
 const containerSwipe = document.getElementById('mainSwipeContainer');
@@ -1646,12 +1641,10 @@ if (containerSwipe) {
   containerSwipe.addEventListener('touchmove', (e) => {
     if (!deslizando) return;
     
-    // Calcula distância para fade nativo rápido
     let movimentoX = e.touches[0].clientX - inicioX;
     let abaAtivaIndex = ordemAbas.findIndex(t => !document.getElementById(`tab-${t}`).classList.contains('hidden'));
     let elAbaAtual = document.getElementById(`tab-${ordemAbas[abaAtivaIndex]}`);
     
-    // Pequeno efeito visual de arrastar sem quebrar a tela
     if (elAbaAtual) {
       elAbaAtual.style.transform = `translateX(${movimentoX * 0.2}px)`;
       elAbaAtual.style.opacity = `${1 - Math.abs(movimentoX / window.innerWidth)}`;
@@ -1669,21 +1662,15 @@ if (containerSwipe) {
     
     const limite = 50; 
 
-    // Anima a aba atual voltando ao estado normal ou sumindo
     if (Math.abs(diferenca) > limite) {
-       // Confirma a troca
        if (diferenca < 0 && abaAtivaIndex < ordemAbas.length - 1) {
-         // Vai para a direita (próxima aba)
          mudarAbaComFade(abaAtivaIndex + 1);
        } else if (diferenca > 0 && abaAtivaIndex > 0) {
-         // Vai para a esquerda (aba anterior)
          mudarAbaComFade(abaAtivaIndex - 1);
        } else {
-         // Cancela (estava na ponta)
          resetarAbaAtual(elAbaAtual);
        }
     } else {
-       // Cancela (arrastou pouco)
        resetarAbaAtual(elAbaAtual);
     }
   });
@@ -1697,7 +1684,6 @@ function resetarAbaAtual(elAba) {
 }
 
 function mudarAbaComFade(novoIndex) {
-  // Transição rápida de opacidade
   const abaAtivaIndex = ordemAbas.findIndex(t => !document.getElementById(`tab-${t}`).classList.contains('hidden'));
   const elAbaAtual = document.getElementById(`tab-${ordemAbas[abaAtivaIndex]}`);
   
