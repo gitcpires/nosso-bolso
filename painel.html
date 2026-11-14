@@ -49,6 +49,7 @@
     * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     ::-webkit-scrollbar { width: 0px; background: transparent; }
     
+    /* Fundo dinâmico simulando as ondas do topo */
     .bg-header-waves {
       background: radial-gradient(circle at top right, #104230 0%, #0c241c 70%);
     }
@@ -93,7 +94,7 @@
     </div>
   </div>
 
-  <!-- CABEÇALHO -->
+  <!-- CABEÇALHO COMPACTO -->
   <header class="relative z-40 w-full pt-6 pb-2 px-5">
     <div class="mx-auto max-w-md flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -124,7 +125,7 @@
   <main id="mainSwipeContainer" class="relative z-30 mx-auto max-w-md px-4 flex-grow w-full flex flex-col">
     
     <!-- ABA RESUMO -->
-    <div id="tab-resumo" class="w-full flex flex-col space-y-3 flex-grow fade-transition">
+    <div id="tab-resumo" class="w-full flex flex-col space-y-3.5 flex-grow fade-transition">
       
       <!-- Seletor de Mês -->
       <div class="flex items-center justify-between bg-white dark:bg-slate-800 py-1.5 px-3 rounded-[1rem] shadow-sm">
@@ -142,7 +143,7 @@
         </div>
       </div>
 
-      <!-- CARD GIGANTE: Saldo Atual -->
+      <!-- CARD GIGANTE COMPACTO: Saldo Atual -->
       <div class="bg-gradient-to-r from-brand-card to-emerald-600 rounded-[1.5rem] p-4 text-white shadow-xl relative overflow-hidden">
         <div class="absolute bottom-0 right-0 opacity-20 w-32 h-16 flex items-end gap-1">
           <div class="w-4 bg-white rounded-t-sm h-4"></div><div class="w-4 bg-white rounded-t-sm h-8"></div><div class="w-4 bg-white rounded-t-sm h-12"></div><div class="w-4 bg-white rounded-t-sm h-16"></div>
@@ -159,51 +160,42 @@
         </div>
       </div>
 
-      <!-- 3 MINI CARDS (MAIORES E DESTAQUE) -->
-      <div class="grid grid-cols-3 gap-2 shrink-0">
-        <div class="bg-white dark:bg-slate-800 p-3 rounded-[1.25rem] shadow-sm flex flex-col justify-between h-24 border border-slate-50 dark:border-slate-700/50">
-          <div class="flex items-center gap-1.5">
-            <div class="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <i class="fa-solid fa-arrow-trend-up text-[12px]"></i>
+      <!-- 2 MINI CARDS (MAIORES E DESTAQUE) -->
+      <div class="grid grid-cols-2 gap-3 shrink-0">
+        <div class="bg-white dark:bg-slate-800 p-3.5 rounded-[1.25rem] shadow-sm flex flex-col justify-center border border-slate-50 dark:border-slate-700/50">
+          <div class="flex items-center gap-2 mb-1.5">
+            <div class="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-arrow-trend-up text-[13px]"></i>
             </div>
-            <span class="text-[10px] font-extrabold text-slate-500 dark:text-slate-400">Entradas</span>
+            <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">Entradas</span>
           </div>
-          <div id="statIncome" class="text-[13px] font-black text-emerald-600 dark:text-emerald-400 tracking-tighter truncate mt-auto">R$ 0,00</div>
+          <div id="statIncome" class="text-[15px] font-black text-emerald-600 dark:text-emerald-400 tracking-tighter truncate">R$ 0,00</div>
         </div>
 
-        <div class="bg-white dark:bg-slate-800 p-3 rounded-[1.25rem] shadow-sm flex flex-col justify-between h-24 border border-slate-50 dark:border-slate-700/50">
-          <div class="flex items-center gap-1.5">
-            <div class="w-7 h-7 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-              <i class="fa-solid fa-arrow-trend-down text-[12px]"></i>
+        <div class="bg-white dark:bg-slate-800 p-3.5 rounded-[1.25rem] shadow-sm flex flex-col justify-center border border-slate-50 dark:border-slate-700/50">
+          <div class="flex items-center gap-2 mb-1.5">
+            <div class="w-8 h-8 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-arrow-trend-down text-[13px]"></i>
             </div>
-            <span class="text-[10px] font-extrabold text-slate-500 dark:text-slate-400">Saídas</span>
+            <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">Saídas</span>
           </div>
-          <div id="statExpense" class="text-[13px] font-black text-rose-600 dark:text-rose-400 tracking-tighter truncate mt-auto">R$ 0,00</div>
-        </div>
-
-        <div class="bg-white dark:bg-slate-800 p-3 rounded-[1.25rem] shadow-sm flex flex-col justify-between h-24 border border-slate-50 dark:border-slate-700/50">
-          <div class="flex items-center gap-1.5">
-            <div class="w-7 h-7 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-              <i class="fa-solid fa-scale-balanced text-[12px]"></i>
-            </div>
-            <span class="text-[10px] font-extrabold text-slate-500 dark:text-slate-400">Saldo</span>
-          </div>
-          <div id="statBalance" class="text-[13px] font-black text-blue-700 dark:text-blue-400 tracking-tighter truncate mt-auto">R$ 0,00</div>
+          <div id="statExpense" class="text-[15px] font-black text-rose-600 dark:text-rose-400 tracking-tighter truncate">R$ 0,00</div>
         </div>
       </div>
 
       <!-- ESPAÇADOR -->
       <div class="flex-grow"></div>
 
-      <!-- CONTAINER METAS (MENORES E COMPACTOS) -->
-      <div class="bg-white dark:bg-slate-900 p-3 pt-4 rounded-t-[2.5rem] shadow-[0_-8px_24px_rgba(0,0,0,0.03)] dark:border-t dark:border-slate-800 -mx-4 -mb-28 pb-[90px] mt-4 flex flex-col relative z-10">
-        <div class="flex items-center justify-between cursor-pointer px-3 mb-3" onclick="openProfileModal()">
+      <!-- CONTAINER METAS: Flex-grow estica até em baixo abraçando o botão -->
+      <div class="bg-white dark:bg-slate-900 p-3 pt-4 rounded-t-[2.5rem] shadow-[0_-8px_24px_rgba(0,0,0,0.03)] dark:border-t dark:border-slate-800 -mx-4 -mb-28 pb-[90px] mt-2 flex flex-col relative z-10 flex-grow">
+        <div class="flex items-center justify-between cursor-pointer px-2 mb-3" onclick="openProfileModal()">
           <div class="flex items-center gap-2.5">
             <div class="text-amber-500 text-lg"><i class="fa-solid fa-trophy"></i></div>
             <h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Progresso de Metas</h3>
           </div>
           <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
         </div>
+        
         <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2 px-1">
           <!-- Renderizado via JS -->
         </div>
