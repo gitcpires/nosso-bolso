@@ -18,6 +18,7 @@ const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
 
 const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
+let showBigBalance = true; // Controle do olho no saldo principal
 
 const subcategoriasDisponiveis = [
   'Transporte',
@@ -90,6 +91,21 @@ auth.onAuthStateChanged(async (userAuth) => {
   }
 });
 
+function toggleVisibility() {
+  showBigBalance = !showBigBalance;
+  const icon = document.getElementById('eyeIcon');
+  const text = document.getElementById('eyeText');
+  
+  if(showBigBalance) {
+    icon.className = "fa-solid fa-eye";
+    text.innerText = "Toque para ocultar";
+  } else {
+    icon.className = "fa-solid fa-eye-slash";
+    text.innerText = "Toque para exibir";
+  }
+  renderAll(); // Re-renderiza para aplicar censura ou mostrar o saldo
+}
+
 function getMetasAtuais() {
   if (!currentWorkspace.metasPorMes) currentWorkspace.metasPorMes = {};
   return currentWorkspace.metasPorMes[activeMonth] || { fixos: 50, gerais: 30, lazer: 10, invest: 10 };
@@ -114,10 +130,10 @@ function mudarModoMetas(modo) {
   const btnDinheiro = document.getElementById('btnModoDinheiro');
   
   if (modo === 'perc') {
-    btnPerc.className = "px-3 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
+    btnPerc.className = "px-3 py-1 text-[10px] font-bold rounded-md bg-brand-green text-white transition";
     btnDinheiro.className = "px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300 transition";
   } else {
-    btnDinheiro.className = "px-3 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white transition";
+    btnDinheiro.className = "px-3 py-1 text-[10px] font-bold rounded-md bg-brand-green text-white transition";
     btnPerc.className = "px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300 transition";
   }
   carregarDadosMetasNoConfig();
@@ -421,7 +437,6 @@ function initUserSession() {
   }
 
   document.getElementById('headerUserName').innerText = currentUser.name;
-  document.getElementById('headerWelcomeMsg').innerText = `Grupo: ${currentWorkspace.code}`;
   document.getElementById('profileWorkspaceCodeDisplay').innerText = currentWorkspace.code;
 
   renderSubCatCheckboxes();
@@ -446,7 +461,7 @@ function renderSubCatCheckboxes() {
   subcategoriasDisponiveis.forEach(sub => {
     container.innerHTML += `
       <label class="flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300">
-        <input type="checkbox" value="${sub}" onchange="renderTransactionsList(transactions)" class="subcat-filter-checkbox rounded text-blue-600 focus:ring-0 w-3.5 h-3.5" />
+        <input type="checkbox" value="${sub}" onchange="renderTransactionsList(transactions)" class="subcat-filter-checkbox rounded text-brand-green focus:ring-0 w-3.5 h-3.5" />
         <span class="truncate">${sub}</span>
       </label>
     `;
@@ -778,7 +793,7 @@ function toggleTxTypeUI() {
   if (!selectCat || !selectPayment) return;
 
   if (radioEntrada && radioEntrada.checked) {
-    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm transition";
+    if (labelEntrada) labelEntrada.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer bg-white dark:bg-slate-900 text-brand-green shadow-sm transition";
     if (labelSaida) labelSaida.className = "w-1/2 text-center py-3 text-xs font-extrabold rounded-[1.2rem] cursor-pointer text-slate-500 dark:text-slate-400 transition";
     
     if (containerSubCat) containerSubCat.classList.add('hidden');
@@ -898,10 +913,21 @@ function renderAll() {
   const statIncome = document.getElementById('statIncome');
   const statExpense = document.getElementById('statExpense');
   const statBalance = document.getElementById('statBalance');
+  const statBigBalance = document.getElementById('statBigBalance');
 
+  // Atualiza mini cards
   if (statIncome) statIncome.innerText = `R$ ${income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
   if (statExpense) statExpense.innerText = `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
   if (statBalance) statBalance.innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+  // Atualiza Card Gigante (Com regra de visualização)
+  if (statBigBalance) {
+    if (showBigBalance) {
+      statBigBalance.innerText = `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    } else {
+      statBigBalance.innerText = `R$ ****`;
+    }
+  }
 
   const fixed = currentTxConfirmadas.filter(t => t.cat === 'Gastos Fixos').reduce((a, b) => a + b.amount, 0);
   const general = currentTxConfirmadas.filter(t => t.cat === 'Gastos Gerais').reduce((a, b) => a + b.amount, 0);
@@ -911,29 +937,32 @@ function renderAll() {
   const metas = getMetasAtuais();
   const baseEntradas = income > 0 ? income : 1; 
 
-  const criarCardMetaSoftUI = (titulo, icone, corTexto, corBarra, gasto, pctMeta, extraClass = 'rounded-[1.25rem]') => {
+  const criarCardMetaVisualNovo = (titulo, icone, corBgIcon, corTextoIcon, corBarra, gasto, pctMeta) => {
     const metaEmReais = baseEntradas * (pctMeta / 100);
     const pctGasto = metaEmReais > 0 ? (gasto / metaEmReais) * 100 : 0;
     const barraPreenchida = Math.min(pctGasto, 100);
     
     return `
-      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform bg-slate-50 dark:bg-slate-800 p-4 border border-slate-100 dark:border-slate-700 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)] ${extraClass}">
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <i class="fa-solid ${icone} ${corTexto} text-base"></i>
-              <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">${titulo}</span>
-            </div>
-            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
+      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="bg-white dark:bg-slate-800 p-3.5 rounded-[1.5rem] border border-slate-100 dark:border-slate-700 shadow-[0_2px_8px_rgba(0,0,0,0.02)] relative cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform flex flex-col justify-between aspect-square">
+        <div class="absolute top-3.5 right-3.5 text-slate-300 dark:text-slate-600"><i class="fa-solid fa-ellipsis-vertical"></i></div>
+        
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${corBgIcon} ${corTextoIcon}">
+            <i class="fa-solid ${icone}"></i>
           </div>
-          <div class="text-sm font-black text-slate-900 dark:text-white">R$ ${gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-          <div class="text-[9px] font-medium text-slate-400 dark:text-slate-500 mt-1 mb-3">Meta: R$ ${metaEmReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+          <span class="text-[11px] font-bold text-slate-700 dark:text-slate-200">${titulo}</span>
         </div>
-        <div class="flex items-center gap-2 mt-auto">
-          <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+        
+        <div>
+          <div class="text-[15px] font-black text-slate-900 dark:text-white leading-tight">R$ ${gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+          <div class="text-[9px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">Meta: R$ ${metaEmReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+        </div>
+        
+        <div class="flex items-center gap-2 mt-3">
+          <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
             <div class="h-full rounded-full transition-all duration-300" style="width: ${barraPreenchida}%; background-color: ${corBarra};"></div>
           </div>
-          <span class="text-[10px] font-black text-slate-700 dark:text-slate-300">${pctGasto.toFixed(1)}%</span>
+          <span class="text-[9px] font-black text-slate-600 dark:text-slate-300">${pctGasto.toFixed(1)}%</span>
         </div>
       </div>
     `;
@@ -942,10 +971,10 @@ function renderAll() {
   const containerCat = document.getElementById('cardsCategoryContainer');
   if (containerCat) {
     containerCat.innerHTML = `
-      ${criarCardMetaSoftUI('Gastos Fixos', 'fa-bullseye', 'text-blue-600', '#2563eb', fixed, metas.fixos, 'rounded-[1.25rem]')}
-      ${criarCardMetaSoftUI('Gastos Gerais', 'fa-star', 'text-amber-500', '#10b981', general, metas.gerais, 'rounded-[1.25rem]')}
-      ${criarCardMetaSoftUI('Lazer', 'fa-cart-shopping', 'text-purple-500', '#a855f7', leisure, metas.lazer, 'rounded-[1.25rem] rounded-br-[3.5rem]')}
-      ${criarCardMetaSoftUI('Investimentos', 'fa-chart-column', 'text-amber-500', '#f59e0b', invest, metas.invest, 'rounded-[1.25rem] rounded-bl-[3.5rem]')}
+      ${criarCardMetaVisualNovo('Gastos Fixos', 'fa-bullseye', 'bg-blue-50 dark:bg-blue-900/30', 'text-blue-600 dark:text-blue-400', '#2563eb', fixed, metas.fixos)}
+      ${criarCardMetaVisualNovo('Gastos Gerais', 'fa-star', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#10b981', general, metas.gerais)}
+      ${criarCardMetaVisualNovo('Lazer', 'fa-cart-shopping', 'bg-purple-50 dark:bg-purple-900/30', 'text-purple-600 dark:text-purple-400', '#a855f7', leisure, metas.lazer)}
+      ${criarCardMetaVisualNovo('Investimentos', 'fa-chart-column', 'bg-amber-50 dark:bg-amber-900/30', 'text-amber-500 dark:text-amber-400', '#f59e0b', invest, metas.invest)}
     `;
   }
 
@@ -1214,7 +1243,7 @@ function renderTransactionsList(currentTx) {
         </div>
 
         <div class="flex flex-col items-end pl-2 shrink-0">
-          <span class="text-sm sm:text-base font-black whitespace-nowrap ${isIncome ? 'text-text-entrada dark:text-emerald-400' : 'text-text-saida dark:text-rose-400'}">
+          <span class="text-sm sm:text-base font-black whitespace-nowrap ${isIncome ? 'text-brand-green' : 'text-rose-500 dark:text-rose-400'}">
             ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
           </span>
           <div class="flex items-center gap-3 mt-2">
@@ -1566,34 +1595,31 @@ function fecharDetalhesCategoria() {
 // ==========================================
 
 function switchTab(tab) {
+  // Esconde todas as abas
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
-    if (el) {
-      el.classList.add('hidden');
-      el.style = '';
-    }
+    if (el) el.classList.add('hidden');
   });
 
+  // Mostra apenas a aba solicitada
   const activeEl = document.getElementById(`tab-${tab}`);
-  if (activeEl) {
-    activeEl.classList.remove('hidden');
-    activeEl.style = '';
-  }
+  if (activeEl) activeEl.classList.remove('hidden');
 
   if (tab === 'extrato') {
     renderTransactionsList(transactions.filter(t => t.month === activeMonth));
   }
 
+  // Atualiza as cores do menu inferior
   ['resumo', 'extrato', 'invest', 'graficos'].forEach(name => {
     const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
     const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
     
     if (btn) {
       if (name === tab) {
-        btn.className = 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95';
+        btn.className = 'relative flex flex-col items-center justify-center text-brand-green pb-2 transition active:scale-95';
         if (indicator) indicator.classList.remove('hidden');
       } else {
-        btn.className = 'relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95';
+        btn.className = 'relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 pb-2 transition active:scale-95';
         if (indicator) indicator.classList.add('hidden');
       }
     }
@@ -1603,105 +1629,86 @@ function switchTab(tab) {
 }
 
 // ==========================================
-// GESTOS DE DESLIZAR (SWIPE REAL TIME SEGURO)
+// GESTOS DE DESLIZAR (SWIPE SEGURO)
 // ==========================================
 
 const containerSwipe = document.getElementById('mainSwipeContainer');
 let inicioX = 0;
-let movimentoX = 0;
 let deslizando = false;
-let abaAtivaIndex = 0;
-let elAbaAtual = null;
-let elAbaProxima = null;
 const ordemAbas = ['resumo', 'extrato', 'invest', 'graficos'];
 
 if (containerSwipe) {
   containerSwipe.addEventListener('touchstart', (e) => {
-    abaAtivaIndex = ordemAbas.findIndex(t => !document.getElementById(`tab-${t}`).classList.contains('hidden'));
-    elAbaAtual = document.getElementById(`tab-${ordemAbas[abaAtivaIndex]}`);
-    
     inicioX = e.touches[0].clientX;
-    movimentoX = 0;
     deslizando = true;
   }, { passive: true });
 
   containerSwipe.addEventListener('touchmove', (e) => {
-    if (!deslizando || !elAbaAtual) return;
-    movimentoX = e.touches[0].clientX - inicioX;
+    if (!deslizando) return;
     
-    // Efeito de resistência nas pontas
-    if (abaAtivaIndex === 0 && movimentoX > 0) movimentoX *= 0.3; 
-    if (abaAtivaIndex === ordemAbas.length - 1 && movimentoX < 0) movimentoX *= 0.3;
-
-    elAbaAtual.style.transition = 'none';
-    elAbaAtual.style.transform = `translateX(${movimentoX}px)`;
-
-    let novoIndex = movimentoX < 0 ? abaAtivaIndex + 1 : abaAtivaIndex - 1;
+    // Calcula distância para fade nativo rápido
+    let movimentoX = e.touches[0].clientX - inicioX;
+    let abaAtivaIndex = ordemAbas.findIndex(t => !document.getElementById(`tab-${t}`).classList.contains('hidden'));
+    let elAbaAtual = document.getElementById(`tab-${ordemAbas[abaAtivaIndex]}`);
     
-    if (novoIndex >= 0 && novoIndex < ordemAbas.length) {
-      if (elAbaProxima && elAbaProxima.id !== `tab-${ordemAbas[novoIndex]}`) {
-         elAbaProxima.classList.add('hidden');
-         elAbaProxima.style = '';
-      }
-      elAbaProxima = document.getElementById(`tab-${ordemAbas[novoIndex]}`);
-      
-      let larguraTela = window.innerWidth;
-      let offsetInicial = movimentoX < 0 ? larguraTela : -larguraTela;
-      
-      elAbaProxima.classList.remove('hidden');
-      elAbaProxima.style.position = 'absolute';
-      elAbaProxima.style.top = '0';
-      elAbaProxima.style.left = '0';
-      elAbaProxima.style.width = '100%';
-      elAbaProxima.style.transition = 'none';
-      elAbaProxima.style.transform = `translateX(${offsetInicial + movimentoX}px)`;
+    // Pequeno efeito visual de arrastar sem quebrar a tela
+    if (elAbaAtual) {
+      elAbaAtual.style.transform = `translateX(${movimentoX * 0.2}px)`;
+      elAbaAtual.style.opacity = `${1 - Math.abs(movimentoX / window.innerWidth)}`;
     }
   }, { passive: true });
 
-  containerSwipe.addEventListener('touchend', () => {
-    if (!deslizando || !elAbaAtual) return;
+  containerSwipe.addEventListener('touchend', (e) => {
+    if (!deslizando) return;
     deslizando = false;
-    const limite = 60; 
+    
+    let fimX = e.changedTouches[0].clientX;
+    let diferenca = fimX - inicioX;
+    let abaAtivaIndex = ordemAbas.findIndex(t => !document.getElementById(`tab-${t}`).classList.contains('hidden'));
+    let elAbaAtual = document.getElementById(`tab-${ordemAbas[abaAtivaIndex]}`);
+    
+    const limite = 50; 
 
-    let novoIndex = movimentoX < 0 ? abaAtivaIndex + 1 : abaAtivaIndex - 1;
-    let larguraTela = window.innerWidth;
-
-    if (Math.abs(movimentoX) > limite && novoIndex >= 0 && novoIndex < ordemAbas.length) {
-      let offsetFinalAtual = movimentoX < 0 ? -larguraTela : larguraTela;
-      
-      elAbaAtual.style.transition = 'transform 0.15s ease-out';
-      elAbaAtual.style.transform = `translateX(${offsetFinalAtual}px)`;
-
-      if (elAbaProxima) {
-        elAbaProxima.style.transition = 'transform 0.15s ease-out';
-        elAbaProxima.style.transform = `translateX(0px)`;
-      }
-
-      setTimeout(() => {
-        elAbaAtual.style = '';
-        if (elAbaProxima) elAbaProxima.style = '';
-        elAbaProxima = null;
-        switchTab(ordemAbas[novoIndex]);
-      }, 150);
-
+    // Anima a aba atual voltando ao estado normal ou sumindo
+    if (Math.abs(diferenca) > limite) {
+       // Confirma a troca
+       if (diferenca < 0 && abaAtivaIndex < ordemAbas.length - 1) {
+         // Vai para a direita (próxima aba)
+         mudarAbaComFade(abaAtivaIndex + 1);
+       } else if (diferenca > 0 && abaAtivaIndex > 0) {
+         // Vai para a esquerda (aba anterior)
+         mudarAbaComFade(abaAtivaIndex - 1);
+       } else {
+         // Cancela (estava na ponta)
+         resetarAbaAtual(elAbaAtual);
+       }
     } else {
-      elAbaAtual.style.transition = 'transform 0.15s ease-out';
-      elAbaAtual.style.transform = 'translateX(0px)';
-      
-      if (elAbaProxima) {
-        let offsetRetorno = movimentoX < 0 ? larguraTela : -larguraTela;
-        elAbaProxima.style.transition = 'transform 0.15s ease-out';
-        elAbaProxima.style.transform = `translateX(${offsetRetorno}px)`;
-      }
-
-      setTimeout(() => {
-         elAbaAtual.style = '';
-         if (elAbaProxima) {
-            elAbaProxima.classList.add('hidden');
-            elAbaProxima.style = '';
-            elAbaProxima = null;
-         }
-      }, 150);
+       // Cancela (arrastou pouco)
+       resetarAbaAtual(elAbaAtual);
     }
   });
+}
+
+function resetarAbaAtual(elAba) {
+  if(elAba) {
+    elAba.style.transform = 'translateX(0px)';
+    elAba.style.opacity = '1';
+  }
+}
+
+function mudarAbaComFade(novoIndex) {
+  // Transição rápida de opacidade
+  const abaAtivaIndex = ordemAbas.findIndex(t => !document.getElementById(`tab-${t}`).classList.contains('hidden'));
+  const elAbaAtual = document.getElementById(`tab-${ordemAbas[abaAtivaIndex]}`);
+  
+  if(elAbaAtual) {
+     elAbaAtual.style.opacity = '0';
+     setTimeout(() => {
+        elAbaAtual.style.transform = 'translateX(0px)';
+        elAbaAtual.style.opacity = '1';
+        switchTab(ordemAbas[novoIndex]);
+     }, 150);
+  } else {
+     switchTab(ordemAbas[novoIndex]);
+  }
 }
