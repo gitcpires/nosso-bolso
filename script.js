@@ -2001,10 +2001,13 @@ function renderCarteiraLivre() {
   
   const displayEl = document.getElementById('displaySaldoLivre');
   if(displayEl) {
-    displayEl.innerText = `R$ ${saldoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-    if(saldoAtual < 0) {
-      displayEl.className = "text-2xl font-black text-rose-600 dark:text-rose-400";
+    if (showBigBalance) {
+      displayEl.innerText = `R$ ${saldoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+      displayEl.className = saldoAtual < 0 
+        ? "text-2xl font-black text-rose-600 dark:text-rose-400" 
+        : "text-2xl font-black text-emerald-700 dark:text-emerald-400";
     } else {
+      displayEl.innerText = "•••••";
       displayEl.className = "text-2xl font-black text-emerald-700 dark:text-emerald-400";
     }
   }
@@ -2021,6 +2024,7 @@ function renderCarteiraLivre() {
 
   gastosDoMes.forEach(g => {
     const dataFormatada = g.date ? g.date.split('-').reverse().join('/') : '';
+    const valorGastoExibicao = showBigBalance ? `- R$ ${g.amount.toFixed(2).replace('.', ',')}` : '- •••••';
     
     lista.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm dark:border dark:border-slate-700">
@@ -2029,13 +2033,14 @@ function renderCarteiraLivre() {
           <span class="text-[10px] font-bold text-slate-500 mt-1 block"><i class="fa-regular fa-calendar mr-1"></i>${dataFormatada}</span>
         </div>
         <div class="flex items-center gap-3 shrink-0 pl-2">
-          <span class="text-sm font-black text-rose-600 dark:text-rose-400">- R$ ${g.amount.toFixed(2).replace('.', ',')}</span>
+          <span class="text-sm font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">${valorGastoExibicao}</span>
           <button onclick="deletarGastoLivre('${g.id}')" class="text-slate-400 hover:text-rose-500 transition p-1"><i class="fa-solid fa-trash-can text-sm"></i></button>
         </div>
       </div>
     `;
   });
 }
+
 
 // ==========================================
 // DETALHES DE CATEGORIAS (METAS - PRIVACIDADE 100% APLICADA)
