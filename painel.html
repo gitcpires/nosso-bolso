@@ -71,35 +71,45 @@
     .coin-anim-2 { animation: coinDrop 1.5s infinite ease-in 0.5s; }
     .coin-anim-3 { animation: coinDrop 1.5s infinite ease-in 1.0s; }
     .piggy-anim { animation: piggyBounce 0.5s infinite ease-in-out; }
+
+    /* Animação Toast */
+    @keyframes slideDownFade {
+      0% { transform: translate(-50%, -20px); opacity: 0; }
+      100% { transform: translate(-50%, 0); opacity: 1; }
+    }
+    .toast-enter { animation: slideDownFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   </style>
 </head>
 <body class="bg-app-bg dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors duration-200 min-h-screen overflow-x-hidden flex flex-col">
+
+  <!-- CONTAINER DE NOTIFICAÇÕES FLUTUANTES (TOASTS) -->
+  <div id="toastContainer" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 w-[90%] max-w-sm pointer-events-none"></div>
+
+  <!-- MODAL DE CONFIRMAÇÃO MODERNO -->
+  <div id="customConfirmModal" class="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4 hidden backdrop-blur-sm">
+    <div class="w-full max-w-xs bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-2xl space-y-4 border border-slate-100 dark:border-slate-800 text-center">
+      <div id="confirmModalIcon" class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-xl">
+        <i class="fa-solid fa-circle-question"></i>
+      </div>
+      <h4 id="confirmModalTitle" class="text-sm font-black text-slate-900 dark:text-white">Confirmar Ação</h4>
+      <p id="confirmModalText" class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed"></p>
+      <div id="confirmModalButtons" class="flex flex-col gap-2 pt-2"></div>
+    </div>
+  </div>
 
   <div class="absolute top-0 left-0 right-0 h-[260px] bg-header-waves dark:bg-slate-900 rounded-b-[3rem] z-0 shadow-lg"></div>
 
   <!-- TELA DE CARREGAMENTO COM ANIMAÇÃO DO COFRE -->
   <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-brand-dark text-white space-y-6">
     <div class="relative w-24 h-24 flex items-end justify-center">
-      <!-- Fenda do Cofre -->
       <div class="w-8 h-1.5 bg-black/50 rounded-full mb-11 z-10"></div>
-
-      <!-- Moedas Caindo -->
-      <div class="absolute top-2 text-amber-400 text-lg coin-anim-1 z-0">
-        <i class="fa-solid fa-coins"></i>
-      </div>
-      <div class="absolute top-2 text-yellow-300 text-base coin-anim-2 z-0">
-        <i class="fa-solid fa-circle-dollar-to-slot"></i>
-      </div>
-      <div class="absolute top-2 text-amber-400 text-lg coin-anim-3 z-0">
-        <i class="fa-solid fa-coins"></i>
-      </div>
-
-      <!-- Cofre de Porquinho -->
+      <div class="absolute top-2 text-amber-400 text-lg coin-anim-1 z-0"><i class="fa-solid fa-coins"></i></div>
+      <div class="absolute top-2 text-yellow-300 text-base coin-anim-2 z-0"><i class="fa-solid fa-circle-dollar-to-slot"></i></div>
+      <div class="absolute top-2 text-amber-400 text-lg coin-anim-3 z-0"><i class="fa-solid fa-coins"></i></div>
       <div class="absolute bottom-0 text-brand-green text-5xl piggy-anim z-20 drop-shadow-[0_4px_12px_rgba(0,176,107,0.4)]">
         <i class="fa-solid fa-piggy-bank"></i>
       </div>
     </div>
-
     <div class="text-center space-y-1">
       <p class="text-sm font-black tracking-wider text-white">Nosso Bolso</p>
       <p class="text-[11px] font-medium text-white/60 animate-pulse">Organizando suas moedas...</p>
@@ -185,7 +195,6 @@
 
       <!-- CARD GIGANTE COMPACTO -->
       <div class="bg-gradient-to-r from-brand-card to-emerald-600 rounded-[1.5rem] p-4 text-white shadow-xl relative overflow-hidden">
-        <!-- Botão Ocultar (Inicia fechado) -->
         <button onclick="toggleVisibility()" class="absolute top-4 right-4 p-1 hover:text-white/80 transition cursor-pointer z-50">
           <i class="fa-solid fa-eye-slash text-[11px] text-white/50" id="eyeIcon"></i>
         </button>
@@ -235,12 +244,10 @@
           <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
         </div>
         
-        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2 px-1">
-          <!-- Renderizado via JS -->
-        </div>
+        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2 px-1"></div>
       </div>
       
-      <!-- BALÃO DE DICA (GRADIENTE ESCURO) -->
+      <!-- BALÃO DE DICA -->
       <div onclick="proximaDica()" class="cursor-pointer bg-gradient-to-r from-[#072f20] to-[#0a5238] rounded-[1.5rem] py-3.5 px-4 flex items-center gap-3 text-white shadow-md relative overflow-hidden active:scale-[0.98] transition-transform">
          <div class="text-[#eab308] text-2xl flex-shrink-0 z-10">
            <i class="fa-regular fa-lightbulb"></i>
@@ -260,15 +267,51 @@
         <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1.5rem] px-5 py-3 text-sm font-bold focus:outline-none shadow-sm" />
       </div>
       <div class="grid grid-cols-3 gap-2">
-        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1rem] px-3 py-2 text-xs font-bold focus:outline-none shadow-sm"><option value="">👤 Membros</option></select>
-        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1rem] px-3 py-2 text-xs font-bold focus:outline-none shadow-sm"><option value="">🏷️ Categorias</option><option value="Gastos Fixos">Fixos</option><option value="Gastos Gerais">Gerais</option><option value="Lazer">Lazer</option><option value="Investimentos">Invest.</option></select>
-        <button onclick="toggleFiltroAvancado()" class="bg-white dark:bg-slate-800 border-none text-slate-700 dark:text-slate-200 rounded-[1rem] px-3 py-2 text-xs font-bold shadow-sm flex items-center justify-center gap-1"><i class="fa-solid fa-filter text-emerald-600"></i> Filtros</button>
+        <select id="filterStatus" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1rem] px-2.5 py-2 text-xs font-bold focus:outline-none shadow-sm">
+          <option value="">📋 Status</option>
+          <option value="pending">⏳ Pendentes</option>
+          <option value="confirmed">✓ Registados</option>
+        </select>
+        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1rem] px-2.5 py-2 text-xs font-bold focus:outline-none shadow-sm">
+          <option value="">🏷️ Categorias</option>
+          <option value="Gastos Fixos">Fixos</option>
+          <option value="Gastos Gerais">Gerais</option>
+          <option value="Lazer">Lazer</option>
+          <option value="Investimentos">Invest.</option>
+        </select>
+        <button onclick="toggleFiltroAvancado()" class="bg-white dark:bg-slate-800 border-none text-slate-700 dark:text-slate-200 rounded-[1rem] px-3 py-2 text-xs font-bold shadow-sm flex items-center justify-center gap-1">
+          <i class="fa-solid fa-filter text-emerald-600"></i> Mais
+        </button>
       </div>
-      <div id="containerFiltroAvancado" class="grid grid-cols-2 gap-3 bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] hidden shadow-sm">
-        <div><span class="text-[10px] font-bold text-slate-400 block mb-2 uppercase tracking-wider">Subcategorias</span><div id="filterSubCatCheckboxes" class="space-y-1.5 max-h-28 overflow-y-auto pr-1 text-xs"></div></div>
-        <div><span class="text-[10px] font-bold text-slate-400 block mb-2 uppercase tracking-wider">Forma Pagamento</span><select id="filterPaymentMethod" onchange="renderTransactionsList(transactions)" class="w-full bg-slate-50 dark:bg-slate-900 border-none dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"><option value="">Todas</option><option value="PIX">PIX</option><option value="Cartão de Crédito">Cartão</option><option value="Outros">Outros</option></select></div>
+
+      <!-- BOTÃO CONFIRMAR TODOS OS PENDENTES (SÓ APARECE QUANDO FILTRADO POR PENDENTES) -->
+      <div id="btnConfirmAllContainer" class="hidden">
+        <button onclick="confirmarTodosPendentes()" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-md flex items-center justify-center gap-2 transition active:scale-95">
+          <i class="fa-solid fa-check-double"></i> Confirmar Todos os Pendentes (<span id="countPendentesBtn">0</span>)
+        </button>
       </div>
-      <div id="filterTotalBox" class="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-[1rem] flex items-center justify-between hidden"><span class="text-xs font-extrabold text-emerald-900 dark:text-emerald-300 uppercase">Total do Filtro:</span><span id="filterTotalValue" class="text-sm font-black text-emerald-700 dark:text-emerald-400">R$ 0,00</span></div>
+
+      <div id="containerFiltroAvancado" class="space-y-3 bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] hidden shadow-sm">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 block mb-1.5 uppercase tracking-wider">Membro</span>
+            <select id="filterMember" onchange="renderTransactionsList(transactions)" class="w-full bg-slate-50 dark:bg-slate-900 border-none dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"><option value="">Todos</option></select>
+          </div>
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 block mb-1.5 uppercase tracking-wider">Pagamento / Cartão</span>
+            <select id="filterPaymentMethod" onchange="renderTransactionsList(transactions)" class="w-full bg-slate-50 dark:bg-slate-900 border-none dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"><option value="">Todos</option></select>
+          </div>
+        </div>
+        <div>
+          <span class="text-[10px] font-bold text-slate-400 block mb-1.5 uppercase tracking-wider">Subcategorias</span>
+          <div id="filterSubCatCheckboxes" class="grid grid-cols-2 gap-1.5 text-xs"></div>
+        </div>
+      </div>
+
+      <div id="filterTotalBox" class="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-[1rem] flex items-center justify-between hidden">
+        <span class="text-xs font-extrabold text-emerald-900 dark:text-emerald-300 uppercase">Total do Filtro:</span>
+        <span id="filterTotalValue" class="text-sm font-black text-emerald-700 dark:text-emerald-400">•••••</span>
+      </div>
       
       <div id="txListContainer" class="space-y-2 pt-1"></div>
     </div>
@@ -284,14 +327,25 @@
 
     <!-- ABA GRÁFICOS -->
     <div id="tab-graficos" class="w-full space-y-4 hidden fade-transition pb-28 pt-2">
-      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] shadow-sm space-y-4">
-        <div class="flex items-center gap-2"><div class="text-blue-600 text-lg"><i class="fa-solid fa-chart-pie"></i></div><h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Distribuição de Gastos</h3></div>
-        <div class="grid grid-cols-2 gap-4 items-center"><div class="h-28 relative"><canvas id="categoryPieChart"></canvas></div><div class="h-28 relative"><canvas id="categoryBarChart"></canvas></div></div>
+      <!-- Gráfico 1: Distribuição por Categoria (Rosca mais ampla e limpa) -->
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] shadow-sm space-y-3">
+        <div class="flex items-center gap-2"><div class="text-blue-600 text-lg"><i class="fa-solid fa-chart-pie"></i></div><h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Distribuição por Categoria</h3></div>
+        <div class="h-36 relative w-full"><canvas id="categoryPieChart"></canvas></div>
       </div>
+
+      <!-- Gráfico 2: Evolução dos Últimos 6 Meses -->
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] shadow-sm space-y-3">
+        <div class="flex items-center gap-2"><div class="text-indigo-500 text-lg"><i class="fa-solid fa-chart-line"></i></div><h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Evolução (Últimos 6 Meses)</h3></div>
+        <div class="h-36 relative w-full"><canvas id="evolutionBarChart"></canvas></div>
+      </div>
+
+      <!-- Gráfico 3: Subcategorias -->
       <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] shadow-sm space-y-3">
         <div class="flex items-center gap-2"><div class="text-emerald-500 text-lg"><i class="fa-solid fa-tags"></i></div><h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Por Subcategoria</h3></div>
-        <div class="h-32 relative w-full"><canvas id="subCategoryBarChart"></canvas></div>
+        <div class="h-36 relative w-full"><canvas id="subCategoryBarChart"></canvas></div>
       </div>
+
+      <!-- Gráfico 4: Formas de Pagamento / Cartões -->
       <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] shadow-sm space-y-3">
         <div class="flex items-center gap-2"><div class="text-purple-500 text-lg"><i class="fa-solid fa-credit-card"></i></div><h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Formas de Pagamento</h3></div>
         <div class="h-32 relative w-full"><canvas id="paymentMethodBarChart"></canvas></div>
@@ -301,14 +355,12 @@
 
   <!-- NAVEGAÇÃO INFERIOR E BOTÃO FLUTUANTE -->
   <div class="fixed bottom-0 left-0 right-0 z-40">
-    <!-- Botão flutuante mais baixo (-top-1.5), sem borda e com sombra suave -->
     <div class="absolute left-1/2 transform -translate-x-1/2 -top-1.5 z-50">
       <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-[#042418] to-[#0a5238] text-white rounded-full flex items-center justify-center shadow-[0_6px_16px_rgba(4,36,24,0.4)] hover:scale-105 active:scale-95 transition-all duration-200 text-2xl font-light">
         <i class="fa-solid fa-plus"></i>
       </button>
     </div>
 
-    <!-- Barra de navegação inferior -->
     <nav class="bg-white dark:bg-slate-900 rounded-t-[1.5rem] px-3 pt-3 pb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:border-t dark:border-slate-800 relative z-40">
       <div class="mx-auto max-w-md grid grid-cols-5 items-end">
         <button onclick="switchTab('resumo')" id="bottomNavResumo" class="relative flex flex-col items-center justify-center text-brand-green pb-2">
@@ -321,7 +373,7 @@
           <span class="text-[9px] font-bold">Extrato</span>
           <div id="indicatorExtrato" class="absolute bottom-0 w-6 h-1 bg-brand-green rounded-t-full hidden"></div>
         </button>
-        <div></div> <!-- Espaço central para o botão flutuante -->
+        <div></div>
         <button onclick="switchTab('invest')" id="bottomNavInvest" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 pb-2 transition">
           <i class="fa-solid fa-chart-line text-xl mb-1"></i>
           <span class="text-[9px] font-bold">Invest</span>
@@ -336,15 +388,15 @@
     </nav>
   </div>
 
-  <!-- MODAIS Lançamento -->
+  <!-- MODAL Lançamento -->
   <div id="newTxModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 hidden backdrop-blur-md">
-    <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-6 rounded-[2rem] space-y-4 shadow-2xl">
+    <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-6 rounded-[2rem] space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
         <h3 id="modalTxTitle" class="text-sm font-extrabold text-slate-900 dark:text-white uppercase">Novo Lançamento</h3>
         <button onclick="closeNewTxModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <form id="txForm" onsubmit="handleSaveTransaction(event)" class="space-y-4">
+      <form id="txForm" onsubmit="handleSaveTransaction(event)" class="space-y-3.5">
         <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl">
           <label id="labelTabEntrada" onclick="selecionarTipoTx('INCOME')" class="w-1/2 text-center py-2.5 text-xs font-extrabold rounded-[1rem] cursor-pointer text-slate-500 dark:text-slate-400 transition">
             <input type="radio" name="txType" value="INCOME" onchange="toggleTxTypeUI()" class="hidden" /> Entrada
@@ -355,25 +407,25 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-500 mb-1.5">Descrição</label>
-          <input type="text" id="txDesc" required placeholder="Ex: Supermercado" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold focus:outline-none focus:border-brand-green" />
+          <label class="block text-xs font-bold text-slate-500 mb-1">Descrição</label>
+          <input type="text" id="txDesc" required placeholder="Ex: Supermercado" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-4 py-2.5 text-sm font-bold focus:outline-none focus:border-brand-green" />
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1.5">Valor (R$)</label>
-            <input type="number" step="0.01" id="txAmount" required placeholder="0,00" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold focus:outline-none focus:border-brand-green" />
+            <label class="block text-xs font-bold text-slate-500 mb-1">Valor (R$)</label>
+            <input type="number" step="0.01" id="txAmount" required placeholder="0,00" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-4 py-2.5 text-sm font-bold focus:outline-none focus:border-brand-green" />
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1.5">Data Início</label>
-            <input type="date" id="txDate" required class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold focus:outline-none focus:border-brand-green" />
+            <label class="block text-xs font-bold text-slate-500 mb-1">Data Compra</label>
+            <input type="date" id="txDate" required class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-brand-green" />
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1.5">Categoria</label>
-            <select id="txCat" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 px-3 py-3 text-xs font-bold focus:outline-none bg-white dark:bg-slate-800 dark:text-white">
+            <label class="block text-xs font-bold text-slate-500 mb-1">Categoria</label>
+            <select id="txCat" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-xs font-bold focus:outline-none bg-white dark:bg-slate-800 dark:text-white">
               <option value="Gastos Fixos">Gastos Fixos</option>
               <option value="Gastos Gerais">Gastos Gerais</option>
               <option value="Lazer">Lazer</option>
@@ -381,8 +433,8 @@
             </select>
           </div>
           <div id="containerSubCat">
-            <label class="block text-xs font-bold text-slate-500 mb-1.5">Subcategoria</label>
-            <select id="txSubCat" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 px-3 py-3 text-xs font-bold focus:outline-none bg-white dark:bg-slate-800 dark:text-white">
+            <label class="block text-xs font-bold text-slate-500 mb-1">Subcategoria</label>
+            <select id="txSubCat" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-xs font-bold focus:outline-none bg-white dark:bg-slate-800 dark:text-white">
               <option value="Transporte">🚗 Transporte</option>
               <option value="Alimentação">🍔 Alimentação</option>
               <option value="Telefonia">📱 Telefonia</option>
@@ -394,34 +446,45 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-500 mb-1.5">Forma de Pagamento</label>
-          <select id="txPaymentMethod" required onchange="toggleParcelasUI()" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm font-bold focus:outline-none bg-white dark:bg-slate-800 dark:text-white">
+          <label class="block text-xs font-bold text-slate-500 mb-1">Forma de Pagamento</label>
+          <select id="txPaymentMethod" required onchange="toggleParcelasUI()" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm font-bold focus:outline-none bg-white dark:bg-slate-800 dark:text-white">
             <option value="PIX">⚡ PIX</option>
             <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
             <option value="Outros">🔄 Outros</option>
           </select>
         </div>
 
-        <div id="containerParcelas" class="space-y-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-[1.5rem] border border-slate-200 dark:border-slate-700 hidden">
+        <!-- Opção de Parcelamento (Cartões) -->
+        <div id="containerParcelas" class="space-y-3 p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 hidden">
           <div>
             <label class="block text-[11px] font-bold text-slate-500 mb-1">Tipo de Compra no Cartão</label>
-            <select id="txTipoCartao" onchange="toggleNumeroParcelas()" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-xs font-bold focus:outline-none bg-white dark:bg-slate-900 dark:text-white">
-              <option value="AVista" selected>À Vista</option>
+            <select id="txTipoCartao" onchange="toggleNumeroParcelas()" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-bold focus:outline-none bg-white dark:bg-slate-900 dark:text-white">
+              <option value="AVista" selected>À Vista (1x na fatura)</option>
               <option value="Parcelado">Parcelado</option>
             </select>
           </div>
           <div id="containerNumParcelas" class="hidden">
             <label class="block text-[11px] font-bold text-slate-500 mb-1">Número de Parcelas</label>
-            <input type="number" id="txQtdParcelas" min="2" max="60" value="2" placeholder="Ex: 10" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-xs font-bold focus:outline-none dark:text-white" />
+            <input type="number" id="txQtdParcelas" min="2" max="60" value="2" placeholder="Ex: 10" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold focus:outline-none dark:text-white" />
           </div>
+          <p id="avisoFechamentoCartao" class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold hidden"></p>
         </div>
 
-        <button type="submit" class="w-full py-4 bg-brand-green text-white rounded-[1rem] text-sm font-extrabold shadow-md">Guardar Lançamento</button>
+        <!-- Opção de Recorrência / Assinatura (Apenas Saídas novas) -->
+        <div id="containerRecorrencia" class="flex items-center justify-between p-3 bg-blue-50/60 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900/40">
+          <div>
+            <span class="text-xs font-extrabold text-slate-700 dark:text-slate-200 block">🔄 Assinatura / Mensal</span>
+            <span class="text-[10px] text-slate-500 dark:text-slate-400">Repete automaticamente por 12 meses</span>
+          </div>
+          <input type="checkbox" id="txRecorrente" onchange="toggleRecorrenciaUI()" class="w-4 h-4 rounded text-brand-green focus:ring-0 cursor-pointer" />
+        </div>
+
+        <button type="submit" class="w-full py-3.5 bg-brand-green text-white rounded-[1rem] text-sm font-extrabold shadow-md">Guardar Lançamento</button>
       </form>
     </div>
   </div>
 
-  <!-- MODAIS Configurações -->
+  <!-- MODAL Configurações -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 hidden backdrop-blur-md">
     <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-6 rounded-[2rem] space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -440,20 +503,41 @@
         <button onclick="copyWorkspaceCountCode()" class="px-3 py-2 bg-brand-green text-white rounded-xl text-[11px] font-extrabold shadow-sm"><i class="fa-solid fa-copy mr-1"></i>Copiar</button>
       </div>
 
-      <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-[1.5rem] flex items-center justify-between">
-        <div>
-          <span class="text-[10px] font-bold text-slate-400 uppercase block">Gastos Fixos</span>
-          <span class="text-xs font-extrabold text-slate-700 dark:text-slate-200">Importar Mês Ant.</span>
+      <!-- GESTÃO DE CARTÕES DE CRÉDITO -->
+      <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-[1.5rem] space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">Meus Cartões</span>
+            <span class="text-xs font-extrabold text-slate-700 dark:text-slate-200">Fechamento de Fatura</span>
+          </div>
+          <i class="fa-solid fa-credit-card text-indigo-500"></i>
         </div>
-        <button id="btnImportarFixos" onclick="importarGastosFixosMesAnterior()" class="px-3 py-2 bg-blue-600 text-white rounded-xl text-[11px] font-extrabold shadow-sm"><i class="fa-solid fa-file-arrow-down mr-1"></i>Importar</button>
+
+        <form onsubmit="adicionarCartaoGrupo(event)" class="flex gap-1.5">
+          <input type="text" id="novoCartaoNome" required placeholder="Ex: Nubank" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold focus:outline-none" />
+          <input type="number" id="novoCartaoFechamento" min="1" max="31" required placeholder="Dia" title="Dia de fechamento da fatura" class="w-16 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-2 text-center text-xs font-bold focus:outline-none" />
+          <button type="submit" class="bg-indigo-600 text-white px-3 rounded-xl text-xs font-bold shrink-0"><i class="fa-solid fa-plus"></i></button>
+        </form>
+
+        <div id="listaCartoesConfig" class="space-y-1.5 max-h-28 overflow-y-auto"></div>
       </div>
 
-      <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-[1.5rem] flex items-center justify-between">
-        <div>
-          <span class="text-[10px] font-bold text-slate-400 uppercase block">Dados do Mês</span>
-          <span class="text-xs font-extrabold text-slate-700 dark:text-slate-200">Exportar (CSV)</span>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-slate-50 dark:bg-slate-800 p-3 rounded-[1.25rem] flex flex-col justify-between gap-2">
+          <div>
+            <span class="text-[9px] font-bold text-slate-400 uppercase block">Gastos Fixos</span>
+            <span class="text-[11px] font-extrabold text-slate-700 dark:text-slate-200">Importar Mês Ant.</span>
+          </div>
+          <button id="btnImportarFixos" onclick="importarGastosFixosMesAnterior()" class="w-full py-2 bg-blue-600 text-white rounded-xl text-[10px] font-extrabold shadow-sm"><i class="fa-solid fa-file-arrow-down mr-1"></i>Importar</button>
         </div>
-        <button onclick="exportarParaExcel()" class="px-3 py-2 bg-emerald-600 text-white rounded-xl text-[11px] font-extrabold shadow-sm"><i class="fa-solid fa-file-excel mr-1"></i>Exportar</button>
+
+        <div class="bg-slate-50 dark:bg-slate-800 p-3 rounded-[1.25rem] flex flex-col justify-between gap-2">
+          <div>
+            <span class="text-[9px] font-bold text-slate-400 uppercase block">Dados do Mês</span>
+            <span class="text-[11px] font-extrabold text-slate-700 dark:text-slate-200">Exportar (CSV)</span>
+          </div>
+          <button onclick="exportarParaExcel()" class="w-full py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-extrabold shadow-sm"><i class="fa-solid fa-file-excel mr-1"></i>Exportar</button>
+        </div>
       </div>
 
       <div class="bg-brand-green/5 p-4 rounded-[1.5rem] space-y-3">
@@ -538,21 +622,21 @@
       <div id="containerEditSaldoLivre" class="hidden bg-slate-50 dark:bg-slate-800/50 p-4 rounded-[1.5rem] space-y-3">
         <label class="block text-[11px] font-bold text-slate-500">Saldo Base (R$)</label>
         <div class="flex gap-2">
-          <input type="number" step="0.01" id="inputNovoSaldoLivre" class="w-full rounded-xl px-4 py-3 text-sm font-bold focus:outline-none" />
+          <input type="number" step="0.01" id="inputNovoSaldoLivre" class="w-full rounded-xl px-4 py-3 text-sm font-bold focus:outline-none dark:bg-slate-900 dark:text-white" />
           <button onclick="salvarSaldoLivre()" class="bg-emerald-600 text-white px-5 rounded-xl text-xs font-bold">Salvar</button>
         </div>
       </div>
 
       <form onsubmit="adicionarGastoLivre(event)" class="space-y-3 pt-2">
-        <span class="text-[11px] font-extrabold text-slate-700 block uppercase">Registrar Gasto Livre</span>
+        <span class="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 block uppercase">Registrar Gasto Livre</span>
         <div class="grid grid-cols-3 gap-2">
-          <input type="text" id="descGastoLivre" required placeholder="Lanche" class="col-span-2 rounded-[1rem] bg-slate-50 px-4 py-3 text-xs font-bold focus:outline-none" />
-          <input type="number" step="0.01" id="valorGastoLivre" required placeholder="R$ 0,00" class="col-span-1 rounded-[1rem] bg-slate-50 px-4 py-3 text-xs font-bold focus:outline-none" />
+          <input type="text" id="descGastoLivre" required placeholder="Lanche" class="col-span-2 rounded-[1rem] bg-slate-50 dark:bg-slate-800 dark:text-white px-4 py-3 text-xs font-bold focus:outline-none" />
+          <input type="number" step="0.01" id="valorGastoLivre" required placeholder="R$ 0,00" class="col-span-1 rounded-[1rem] bg-slate-50 dark:bg-slate-800 dark:text-white px-4 py-3 text-xs font-bold focus:outline-none" />
         </div>
-        <button type="submit" class="w-full py-3.5 bg-slate-900 text-white rounded-[1rem] text-sm font-extrabold">Descontar</button>
+        <button type="submit" class="w-full py-3.5 bg-slate-900 dark:bg-emerald-600 text-white rounded-[1rem] text-sm font-extrabold">Descontar</button>
       </form>
 
-      <div class="space-y-3 pt-4 border-t border-slate-100">
+      <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
         <span class="text-[11px] font-extrabold text-slate-500 block uppercase">Histórico Privado</span>
         <div id="listaGastosLivres" class="space-y-2 max-h-36 overflow-y-auto pr-1"></div>
       </div>
@@ -581,7 +665,7 @@
       <div class="p-5 shrink-0 bg-slate-50 dark:bg-slate-800/50">
         <div class="flex justify-between items-end mb-2">
           <span class="text-xs font-bold text-slate-500 uppercase">Total Gasto</span>
-          <span id="detalheCatTotalGasto" class="text-xl font-black text-slate-900 dark:text-white">R$ 0,00</span>
+          <span id="detalheCatTotalGasto" class="text-xl font-black text-slate-900 dark:text-white">•••••</span>
         </div>
         <div class="flex items-center justify-between">
           <span class="text-[10px] font-bold text-slate-400">Meta: <span id="detalheCatMetaValor"></span></span>
