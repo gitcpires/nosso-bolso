@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  
   <link rel="manifest" href="manifest.json">
   <script>
     if ('serviceWorker' in navigator) {
@@ -19,7 +18,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icone-app.png">
   <link rel="icon" type="image/png" sizes="16x16" href="icone-app.png">
   
-  <meta name="theme-color" content="#f4f7fa">
+  <meta name="theme-color" content="#f0f4f8">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -28,13 +27,10 @@
       theme: {
         extend: {
           colors: {
-            'app-bg': '#f4f7fa',
-            'card-entrada': '#e8f7f0',
-            'text-entrada': '#11a768',
-            'card-saida': '#ffeceb',
-            'text-saida': '#e84c56',
-            'card-saldo': '#edf5ff',
-            'text-saldo': '#1c3d7a'
+            'app-bg': '#f0f4f8',
+            'brand-dark': '#0c241c',
+            'brand-green': '#00b06b',
+            'brand-card': '#074836'
           }
         }
       }
@@ -42,7 +38,7 @@
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -52,13 +48,62 @@
   <style>
     * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     ::-webkit-scrollbar { width: 0px; background: transparent; }
+    
+    .bg-header-waves {
+      background: radial-gradient(circle at top right, #104230 0%, #0c241c 70%);
+    }
+    .fade-transition { transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out; }
+
+    /* Animação das Moedas Caindo no Cofre */
+    @keyframes coinDrop {
+      0% { transform: translateY(-35px) scale(0.8); opacity: 0; }
+      30% { opacity: 1; }
+      70% { transform: translateY(8px) scale(1); opacity: 1; }
+      100% { transform: translateY(15px) scale(0.5); opacity: 0; }
+    }
+
+    @keyframes piggyBounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12, 0.92); }
+    }
+
+    .coin-anim-1 { animation: coinDrop 1.5s infinite ease-in; }
+    .coin-anim-2 { animation: coinDrop 1.5s infinite ease-in 0.5s; }
+    .coin-anim-3 { animation: coinDrop 1.5s infinite ease-in 1.0s; }
+    .piggy-anim { animation: piggyBounce 0.5s infinite ease-in-out; }
   </style>
 </head>
-<body class="bg-app-bg dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-28 antialiased transition-colors duration-200 min-h-screen overflow-x-hidden">
+<body class="bg-app-bg dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors duration-200 min-h-screen overflow-x-hidden flex flex-col">
 
-  <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-white space-y-4">
-    <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-    <p class="text-xs font-bold tracking-wider">A carregar o seu Nosso Bolso...</p>
+  <div class="absolute top-0 left-0 right-0 h-[260px] bg-header-waves dark:bg-slate-900 rounded-b-[3rem] z-0 shadow-lg"></div>
+
+  <!-- TELA DE CARREGAMENTO COM ANIMAÇÃO DO COFRE -->
+  <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-brand-dark text-white space-y-6">
+    <div class="relative w-24 h-24 flex items-end justify-center">
+      <!-- Fenda do Cofre -->
+      <div class="w-8 h-1.5 bg-black/50 rounded-full mb-11 z-10"></div>
+
+      <!-- Moedas Caindo -->
+      <div class="absolute top-2 text-amber-400 text-lg coin-anim-1 z-0">
+        <i class="fa-solid fa-coins"></i>
+      </div>
+      <div class="absolute top-2 text-yellow-300 text-base coin-anim-2 z-0">
+        <i class="fa-solid fa-circle-dollar-to-slot"></i>
+      </div>
+      <div class="absolute top-2 text-amber-400 text-lg coin-anim-3 z-0">
+        <i class="fa-solid fa-coins"></i>
+      </div>
+
+      <!-- Cofre de Porquinho -->
+      <div class="absolute bottom-0 text-brand-green text-5xl piggy-anim z-20 drop-shadow-[0_4px_12px_rgba(0,176,107,0.4)]">
+        <i class="fa-solid fa-piggy-bank"></i>
+      </div>
+    </div>
+
+    <div class="text-center space-y-1">
+      <p class="text-sm font-black tracking-wider text-white">Nosso Bolso</p>
+      <p class="text-[11px] font-medium text-white/60 animate-pulse">Organizando suas moedas...</p>
+    </div>
   </div>
 
   <div id="pendingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4 hidden">
@@ -75,12 +120,12 @@
         <h3 class="text-base font-extrabold">Configure o seu Espaço</h3>
       </div>
       <div class="space-y-3">
-        <button onclick="criarNovoWorkspace()" class="w-full p-4 rounded-2xl border-2 border-blue-500/35 bg-blue-50/40 text-left transition"><span class="text-xs font-extrabold text-blue-900">Criar Novo Grupo</span></button>
+        <button onclick="criarNovoWorkspace()" class="w-full p-4 rounded-2xl border-2 border-brand-green/35 bg-brand-green/10 text-left transition"><span class="text-xs font-extrabold text-brand-dark dark:text-brand-green">Criar Novo Grupo</span></button>
         <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3">
           <span class="text-xs font-extrabold">Entrar com Código</span>
           <div class="flex gap-2">
             <input type="text" id="inputWorkspaceCode" maxlength="4" placeholder="Ex: 8660" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-center text-xs font-bold" />
-            <button onclick="entrarGrupoExistente()" class="bg-blue-600 text-white px-4 rounded-xl text-xs font-bold">Entrar</button>
+            <button onclick="entrarGrupoExistente()" class="bg-brand-green text-white px-4 rounded-xl text-xs font-bold">Entrar</button>
           </div>
         </div>
       </div>
@@ -88,199 +133,208 @@
     </div>
   </div>
 
-  <header class="sticky top-0 z-40 w-full bg-app-bg/90 dark:bg-slate-950/90 backdrop-blur-md px-4 py-4 transition-colors duration-200">
-    <div class="mx-auto max-w-md space-y-5">
-      
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="relative">
-            <div class="w-[50px] h-[50px] rounded-full overflow-hidden shadow-sm bg-slate-900 border-[3px] border-white dark:border-slate-800 flex items-center justify-center">
-              <img src="icone-app.png" alt="Nosso Bolso" class="h-full w-full object-cover">
-            </div>
-            <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-400 border-[2.5px] border-white dark:border-slate-950 rounded-full"></span>
+  <header class="relative z-40 w-full pt-5 pb-2 px-5">
+    <div class="mx-auto max-w-md flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <div class="w-11 h-11 rounded-full overflow-hidden border-[2px] border-brand-green bg-slate-900 shadow-md">
+            <img src="icone-app.png" alt="Nosso Bolso" class="h-full w-full object-cover">
           </div>
-          <div>
-            <h1 id="headerUserName" class="text-lg font-black text-slate-900 dark:text-white truncate">Utilizador</h1>
-            <p id="headerWelcomeMsg" class="text-xs text-slate-500 dark:text-slate-400 font-medium">Grupo: ----</p>
-          </div>
+          <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-[1.5px] border-brand-dark rounded-full"></span>
         </div>
-        
-        <div class="flex items-center gap-2">
-          <button onclick="openCarteiraLivreModal()" class="w-[38px] h-[38px] rounded-full bg-emerald-100/70 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center hover:bg-emerald-200 transition" title="Carteira Livre">
-            <i class="fa-solid fa-wallet text-sm"></i>
-          </button>
-          <button onclick="toggleDarkMode()" class="w-[38px] h-[38px] rounded-full bg-indigo-900 dark:bg-slate-800 text-white dark:text-amber-400 flex items-center justify-center hover:bg-indigo-800 transition">
-            <i id="darkModeIcon" class="fa-solid fa-moon text-sm"></i>
-          </button>
-          <button onclick="openProfileModal()" class="w-[38px] h-[38px] rounded-full bg-blue-100/60 dark:bg-slate-800 text-blue-600 dark:text-slate-200 flex items-center justify-center hover:bg-blue-200 transition">
-            <i class="fa-solid fa-gear text-sm"></i>
-          </button>
+        <div class="text-white">
+          <h1 id="headerUserName" class="text-base font-black leading-tight tracking-tight">Nosso Bolso</h1>
+          <p class="text-[9px] text-white/70 font-medium leading-tight mt-0.5">Vida financeira organizada!</p>
         </div>
       </div>
-
-      <div class="flex items-center justify-center w-full">
-        <div class="flex items-center gap-3 bg-white dark:bg-slate-900 px-4 py-2 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:border dark:border-slate-800 w-full">
-          <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-            <i class="fa-regular fa-calendar text-lg"></i>
-            <span class="text-sm font-medium">Mês / Ano:</span>
-          </div>
-          <div class="flex gap-2 ml-auto">
-            <select id="selectMonth" onchange="changeActiveMonthCombo()" class="bg-app-bg dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white rounded-full px-3 py-1.5 focus:outline-none cursor-pointer appearance-none text-center pr-6 relative">
-              <option value="Janeiro">Janeiro</option>
-              <option value="Fevereiro">Fevereiro</option>
-              <option value="Março">Março</option>
-              <option value="Abril">Abril</option>
-              <option value="Maio">Maio</option>
-              <option value="Junho">Junho</option>
-              <option value="Julho">Julho</option>
-              <option value="Agosto">Agosto</option>
-              <option value="Setembro">Setembro</option>
-              <option value="Outubro">Outubro</option>
-              <option value="Novembro">Novembro</option>
-              <option value="Dezembro">Dezembro</option>
-            </select>
-            <select id="selectYear" onchange="changeActiveMonthCombo()" class="bg-app-bg dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white rounded-full px-3 py-1.5 focus:outline-none cursor-pointer appearance-none text-center pr-6 relative">
-              <option value="2026">2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
-            </select>
-          </div>
-        </div>
+      
+      <div class="flex items-center gap-2">
+        <button onclick="openCarteiraLivreModal()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Carteira Privada">
+          <i class="fa-solid fa-user-secret text-sm"></i>
+        </button>
+        <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Modo Escuro">
+          <i id="darkModeIcon" class="fa-solid fa-moon text-sm"></i>
+        </button>
+        <button onclick="openProfileModal()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Configurações">
+          <i class="fa-solid fa-gear text-sm"></i>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- ESTRUTURA ORIGINAL (S/ Flexbox - Altura respeitada perfeitamente) -->
-  <main id="mainSwipeContainer" class="mx-auto max-w-md px-4 pt-1 space-y-5">
-
-      <!-- ABA RESUMO -->
-      <div id="tab-resumo" class="min-w-full px-4 space-y-5">
-        
-        <!-- CARDS TOPO: Esticados com -mx-2, gap menor e menos padding interno -->
-        <div class="grid grid-cols-3 gap-1.5 -mx-2">
-          <div class="bg-card-entrada dark:bg-emerald-900/20 p-2.5 rounded-[1.25rem] shadow-[0_4px_10px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[4/3]">
-            <div class="w-[26px] h-[26px] bg-emerald-400 text-white rounded-full flex items-center justify-center">
-              <i class="fa-solid fa-arrow-trend-up text-[10px]"></i>
-            </div>
-            <div class="mt-1.5">
-              <span class="text-[10px] font-medium text-slate-700 dark:text-emerald-500/80 block leading-tight">Entradas</span>
-              <div id="statIncome" class="text-[13px] font-black text-text-entrada dark:text-emerald-400 mt-0.5 tracking-tighter leading-tight">R$ 0,00</div>
-            </div>
-          </div>
-          
-          <div class="bg-card-saida dark:bg-rose-900/20 p-2.5 rounded-[1.25rem] shadow-[0_4px_10px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[4/3]">
-            <div class="w-[26px] h-[26px] bg-rose-400 text-white rounded-full flex items-center justify-center">
-              <i class="fa-solid fa-arrow-trend-down text-[10px]"></i>
-            </div>
-            <div class="mt-1.5">
-              <span class="text-[10px] font-medium text-slate-700 dark:text-rose-500/80 block leading-tight">Saídas</span>
-              <div id="statExpense" class="text-[13px] font-black text-text-saida dark:text-rose-400 mt-0.5 tracking-tighter leading-tight">R$ 0,00</div>
-            </div>
-          </div>
-          
-          <div class="bg-card-saldo dark:bg-blue-900/20 p-2.5 rounded-[1.25rem] shadow-[0_4px_10px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[4/3]">
-            <div class="w-[26px] h-[26px] bg-blue-500 text-white rounded-full flex items-center justify-center">
-              <i class="fa-solid fa-scale-balanced text-[10px]"></i>
-            </div>
-            <div class="mt-1.5">
-              <span class="text-[10px] font-medium text-slate-700 dark:text-blue-500/80 block leading-tight">Saldo</span>
-              <div id="statBalance" class="text-[13px] font-black text-text-saldo dark:text-blue-300 mt-0.5 tracking-tighter leading-tight">R$ 0,00</div>
-            </div>
-          </div>
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main id="mainSwipeContainer" class="relative z-30 mx-auto max-w-md px-4 flex-grow w-full flex flex-col">
+    
+    <!-- ABA RESUMO -->
+    <div id="tab-resumo" class="w-full flex flex-col space-y-3.5 flex-grow fade-transition pb-24">
+      
+      <div class="flex items-center justify-between bg-white dark:bg-slate-800 py-1.5 px-3 rounded-[1rem] shadow-sm">
+        <div class="flex items-center gap-1.5 pl-1 text-slate-500 dark:text-slate-400">
+          <i class="fa-regular fa-calendar text-sm"></i>
+          <span class="text-[11px] font-bold">Mês / Ano:</span>
         </div>
-
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-4">
-          <div class="flex items-center justify-between cursor-pointer" onclick="openProfileModal()">
-            <div class="flex items-center gap-3">
-              <div class="text-amber-500 text-xl"><i class="fa-solid fa-trophy"></i></div>
-              <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Progresso de Metas</h3>
-            </div>
-            <i class="fa-solid fa-chevron-right text-slate-400 text-sm"></i>
-          </div>
-          <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-3 pt-2"></div>
+        <div class="flex gap-1.5">
+          <select id="selectMonth" onchange="changeActiveMonthCombo()" class="bg-slate-50 dark:bg-slate-900 text-[11px] font-extrabold text-slate-800 dark:text-white rounded-lg px-2 py-1 focus:outline-none cursor-pointer appearance-none text-center">
+            <option value="Janeiro">Jan</option><option value="Fevereiro">Fev</option><option value="Março">Mar</option><option value="Abril">Abr</option><option value="Maio">Mai</option><option value="Junho">Jun</option><option value="Julho">Jul</option><option value="Agosto">Ago</option><option value="Setembro">Set</option><option value="Outubro">Out</option><option value="Novembro" selected>Nov</option><option value="Dezembro">Dez</option>
+          </select>
+          <select id="selectYear" onchange="changeActiveMonthCombo()" class="bg-slate-50 dark:bg-slate-900 text-[11px] font-extrabold text-slate-800 dark:text-white rounded-lg px-2 py-1 focus:outline-none cursor-pointer appearance-none text-center">
+            <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
+          </select>
         </div>
       </div>
 
+      <!-- CARD GIGANTE COMPACTO -->
+      <div class="bg-gradient-to-r from-brand-card to-emerald-600 rounded-[1.5rem] p-4 text-white shadow-xl relative overflow-hidden">
+        <!-- Botão Ocultar (Inicia fechado) -->
+        <button onclick="toggleVisibility()" class="absolute top-4 right-4 p-1 hover:text-white/80 transition cursor-pointer z-50">
+          <i class="fa-solid fa-eye-slash text-[11px] text-white/50" id="eyeIcon"></i>
+        </button>
 
+        <div class="absolute bottom-0 right-0 opacity-20 w-32 h-16 flex items-end gap-1">
+          <div class="w-4 bg-white rounded-t-sm h-4"></div><div class="w-4 bg-white rounded-t-sm h-8"></div><div class="w-4 bg-white rounded-t-sm h-12"></div><div class="w-4 bg-white rounded-t-sm h-16"></div>
+        </div>
+
+        <div class="relative z-10 flex flex-col pr-8">
+          <div class="flex items-center text-white/80 font-bold text-[11px] mb-0.5">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-chart-simple"></i> Saldo Atual</span>
+          </div>
+          <div id="statBigBalance" class="text-3xl font-black tracking-tighter truncate">•••••</div>
+        </div>
+      </div>
+
+      <!-- 2 MINI CARDS HORIZONTAIS -->
+      <div class="grid grid-cols-2 gap-3 shrink-0">
+        <div class="bg-white dark:bg-slate-800 p-3.5 rounded-[1.25rem] shadow-sm flex flex-col justify-center border border-slate-50 dark:border-slate-700/50">
+          <div class="flex items-center gap-2 mb-1.5">
+            <div class="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-arrow-trend-up text-[13px]"></i>
+            </div>
+            <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">Entradas</span>
+          </div>
+          <div id="statIncome" class="text-[15px] font-black text-emerald-600 dark:text-emerald-400 tracking-tighter truncate">•••••</div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-800 p-3.5 rounded-[1.25rem] shadow-sm flex flex-col justify-center border border-slate-50 dark:border-slate-700/50">
+          <div class="flex items-center gap-2 mb-1.5">
+            <div class="w-8 h-8 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-arrow-trend-down text-[13px]"></i>
+            </div>
+            <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">Saídas</span>
+          </div>
+          <div id="statExpense" class="text-[15px] font-black text-rose-600 dark:text-rose-400 tracking-tighter truncate">•••••</div>
+        </div>
+      </div>
+
+      <!-- CONTAINER METAS -->
+      <div class="bg-white dark:bg-slate-900 p-3 pt-4 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-2.5 shrink-0">
+        <div class="flex items-center justify-between cursor-pointer px-2" onclick="openProfileModal()">
+          <div class="flex items-center gap-2.5">
+            <div class="text-amber-500 text-lg"><i class="fa-solid fa-trophy"></i></div>
+            <h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Progresso de Metas</h3>
+          </div>
+          <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+        </div>
+        
+        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2 px-1">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+      
+      <!-- BALÃO DE DICA (GRADIENTE ESCURO) -->
+      <div onclick="proximaDica()" class="cursor-pointer bg-gradient-to-r from-[#072f20] to-[#0a5238] rounded-[1.5rem] py-3.5 px-4 flex items-center gap-3 text-white shadow-md relative overflow-hidden active:scale-[0.98] transition-transform">
+         <div class="text-[#eab308] text-2xl flex-shrink-0 z-10">
+           <i class="fa-regular fa-lightbulb"></i>
+         </div>
+         <div class="z-10 pr-6 flex-1">
+           <h4 id="bannerTitulo" class="text-[12px] font-extrabold leading-tight mb-0.5">Você está indo bem!</h4>
+           <p id="bannerSubtitulo" class="text-[10px] text-white/90 leading-tight">Continue organizando suas finanças.</p>
+         </div>
+         <i class="fa-solid fa-chevron-right text-[12px] text-white/40 absolute right-4 z-10"></i>
+      </div>
+
+    </div>
 
     <!-- ABA EXTRATO -->
-    <div id="tab-extrato" class="space-y-4 hidden">
+    <div id="tab-extrato" class="w-full space-y-3 hidden fade-transition pb-28 pt-2">
        <div class="flex gap-2">
-        <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-900 border-none dark:border-slate-800 dark:text-white rounded-[1.5rem] px-5 py-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-[0_4px_12px_rgba(0,0,0,0.03)]" />
+        <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1.5rem] px-5 py-3 text-sm font-bold focus:outline-none shadow-sm" />
       </div>
       <div class="grid grid-cols-3 gap-2">
-        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border-none dark:border-slate-800 dark:text-white rounded-[1rem] px-3 py-3 text-xs font-bold focus:outline-none shadow-[0_4px_12px_rgba(0,0,0,0.03)]"><option value="">👤 Membros</option></select>
-        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-900 border-none dark:border-slate-800 dark:text-white rounded-[1rem] px-3 py-3 text-xs font-bold focus:outline-none shadow-[0_4px_12px_rgba(0,0,0,0.03)]"><option value="">🏷️ Categorias</option><option value="Gastos Fixos">Fixos</option><option value="Gastos Gerais">Gerais</option><option value="Lazer">Lazer</option><option value="Investimentos">Invest.</option></select>
-        <button onclick="toggleFiltroAvancado()" class="bg-white dark:bg-slate-900 border-none dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-[1rem] px-3 py-3 text-xs font-bold shadow-[0_4px_12px_rgba(0,0,0,0.03)] flex items-center justify-center gap-1"><i class="fa-solid fa-filter text-blue-600"></i> Filtros</button>
+        <select id="filterMember" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1rem] px-3 py-2 text-xs font-bold focus:outline-none shadow-sm"><option value="">👤 Membros</option></select>
+        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1rem] px-3 py-2 text-xs font-bold focus:outline-none shadow-sm"><option value="">🏷️ Categorias</option><option value="Gastos Fixos">Fixos</option><option value="Gastos Gerais">Gerais</option><option value="Lazer">Lazer</option><option value="Investimentos">Invest.</option></select>
+        <button onclick="toggleFiltroAvancado()" class="bg-white dark:bg-slate-800 border-none text-slate-700 dark:text-slate-200 rounded-[1rem] px-3 py-2 text-xs font-bold shadow-sm flex items-center justify-center gap-1"><i class="fa-solid fa-filter text-emerald-600"></i> Filtros</button>
       </div>
-      <div id="containerFiltroAvancado" class="grid grid-cols-2 gap-3 bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] hidden shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
+      <div id="containerFiltroAvancado" class="grid grid-cols-2 gap-3 bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] hidden shadow-sm">
         <div><span class="text-[10px] font-bold text-slate-400 block mb-2 uppercase tracking-wider">Subcategorias</span><div id="filterSubCatCheckboxes" class="space-y-1.5 max-h-28 overflow-y-auto pr-1 text-xs"></div></div>
-        <div><span class="text-[10px] font-bold text-slate-400 block mb-2 uppercase tracking-wider">Forma Pagamento</span><select id="filterPaymentMethod" onchange="renderTransactionsList(transactions)" class="w-full bg-slate-50 dark:bg-slate-800 border-none dark:border-slate-700 dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"><option value="">Todas</option><option value="PIX">PIX</option><option value="Cartão de Crédito">Cartão</option><option value="Outros">Outros</option></select></div>
+        <div><span class="text-[10px] font-bold text-slate-400 block mb-2 uppercase tracking-wider">Forma Pagamento</span><select id="filterPaymentMethod" onchange="renderTransactionsList(transactions)" class="w-full bg-slate-50 dark:bg-slate-900 border-none dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"><option value="">Todas</option><option value="PIX">PIX</option><option value="Cartão de Crédito">Cartão</option><option value="Outros">Outros</option></select></div>
       </div>
-      <div id="filterTotalBox" class="bg-blue-50 dark:bg-slate-800 p-4 rounded-[1.5rem] border border-blue-100 dark:border-slate-700 flex items-center justify-between hidden"><span class="text-xs font-extrabold text-blue-900 dark:text-blue-300 uppercase">Total do Filtro:</span><span id="filterTotalValue" class="text-sm font-black text-blue-700 dark:text-blue-400">R$ 0,00</span></div>
-      <div id="txListContainer" class="space-y-3 pt-1"></div>
+      <div id="filterTotalBox" class="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-[1rem] flex items-center justify-between hidden"><span class="text-xs font-extrabold text-emerald-900 dark:text-emerald-300 uppercase">Total do Filtro:</span><span id="filterTotalValue" class="text-sm font-black text-emerald-700 dark:text-emerald-400">R$ 0,00</span></div>
+      
+      <div id="txListContainer" class="space-y-2 pt-1"></div>
     </div>
 
     <!-- ABA INVESTIMENTOS -->
-    <div id="tab-invest" class="space-y-4 hidden">
-       <div class="grid grid-cols-2 gap-3">
-        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-5 rounded-[2rem] text-white shadow-lg space-y-2"><span class="text-[10px] font-bold text-indigo-300 uppercase block">Investido no Mês</span><div id="monthInvestTotalHeader" class="text-lg sm:text-xl font-black text-emerald-400 truncate">R$ 0,00</div></div>
-        <div class="bg-gradient-to-br from-emerald-900 to-teal-950 p-5 rounded-[2rem] text-white shadow-lg space-y-2"><span class="text-[10px] font-bold text-emerald-300 uppercase block">Acumulado (Ano)</span><div id="yearInvestTotalHeader" class="text-lg sm:text-xl font-black text-white truncate">R$ 0,00</div></div>
+    <div id="tab-invest" class="w-full space-y-3 hidden fade-transition pb-28 pt-2">
+       <div class="grid grid-cols-2 gap-2">
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-4 rounded-[1.5rem] text-white shadow-lg space-y-1"><span class="text-[9px] font-bold text-indigo-300 uppercase block">Investido no Mês</span><div id="monthInvestTotalHeader" class="text-lg font-black text-emerald-400 truncate">•••••</div></div>
+        <div class="bg-gradient-to-br from-emerald-900 to-teal-950 p-4 rounded-[1.5rem] text-white shadow-lg space-y-1"><span class="text-[9px] font-bold text-emerald-300 uppercase block">Acumulado (Ano)</span><div id="yearInvestTotalHeader" class="text-lg font-black text-white truncate">•••••</div></div>
       </div>
-      <div id="monthInvestmentsList" class="space-y-3 pt-1"></div>
+      <div id="monthInvestmentsList" class="space-y-2 pt-1"></div>
     </div>
 
     <!-- ABA GRÁFICOS -->
-    <div id="tab-graficos" class="space-y-4 hidden">
-      <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-5">
-        <div class="flex items-center gap-3"><div class="text-blue-600 text-xl"><i class="fa-solid fa-chart-pie"></i></div><h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Distribuição de Gastos</h3></div>
-        <div class="grid grid-cols-2 gap-4 items-center"><div class="h-32 relative"><canvas id="categoryPieChart"></canvas></div><div class="h-32 relative"><canvas id="categoryBarChart"></canvas></div></div>
+    <div id="tab-graficos" class="w-full space-y-4 hidden fade-transition pb-28 pt-2">
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] shadow-sm space-y-4">
+        <div class="flex items-center gap-2"><div class="text-blue-600 text-lg"><i class="fa-solid fa-chart-pie"></i></div><h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Distribuição de Gastos</h3></div>
+        <div class="grid grid-cols-2 gap-4 items-center"><div class="h-28 relative"><canvas id="categoryPieChart"></canvas></div><div class="h-28 relative"><canvas id="categoryBarChart"></canvas></div></div>
       </div>
-      <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-4">
-        <div class="flex items-center gap-3"><div class="text-emerald-500 text-xl"><i class="fa-solid fa-tags"></i></div><h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Por Subcategoria</h3></div>
-        <div class="h-40 relative w-full"><canvas id="subCategoryBarChart"></canvas></div>
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] shadow-sm space-y-3">
+        <div class="flex items-center gap-2"><div class="text-emerald-500 text-lg"><i class="fa-solid fa-tags"></i></div><h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Por Subcategoria</h3></div>
+        <div class="h-32 relative w-full"><canvas id="subCategoryBarChart"></canvas></div>
       </div>
-      <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-4">
-        <div class="flex items-center gap-3"><div class="text-purple-500 text-xl"><i class="fa-solid fa-credit-card"></i></div><h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Formas de Pagamento</h3></div>
-        <div class="h-40 relative w-full"><canvas id="paymentMethodBarChart"></canvas></div>
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] shadow-sm space-y-3">
+        <div class="flex items-center gap-2"><div class="text-purple-500 text-lg"><i class="fa-solid fa-credit-card"></i></div><h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Formas de Pagamento</h3></div>
+        <div class="h-32 relative w-full"><canvas id="paymentMethodBarChart"></canvas></div>
       </div>
     </div>
-
   </main>
 
-  <!-- BOTÃO FLUTUANTE CENTRAL (+) -->
-  <div class="fixed bottom-[24px] left-1/2 transform -translate-x-1/2 z-40">
-    <button onclick="openNewTxModal()" class="w-[60px] h-[60px] bg-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(37,99,235,0.4)] hover:scale-105 active:scale-95 transition text-2xl border-[4px] border-white dark:border-slate-900">
-      <i class="fa-solid fa-plus"></i>
-    </button>
-  </div>
-
-  <!-- NAVEGAÇÃO INFERIOR -->
-  <nav class="fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-slate-900 px-3 py-2 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] dark:border-t dark:border-slate-800 transition-colors duration-200">
-    <div class="mx-auto max-w-md grid grid-cols-5 items-end pb-3 pt-1">
-      <button onclick="switchTab('resumo')" id="bottomNavResumo" class="relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95">
-        <i class="fa-solid fa-house text-[22px] mb-1"></i>
-        <span class="text-[10px] font-bold">Resumo</span>
-        <div id="indicatorResumo" class="absolute -bottom-4 w-10 h-[4px] bg-blue-600 rounded-t-full"></div>
-      </button>
-      <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95">
-        <i class="fa-solid fa-receipt text-[22px] mb-1"></i>
-        <span class="text-[10px] font-bold">Extrato</span>
-        <div id="indicatorExtrato" class="absolute -bottom-4 w-10 h-[4px] bg-blue-600 rounded-t-full hidden"></div>
-      </button>
-      <div></div>
-      <button onclick="switchTab('invest')" id="bottomNavInvest" class="relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95">
-        <i class="fa-solid fa-chart-line text-[22px] mb-1"></i>
-        <span class="text-[10px] font-bold">Invest</span>
-        <div id="indicatorInvest" class="absolute -bottom-4 w-10 h-[4px] bg-blue-600 rounded-t-full hidden"></div>
-      </button>
-      <button onclick="switchTab('graficos')" id="bottomNavGraficos" class="relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95">
-        <i class="fa-solid fa-chart-column text-[22px] mb-1"></i>
-        <span class="text-[10px] font-bold">Gráficos</span>
-        <div id="indicatorGraficos" class="absolute -bottom-4 w-10 h-[4px] bg-blue-600 rounded-t-full hidden"></div>
+  <!-- NAVEGAÇÃO INFERIOR E BOTÃO FLUTUANTE -->
+  <div class="fixed bottom-0 left-0 right-0 z-40">
+    <!-- Botão flutuante mais baixo (-top-1.5), sem borda e com sombra suave -->
+    <div class="absolute left-1/2 transform -translate-x-1/2 -top-1.5 z-50">
+      <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-[#042418] to-[#0a5238] text-white rounded-full flex items-center justify-center shadow-[0_6px_16px_rgba(4,36,24,0.4)] hover:scale-105 active:scale-95 transition-all duration-200 text-2xl font-light">
+        <i class="fa-solid fa-plus"></i>
       </button>
     </div>
-  </nav>
+
+    <!-- Barra de navegação inferior -->
+    <nav class="bg-white dark:bg-slate-900 rounded-t-[1.5rem] px-3 pt-3 pb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:border-t dark:border-slate-800 relative z-40">
+      <div class="mx-auto max-w-md grid grid-cols-5 items-end">
+        <button onclick="switchTab('resumo')" id="bottomNavResumo" class="relative flex flex-col items-center justify-center text-brand-green pb-2">
+          <i class="fa-solid fa-house text-xl mb-1"></i>
+          <span class="text-[9px] font-bold">Resumo</span>
+          <div id="indicatorResumo" class="absolute bottom-0 w-6 h-1 bg-brand-green rounded-t-full"></div>
+        </button>
+        <button onclick="switchTab('extrato')" id="bottomNavExtrato" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 pb-2 transition">
+          <i class="fa-solid fa-receipt text-xl mb-1"></i>
+          <span class="text-[9px] font-bold">Extrato</span>
+          <div id="indicatorExtrato" class="absolute bottom-0 w-6 h-1 bg-brand-green rounded-t-full hidden"></div>
+        </button>
+        <div></div> <!-- Espaço central para o botão flutuante -->
+        <button onclick="switchTab('invest')" id="bottomNavInvest" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 pb-2 transition">
+          <i class="fa-solid fa-chart-line text-xl mb-1"></i>
+          <span class="text-[9px] font-bold">Invest</span>
+          <div id="indicatorInvest" class="absolute bottom-0 w-6 h-1 bg-brand-green rounded-t-full hidden"></div>
+        </button>
+        <button onclick="switchTab('graficos')" id="bottomNavGraficos" class="relative flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 pb-2 transition">
+          <i class="fa-solid fa-chart-column text-xl mb-1"></i>
+          <span class="text-[9px] font-bold">Gráficos</span>
+          <div id="indicatorGraficos" class="absolute bottom-0 w-6 h-1 bg-brand-green rounded-t-full hidden"></div>
+        </button>
+      </div>
+    </nav>
+  </div>
 
   <!-- MODAIS Lançamento -->
   <div id="newTxModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 hidden backdrop-blur-md">
@@ -302,17 +356,17 @@
 
         <div>
           <label class="block text-xs font-bold text-slate-500 mb-1.5">Descrição</label>
-          <input type="text" id="txDesc" required placeholder="Ex: Supermercado" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+          <input type="text" id="txDesc" required placeholder="Ex: Supermercado" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold focus:outline-none focus:border-brand-green" />
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-500 mb-1.5">Valor (R$)</label>
-            <input type="number" step="0.01" id="txAmount" required placeholder="0,00" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+            <input type="number" step="0.01" id="txAmount" required placeholder="0,00" class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold focus:outline-none focus:border-brand-green" />
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-500 mb-1.5">Data Início</label>
-            <input type="date" id="txDate" required class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+            <input type="date" id="txDate" required class="w-full rounded-[1rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold focus:outline-none focus:border-brand-green" />
           </div>
         </div>
 
@@ -362,7 +416,7 @@
           </div>
         </div>
 
-        <button type="submit" class="w-full py-4 bg-blue-600 text-white rounded-[1rem] text-sm font-extrabold shadow-md">Guardar Lançamento</button>
+        <button type="submit" class="w-full py-4 bg-brand-green text-white rounded-[1rem] text-sm font-extrabold shadow-md">Guardar Lançamento</button>
       </form>
     </div>
   </div>
@@ -372,7 +426,7 @@
     <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-6 rounded-[2rem] space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center"><i class="fa-solid fa-gear"></i></div>
+          <div class="w-8 h-8 bg-brand-green/10 text-brand-green rounded-full flex items-center justify-center"><i class="fa-solid fa-gear"></i></div>
           <h3 class="text-sm font-black uppercase">Configurações</h3>
         </div>
         <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
@@ -381,9 +435,9 @@
       <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-[1.5rem] flex items-center justify-between">
         <div>
           <span class="text-[10px] font-bold text-slate-400 uppercase block">Código Convite</span>
-          <div id="profileWorkspaceCodeDisplay" class="text-base font-black text-blue-600 tracking-widest">----</div>
+          <div id="profileWorkspaceCodeDisplay" class="text-base font-black text-brand-green tracking-widest">----</div>
         </div>
-        <button onclick="copyWorkspaceCountCode()" class="px-3 py-2 bg-blue-600 text-white rounded-xl text-[11px] font-extrabold shadow-sm"><i class="fa-solid fa-copy mr-1"></i>Copiar</button>
+        <button onclick="copyWorkspaceCountCode()" class="px-3 py-2 bg-brand-green text-white rounded-xl text-[11px] font-extrabold shadow-sm"><i class="fa-solid fa-copy mr-1"></i>Copiar</button>
       </div>
 
       <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-[1.5rem] flex items-center justify-between">
@@ -402,12 +456,12 @@
         <button onclick="exportarParaExcel()" class="px-3 py-2 bg-emerald-600 text-white rounded-xl text-[11px] font-extrabold shadow-sm"><i class="fa-solid fa-file-excel mr-1"></i>Exportar</button>
       </div>
 
-      <div class="bg-blue-50/50 dark:bg-slate-800/40 p-4 rounded-[1.5rem] space-y-3">
+      <div class="bg-brand-green/5 p-4 rounded-[1.5rem] space-y-3">
         <div class="flex items-center justify-between">
-          <h4 id="labelModalMetasMes" class="text-xs font-extrabold text-blue-900 dark:text-blue-300">Definir Metas</h4>
+          <h4 id="labelModalMetasMes" class="text-xs font-extrabold text-brand-dark dark:text-brand-green">Definir Metas</h4>
           <div class="flex bg-white dark:bg-slate-900 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
-            <button type="button" onclick="mudarModoMetas('perc')" id="btnModoPerc" class="px-3 py-1 text-[10px] font-bold rounded-md bg-blue-600 text-white">%</button>
-            <button type="button" onclick="mudarModoMetas('dinheiro')" id="btnModoDinheiro" class="px-3 py-1 text-[10px] font-bold rounded-md text-slate-600">R$</button>
+            <button type="button" onclick="mudarModoMetas('perc')" id="btnModoPerc" class="px-3 py-1 text-[10px] font-bold rounded-md bg-brand-green text-white">%</button>
+            <button type="button" onclick="mudarModoMetas('dinheiro')" id="btnModoDinheiro" class="px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300">R$</button>
           </div>
         </div>
 
@@ -436,7 +490,7 @@
           </div>
           <div class="text-center"><span id="metaTotalRestante" class="text-[10px] font-bold"></span></div>
           <div id="metaConfigErrorMsg" class="text-[10px] font-bold text-rose-600 bg-rose-50 p-2 rounded-lg text-center hidden"></div>
-          <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-xl text-xs font-extrabold mt-2">Guardar Novas Metas</button>
+          <button type="submit" class="w-full py-3 bg-brand-green text-white rounded-xl text-xs font-extrabold mt-2">Guardar Novas Metas</button>
         </form>
       </div>
 
@@ -459,7 +513,7 @@
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center text-lg">
-            <i class="fa-solid fa-wallet"></i>
+            <i class="fa-solid fa-user-secret"></i>
           </div>
           <div>
             <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
@@ -505,11 +559,11 @@
     </div>
   </div>
 
-  <!-- NOVO MODAL Detalhes Categoria -->
+  <!-- MODAL Detalhes Categoria -->
   <div id="detalhesCategoriaModal" class="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 hidden backdrop-blur-md transition-opacity">
     <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-t-[2rem] shadow-2xl h-[85vh] flex flex-col transform translate-y-0 transition-transform">
       
-      <div class="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800 shrink-0">
+      <div class="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800 shrink-0">
         <div class="flex items-center gap-3">
           <div id="detalheCatIcone" class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-lg">
             <i class="fa-solid fa-list"></i>
@@ -524,7 +578,7 @@
         <button onclick="fecharDetalhesCategoria()" class="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark text-sm"></i></button>
       </div>
 
-      <div class="p-6 shrink-0 bg-slate-50 dark:bg-slate-800/50">
+      <div class="p-5 shrink-0 bg-slate-50 dark:bg-slate-800/50">
         <div class="flex justify-between items-end mb-2">
           <span class="text-xs font-bold text-slate-500 uppercase">Total Gasto</span>
           <span id="detalheCatTotalGasto" class="text-xl font-black text-slate-900 dark:text-white">R$ 0,00</span>
@@ -535,9 +589,9 @@
         </div>
       </div>
 
-      <div class="p-6 overflow-y-auto flex-1 space-y-3">
+      <div class="p-5 overflow-y-auto flex-1 space-y-2">
         <span class="text-[11px] font-extrabold text-slate-500 block uppercase mb-1">Lançamentos</span>
-        <div id="detalheCatLista" class="space-y-3 pb-10"></div>
+        <div id="detalheCatLista" class="space-y-2 pb-10"></div>
       </div>
 
     </div>
