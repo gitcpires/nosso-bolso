@@ -40,14 +40,14 @@ function showToast(msg, tipo = 'success') {
     info: 'fa-circle-info'
   };
 
-  toast.className = `toast-enter flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl border text-xs font-extrabold pointer-events-auto ${cores[tipo] || cores.info}`;
+  toast.className = `toast-enter flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl border text-xs font-extrabold pointer-events-auto max-w-sm ${cores[tipo] || cores.info}`;
   toast.innerHTML = `<i class="fa-solid ${icones[tipo] || icones.info} text-sm shrink-0"></i><span class="leading-tight">${msg}</span>`;
 
   container.appendChild(toast);
 
   setTimeout(() => {
     toast.style.opacity = '0';
-    toast.style.transform = 'translate(-50%, -15px)';
+    toast.style.transform = 'translateY(-15px) scale(0.95)';
     toast.style.transition = 'all 0.25s ease';
     setTimeout(() => toast.remove(), 250);
   }, 3000);
@@ -1228,6 +1228,7 @@ function toggleTxTypeUI() {
   toggleParcelasUI();
 }
 
+// Importação inteligente: ignora assinaturas/parcelas e evita duplicatas por nome
 async function importarGastosFixosMesAnterior() {
   const [nomeMesAtual, anoAtualStr] = activeMonth.split(' ');
   const indexMesAtual = mesesNomes.indexOf(nomeMesAtual);
@@ -1241,22 +1242,33 @@ async function importarGastosFixosMesAnterior() {
   }
   const mesAnteriorStr = `${mesesNomes[indexMesAnterior]} ${anoAnterior}`;
 
-  const jaExistemNoAtual = transactions.some(t => t.month === activeMonth && t.cat === 'Gastos Fixos');
-  if (jaExistemNoAtual) {
-    showToast(`Os gastos fixos de ${activeMonth} já foram importados.`, "info");
+  const gastosFixosAnteriores = transactions.filter(t => 
+    t.month === mesAnteriorStr && 
+    t.cat === 'Gastos Fixos' && 
+    (!t.parcelaGroupId || t.parcelaGroupId.trim() === '')
+  );
+
+  if (gastosFixosAnteriores.length === 0) {
+    showToast(`Nenhum gasto fixo avulso encontrado em ${mesAnteriorStr}.`, "info");
     return;
   }
 
-  const gastosFixosAnteriores = transactions.filter(t => t.month === mesAnteriorStr && t.cat === 'Gastos Fixos');
+  const descricoesNoAtual = transactions
+    .filter(t => t.month === activeMonth)
+    .map(t => (t.desc || '').trim().toLowerCase());
 
-  if (gastosFixosAnteriores.length === 0) {
-    showToast(`Nenhum gasto fixo encontrado em ${mesAnteriorStr}.`, "info");
+  const paraImportar = gastosFixosAnteriores.filter(t => 
+    !descricoesNoAtual.includes((t.desc || '').trim().toLowerCase())
+  );
+
+  if (paraImportar.length === 0) {
+    showToast(`Todos os gastos fixos de ${mesAnteriorStr} já constam em ${activeMonth}!`, "info");
     return;
   }
 
   const resp = await showConfirmDialog({
     title: 'Importar Gastos Fixos',
-    text: `Deseja importar ${gastosFixosAnteriores.length} gasto(s) fixo(s) de ${mesAnteriorStr} para ${activeMonth}?`,
+    text: `Encontramos ${paraImportar.length} gasto(s) fixo(s) de ${mesAnteriorStr} que ainda não estão em ${activeMonth}. Deseja importar?`,
     confirmText: 'Importar'
   });
   if (resp !== 'confirm') return;
@@ -1264,7 +1276,7 @@ async function importarGastosFixosMesAnterior() {
   try {
     const batch = db.batch();
 
-    gastosFixosAnteriores.forEach(txAntiga => {
+    paraImportar.forEach(txAntiga => {
       const novoDocRef = db.collection('transacoes').doc();
       
       let novaDataStr = txAntiga.date;
@@ -1295,7 +1307,7 @@ async function importarGastosFixosMesAnterior() {
     });
 
     await batch.commit();
-    showToast(`Gastos fixos importados para ${activeMonth}!`);
+    showToast(`${paraImportar.length} gasto(s) fixo(s) importado(s) com sucesso!`);
     
   } catch (err) {
     console.error("Erro ao importar gastos fixos:", err);
@@ -1625,7 +1637,6 @@ function renderTransactionsList() {
     return matchSearch && matchStatus && matchMembro && matchCat && matchSubCat && matchPayment;
   });
 
-  // Controla exibição do botão "Confirmar Todos os Pendentes"
   const btnConfirmAllContainer = document.getElementById('btnConfirmAllContainer');
   const countPendentesBtn = document.getElementById('countPendentesBtn');
   if (btnConfirmAllContainer) {
