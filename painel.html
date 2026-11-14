@@ -71,7 +71,6 @@
     .coin-anim-3 { animation: coinDrop 1.5s infinite ease-in 1.0s; }
     .piggy-anim { animation: piggyBounce 0.5s infinite ease-in-out; }
 
-    /* Animação Toast corrigida para manter centralização perfeita */
     @keyframes slideDownFade {
       0% { transform: translateY(-20px) scale(0.95); opacity: 0; }
       100% { transform: translateY(0) scale(1); opacity: 1; }
@@ -119,7 +118,7 @@
     <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] text-center space-y-4 shadow-2xl">
       <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mx-auto text-2xl"><i class="fa-solid fa-clock-rotate-left"></i></div>
       <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Acesso Pendente</h3>
-      <button onclick="logout()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition">Sair</button>
+      <button onclick="logout()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-xs font-bold transition">Logoff</button>
     </div>
   </div>
 
@@ -142,7 +141,7 @@
     </div>
   </div>
 
-  <!-- CABEÇALHO FIXO COM BOTÃO DE OCULTAR ACESSÍVEL EM TODAS AS ABAS -->
+  <!-- CABEÇALHO FIXO -->
   <header class="relative z-40 w-full pt-5 pb-2 px-5">
     <div class="mx-auto max-w-md flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -235,7 +234,7 @@
 
       <!-- CONTAINER METAS -->
       <div class="bg-white dark:bg-slate-900 p-3 pt-4 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-2.5 shrink-0">
-        <div class="flex items-center justify-between cursor-pointer px-2" onclick="openProfileModal()">
+        <div class="flex items-center justify-between cursor-pointer px-2" onclick="openProfileModal('metas')">
           <div class="flex items-center gap-2.5">
             <div class="text-amber-500 text-lg"><i class="fa-solid fa-trophy"></i></div>
             <h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Progresso de Metas</h3>
@@ -283,7 +282,6 @@
         </button>
       </div>
 
-      <!-- BOTÃO CONFIRMAR TODOS OS PENDENTES -->
       <div id="btnConfirmAllContainer" class="hidden">
         <button onclick="confirmarTodosPendentes()" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-md flex items-center justify-center gap-2 transition active:scale-95">
           <i class="fa-solid fa-check-double"></i> Confirmar Todos os Pendentes (<span id="countPendentesBtn">0</span>)
@@ -494,108 +492,150 @@
     </div>
   </div>
 
-  <!-- MODAL Configurações -->
+  <!-- MODAL CONFIGURAÇÕES EM FORMATO DE FICHEIRO (ABAS) -->
   <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 hidden backdrop-blur-md">
-    <div class="w-full max-w-sm bg-white dark:bg-slate-900 p-6 rounded-[2rem] space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+    <div class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
+      
+      <!-- Cabeçalho do Modal -->
+      <div class="flex items-center justify-between p-5 pb-3 shrink-0">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 bg-brand-green/10 text-brand-green rounded-full flex items-center justify-center"><i class="fa-solid fa-gear"></i></div>
-          <h3 class="text-sm font-black uppercase">Configurações</h3>
+          <h3 class="text-sm font-black uppercase tracking-wide">Configurações</h3>
         </div>
         <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-[1.5rem] flex items-center justify-between">
-        <div>
-          <span class="text-[10px] font-bold text-slate-400 uppercase block">Código Convite</span>
-          <div id="profileWorkspaceCodeDisplay" class="text-base font-black text-brand-green tracking-widest">----</div>
-        </div>
-        <button onclick="copyWorkspaceCountCode()" class="px-3 py-2 bg-brand-green text-white rounded-xl text-[11px] font-extrabold shadow-sm"><i class="fa-solid fa-copy mr-1"></i>Copiar</button>
+      <!-- Abas em Formato de Ficheiro -->
+      <div class="grid grid-cols-4 gap-1 px-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
+        <button type="button" onclick="switchConfigTab('cartoes')" id="cfgTabBtn-cartoes" class="py-2.5 text-[10px] font-extrabold rounded-t-xl border-t border-x border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-brand-green -mb-[1px] transition">
+          💳 Cartões
+        </button>
+        <button type="button" onclick="switchConfigTab('metas')" id="cfgTabBtn-metas" class="py-2.5 text-[10px] font-bold rounded-t-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition">
+          🎯 Metas
+        </button>
+        <button type="button" onclick="switchConfigTab('dados')" id="cfgTabBtn-dados" class="py-2.5 text-[10px] font-bold rounded-t-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition">
+          📁 Dados
+        </button>
+        <button type="button" onclick="switchConfigTab('membros')" id="cfgTabBtn-membros" class="py-2.5 text-[10px] font-bold rounded-t-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition">
+          👥 Membros
+        </button>
       </div>
 
-      <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-[1.5rem] space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <span class="text-[10px] font-bold text-slate-400 uppercase block">Meus Cartões</span>
-            <span class="text-xs font-extrabold text-slate-700 dark:text-slate-200">Fechamento de Fatura</span>
-          </div>
-          <i class="fa-solid fa-credit-card text-indigo-500"></i>
-        </div>
-
-        <form onsubmit="adicionarCartaoGrupo(event)" class="flex gap-1.5">
-          <input type="text" id="novoCartaoNome" required placeholder="Ex: Nubank" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold focus:outline-none" />
-          <input type="number" id="novoCartaoFechamento" min="1" max="31" required placeholder="Dia" title="Dia de fechamento da fatura" class="w-16 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-2 text-center text-xs font-bold focus:outline-none" />
-          <button type="submit" class="bg-indigo-600 text-white px-3 rounded-xl text-xs font-bold shrink-0"><i class="fa-solid fa-plus"></i></button>
-        </form>
-
-        <div id="listaCartoesConfig" class="space-y-1.5 max-h-28 overflow-y-auto"></div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2">
-        <div class="bg-slate-50 dark:bg-slate-800 p-3 rounded-[1.25rem] flex flex-col justify-between gap-2">
-          <div>
-            <span class="text-[9px] font-bold text-slate-400 uppercase block">Gastos Fixos</span>
-            <span class="text-[11px] font-extrabold text-slate-700 dark:text-slate-200">Importar Mês Ant.</span>
-          </div>
-          <button id="btnImportarFixos" onclick="importarGastosFixosMesAnterior()" class="w-full py-2 bg-blue-600 text-white rounded-xl text-[10px] font-extrabold shadow-sm"><i class="fa-solid fa-file-arrow-down mr-1"></i>Importar</button>
-        </div>
-
-        <div class="bg-slate-50 dark:bg-slate-800 p-3 rounded-[1.25rem] flex flex-col justify-between gap-2">
-          <div>
-            <span class="text-[9px] font-bold text-slate-400 uppercase block">Dados do Mês</span>
-            <span class="text-[11px] font-extrabold text-slate-700 dark:text-slate-200">Exportar (CSV)</span>
-          </div>
-          <button onclick="exportarParaExcel()" class="w-full py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-extrabold shadow-sm"><i class="fa-solid fa-file-excel mr-1"></i>Exportar</button>
-        </div>
-      </div>
-
-      <div class="bg-brand-green/5 p-4 rounded-[1.5rem] space-y-3">
-        <div class="flex items-center justify-between">
-          <h4 id="labelModalMetasMes" class="text-xs font-extrabold text-brand-dark dark:text-brand-green">Definir Metas</h4>
-          <div class="flex bg-white dark:bg-slate-900 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
-            <button type="button" onclick="mudarModoMetas('perc')" id="btnModoPerc" class="px-3 py-1 text-[10px] font-bold rounded-md bg-brand-green text-white">%</button>
-            <button type="button" onclick="mudarModoMetas('dinheiro')" id="btnModoDinheiro" class="px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300">R$</button>
-          </div>
-        </div>
-
-        <form onsubmit="salvarMetasGrupoConfig(event)" class="space-y-2">
-          <div class="grid grid-cols-2 gap-2">
-            <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
-              <label class="block text-[9px] font-bold text-slate-500 text-center">Fixos (<span id="labelUnidadeFixos">%</span>)</label>
-              <input type="number" step="0.01" id="cfgMetaFixos" required oninput="calcularConversaoMetas('fixos')" class="w-full bg-slate-50 dark:bg-slate-800 rounded-lg text-center font-extrabold text-xs py-1.5 mt-1 focus:outline-none" />
-              <span id="subMetaFixos" class="text-[8px] text-slate-400 block text-center mt-1">--</span>
+      <!-- Conteúdo das Abas do Ficheiro -->
+      <div class="p-5 overflow-y-auto flex-1 bg-slate-50/60 dark:bg-slate-800/30">
+        
+        <!-- FICHEIRO 1: CARTÕES DE CRÉDITO -->
+        <div id="cfgPanel-cartoes" class="space-y-3">
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3 shadow-sm">
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Novo Cartão</span>
+              <span class="text-xs font-extrabold text-slate-700 dark:text-slate-200">Cadastrar Fechamento de Fatura</span>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
-              <label class="block text-[9px] font-bold text-slate-500 text-center">Gerais (<span id="labelUnidadeGerais">%</span>)</label>
-              <input type="number" step="0.01" id="cfgMetaGerais" required oninput="calcularConversaoMetas('gerais')" class="w-full bg-slate-50 dark:bg-slate-800 rounded-lg text-center font-extrabold text-xs py-1.5 mt-1 focus:outline-none" />
-              <span id="subMetaGerais" class="text-[8px] text-slate-400 block text-center mt-1">--</span>
-            </div>
-            <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
-              <label class="block text-[9px] font-bold text-slate-500 text-center">Lazer (<span id="labelUnidadeLazer">%</span>)</label>
-              <input type="number" step="0.01" id="cfgMetaLazer" required oninput="calcularConversaoMetas('lazer')" class="w-full bg-slate-50 dark:bg-slate-800 rounded-lg text-center font-extrabold text-xs py-1.5 mt-1 focus:outline-none" />
-              <span id="subMetaLazer" class="text-[8px] text-slate-400 block text-center mt-1">--</span>
-            </div>
-            <div class="bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
-              <label class="block text-[9px] font-bold text-slate-500 text-center">Invest. (<span id="labelUnidadeInvest">%</span>)</label>
-              <input type="number" step="0.01" id="cfgMetaInvest" required oninput="calcularConversaoMetas('invest')" class="w-full bg-slate-50 dark:bg-slate-800 rounded-lg text-center font-extrabold text-xs py-1.5 mt-1 focus:outline-none" />
-              <span id="subMetaInvest" class="text-[8px] text-slate-400 block text-center mt-1">--</span>
-            </div>
+
+            <form onsubmit="adicionarCartaoGrupo(event)" class="flex gap-1.5">
+              <input type="text" id="novoCartaoNome" required placeholder="Ex: Nubank" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-brand-green" />
+              <input type="number" id="novoCartaoFechamento" min="1" max="31" required placeholder="Dia" title="Dia de fechamento da fatura" class="w-16 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2 py-2.5 text-center text-xs font-bold focus:outline-none focus:border-brand-green" />
+              <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 rounded-xl text-xs font-bold shrink-0"><i class="fa-solid fa-plus"></i></button>
+            </form>
           </div>
-          <div class="text-center"><span id="metaTotalRestante" class="text-[10px] font-bold"></span></div>
-          <div id="metaConfigErrorMsg" class="text-[10px] font-bold text-rose-600 bg-rose-50 p-2 rounded-lg text-center hidden"></div>
-          <button type="submit" class="w-full py-3 bg-brand-green text-white rounded-xl text-xs font-extrabold mt-2">Guardar Novas Metas</button>
-        </form>
+
+          <div class="space-y-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block px-1">Cartões Cadastrados</span>
+            <div id="listaCartoesConfig" class="space-y-2 max-h-48 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- FICHEIRO 2: METAS -->
+        <div id="cfgPanel-metas" class="space-y-3 hidden">
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-3 shadow-sm">
+            <div class="flex items-center justify-between">
+              <h4 id="labelModalMetasMes" class="text-xs font-extrabold text-brand-dark dark:text-brand-green">Definir Metas</h4>
+              <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                <button type="button" onclick="mudarModoMetas('perc')" id="btnModoPerc" class="px-3 py-1 text-[10px] font-bold rounded-md bg-brand-green text-white">%</button>
+                <button type="button" onclick="mudarModoMetas('dinheiro')" id="btnModoDinheiro" class="px-3 py-1 text-[10px] font-bold rounded-md text-slate-600 dark:text-slate-300">R$</button>
+              </div>
+            </div>
+
+            <form onsubmit="salvarMetasGrupoConfig(event)" class="space-y-2.5">
+              <div class="grid grid-cols-2 gap-2">
+                <div class="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700">
+                  <label class="block text-[9px] font-bold text-slate-500 text-center">Fixos (<span id="labelUnidadeFixos">%</span>)</label>
+                  <input type="number" step="0.01" id="cfgMetaFixos" required oninput="calcularConversaoMetas('fixos')" class="w-full bg-white dark:bg-slate-900 rounded-lg text-center font-extrabold text-xs py-1.5 mt-1 focus:outline-none" />
+                  <span id="subMetaFixos" class="text-[8px] text-slate-400 block text-center mt-1">--</span>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700">
+                  <label class="block text-[9px] font-bold text-slate-500 text-center">Gerais (<span id="labelUnidadeGerais">%</span>)</label>
+                  <input type="number" step="0.01" id="cfgMetaGerais" required oninput="calcularConversaoMetas('gerais')" class="w-full bg-white dark:bg-slate-900 rounded-lg text-center font-extrabold text-xs py-1.5 mt-1 focus:outline-none" />
+                  <span id="subMetaGerais" class="text-[8px] text-slate-400 block text-center mt-1">--</span>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700">
+                  <label class="block text-[9px] font-bold text-slate-500 text-center">Lazer (<span id="labelUnidadeLazer">%</span>)</label>
+                  <input type="number" step="0.01" id="cfgMetaLazer" required oninput="calcularConversaoMetas('lazer')" class="w-full bg-white dark:bg-slate-900 rounded-lg text-center font-extrabold text-xs py-1.5 mt-1 focus:outline-none" />
+                  <span id="subMetaLazer" class="text-[8px] text-slate-400 block text-center mt-1">--</span>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700">
+                  <label class="block text-[9px] font-bold text-slate-500 text-center">Invest. (<span id="labelUnidadeInvest">%</span>)</label>
+                  <input type="number" step="0.01" id="cfgMetaInvest" required oninput="calcularConversaoMetas('invest')" class="w-full bg-white dark:bg-slate-900 rounded-lg text-center font-extrabold text-xs py-1.5 mt-1 focus:outline-none" />
+                  <span id="subMetaInvest" class="text-[8px] text-slate-400 block text-center mt-1">--</span>
+                </div>
+              </div>
+              <div class="text-center"><span id="metaTotalRestante" class="text-[10px] font-bold"></span></div>
+              <div id="metaConfigErrorMsg" class="text-[10px] font-bold text-rose-600 bg-rose-50 p-2 rounded-lg text-center hidden"></div>
+              <button type="submit" class="w-full py-3 bg-brand-green text-white rounded-xl text-xs font-extrabold mt-1 shadow-sm">Guardar Novas Metas</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- FICHEIRO 3: IMPORTAR / EXPORTAR DADOS -->
+        <div id="cfgPanel-dados" class="space-y-3 hidden">
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between shadow-sm">
+            <div class="pr-2">
+              <span class="text-[10px] font-bold text-blue-600 uppercase block">Automação Mensal</span>
+              <span class="text-xs font-extrabold text-slate-800 dark:text-slate-100 block">Importar Gastos Fixos</span>
+              <span class="text-[10px] text-slate-400">Copia fixos avulsos do mês anterior</span>
+            </div>
+            <button id="btnImportarFixos" onclick="importarGastosFixosMesAnterior()" class="px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] font-extrabold shadow-sm shrink-0"><i class="fa-solid fa-file-arrow-down mr-1"></i>Importar</button>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between shadow-sm">
+            <div class="pr-2">
+              <span class="text-[10px] font-bold text-emerald-600 uppercase block">Planilha Excel</span>
+              <span class="text-xs font-extrabold text-slate-800 dark:text-slate-100 block">Exportar Dados (CSV)</span>
+              <span class="text-[10px] text-slate-400">Baixa todos os lançamentos do mês</span>
+            </div>
+            <button onclick="exportarParaExcel()" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-extrabold shadow-sm shrink-0"><i class="fa-solid fa-file-excel mr-1"></i>Exportar</button>
+          </div>
+        </div>
+
+        <!-- FICHEIRO 4: MEMBROS DO GRUPO -->
+        <div id="cfgPanel-membros" class="space-y-3 hidden">
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between shadow-sm">
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase block">Código Convite do Grupo</span>
+              <div id="profileWorkspaceCodeDisplay" class="text-lg font-black text-brand-green tracking-widest">----</div>
+            </div>
+            <button onclick="copyWorkspaceCountCode()" class="px-3.5 py-2 bg-brand-green text-white rounded-xl text-[11px] font-extrabold shadow-sm"><i class="fa-solid fa-copy mr-1"></i>Copiar</button>
+          </div>
+
+          <div class="space-y-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block px-1">Participantes Ativos</span>
+            <div id="workspaceMembersList" class="space-y-2 max-h-32 overflow-y-auto"></div>
+          </div>
+
+          <button onclick="deixarGrupo()" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 mt-2">
+            <i class="fa-solid fa-door-open"></i> Sair do Grupo
+          </button>
+        </div>
+
       </div>
 
-      <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-[1.5rem] space-y-3">
-        <span class="text-[10px] font-bold text-slate-400 uppercase block">Membros do Grupo</span>
-        <div id="workspaceMembersList" class="space-y-2 max-h-32 overflow-y-auto pr-1"></div>
+      <!-- Rodapé Fixo com Botão Logoff -->
+      <div class="p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
+        <button onclick="logout()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-right-from-bracket text-rose-500"></i> Logoff
+        </button>
       </div>
 
-      <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex gap-3">
-        <button onclick="deixarGrupo()" class="w-1/2 py-3 bg-rose-50 text-rose-700 rounded-[1rem] text-xs font-bold hover:bg-rose-100 transition">Sair do Grupo</button>
-        <button onclick="logout()" class="w-1/2 py-3 bg-slate-100 text-slate-700 rounded-[1rem] text-xs font-bold hover:bg-slate-200 transition">Terminar Sessão</button>
-      </div>
     </div>
   </div>
 
