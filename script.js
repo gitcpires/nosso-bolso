@@ -380,6 +380,7 @@ function atualizarOpcoesPagamentoFiltro() {
   let html = `
     <option value="">Todos</option>
     <option value="PIX">⚡ PIX</option>
+    <option value="Ticket Alimentação">🎫 Ticket Alimentação</option> <!-- <--- Adicionado aqui -->
     <option value="Cartão de Crédito">💳 Cartão (Geral)</option>
   `;
 
@@ -391,6 +392,7 @@ function atualizarOpcoesPagamentoFiltro() {
   selectFiltro.innerHTML = html;
   selectFiltro.value = valorAtual;
 }
+
 
 // ==========================================
 // METAS E PERFIL
