@@ -57,8 +57,7 @@
 </head>
 <body class="bg-app-bg dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors duration-200 min-h-screen overflow-x-hidden flex flex-col">
 
-  <!-- Fundo do Header ajustado para ocupar menos espaço vertical -->
-  <div class="absolute top-0 left-0 right-0 h-[220px] bg-header-waves dark:bg-slate-900 rounded-b-[2.5rem] z-0 shadow-lg"></div>
+  <div class="absolute top-0 left-0 right-0 h-[260px] bg-header-waves dark:bg-slate-900 rounded-b-[3rem] z-0 shadow-lg"></div>
 
   <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-brand-dark text-white space-y-4">
     <div class="w-12 h-12 border-4 border-brand-green border-t-transparent rounded-full animate-spin"></div>
@@ -92,62 +91,61 @@
     </div>
   </div>
 
-  <!-- Cabeçalho mais compacto -->
-  <header class="relative z-40 w-full pt-4 pb-1 px-4">
+  <header class="relative z-40 w-full pt-5 pb-2 px-5">
     <div class="mx-auto max-w-md flex items-center justify-between">
-      <div class="flex items-center gap-2.5">
+      <div class="flex items-center gap-3">
         <div class="relative">
-          <div class="w-9 h-9 rounded-full overflow-hidden border-[2px] border-brand-green bg-slate-900 shadow-md">
+          <div class="w-11 h-11 rounded-full overflow-hidden border-[2px] border-brand-green bg-slate-900 shadow-md">
             <img src="icone-app.png" alt="Nosso Bolso" class="h-full w-full object-cover">
           </div>
           <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border-[1.5px] border-brand-dark rounded-full"></span>
         </div>
         <div class="text-white">
-          <h1 id="headerUserName" class="text-[13px] font-black leading-tight tracking-tight">Nosso Bolso</h1>
-          <p class="text-[8px] text-white/70 font-medium leading-tight mt-0.5">Vida financeira organizada!</p>
+          <h1 id="headerUserName" class="text-base font-black leading-tight tracking-tight">Nosso Bolso</h1>
+          <p class="text-[9px] text-white/70 font-medium leading-tight mt-0.5">Vida financeira organizada!</p>
         </div>
       </div>
       
-      <div class="flex items-center gap-1.5">
-        <button onclick="openCarteiraLivreModal()" class="w-7 h-7 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Carteira Privada">
-          <i class="fa-solid fa-user-secret text-[10px]"></i>
+      <div class="flex items-center gap-2">
+        <button onclick="openCarteiraLivreModal()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Carteira Privada">
+          <i class="fa-solid fa-user-secret text-sm"></i>
         </button>
-        <button onclick="toggleDarkMode()" class="w-7 h-7 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Modo Escuro">
-          <i id="darkModeIcon" class="fa-solid fa-moon text-[10px]"></i>
+        <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Modo Escuro">
+          <i id="darkModeIcon" class="fa-solid fa-moon text-sm"></i>
         </button>
-        <button onclick="openProfileModal()" class="w-7 h-7 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Configurações">
-          <i class="fa-solid fa-gear text-[10px]"></i>
+        <button onclick="openProfileModal()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Configurações">
+          <i class="fa-solid fa-gear text-sm"></i>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- CONTEÚDO PRINCIPAL com margens comprimidas -->
-  <main id="mainSwipeContainer" class="relative z-30 mx-auto max-w-md px-3 flex-grow w-full flex flex-col">
+  <!-- CONTEÚDO PRINCIPAL -->
+  <!-- O space-y-3.5 garante o espaçamento natural, e o pb-24 dá o espaço exato para a navegação -->
+  <main id="mainSwipeContainer" class="relative z-30 mx-auto max-w-md px-4 flex-grow w-full flex flex-col">
     
     <!-- ABA RESUMO -->
-    <div id="tab-resumo" class="w-full flex flex-col space-y-2 flex-grow fade-transition pb-20">
+    <div id="tab-resumo" class="w-full flex flex-col space-y-3.5 flex-grow fade-transition pb-24">
       
-      <!-- Seletor de Data compacto -->
-      <div class="flex items-center justify-between bg-white dark:bg-slate-800 py-1 px-2.5 rounded-[0.8rem] shadow-sm">
+      <div class="flex items-center justify-between bg-white dark:bg-slate-800 py-1.5 px-3 rounded-[1rem] shadow-sm">
         <div class="flex items-center gap-1.5 pl-1 text-slate-500 dark:text-slate-400">
-          <i class="fa-regular fa-calendar text-[10px]"></i>
-          <span class="text-[10px] font-bold">Mês / Ano:</span>
+          <i class="fa-regular fa-calendar text-sm"></i>
+          <span class="text-[11px] font-bold">Mês / Ano:</span>
         </div>
-        <div class="flex gap-1">
-          <select id="selectMonth" onchange="changeActiveMonthCombo()" class="bg-slate-50 dark:bg-slate-900 text-[10px] font-extrabold text-slate-800 dark:text-white rounded-md px-1.5 py-0.5 focus:outline-none cursor-pointer appearance-none text-center">
+        <div class="flex gap-1.5">
+          <select id="selectMonth" onchange="changeActiveMonthCombo()" class="bg-slate-50 dark:bg-slate-900 text-[11px] font-extrabold text-slate-800 dark:text-white rounded-lg px-2 py-1 focus:outline-none cursor-pointer appearance-none text-center">
             <option value="Janeiro">Jan</option><option value="Fevereiro">Fev</option><option value="Março">Mar</option><option value="Abril">Abr</option><option value="Maio">Mai</option><option value="Junho">Jun</option><option value="Julho">Jul</option><option value="Agosto">Ago</option><option value="Setembro">Set</option><option value="Outubro">Out</option><option value="Novembro" selected>Nov</option><option value="Dezembro">Dez</option>
           </select>
-          <select id="selectYear" onchange="changeActiveMonthCombo()" class="bg-slate-50 dark:bg-slate-900 text-[10px] font-extrabold text-slate-800 dark:text-white rounded-md px-1.5 py-0.5 focus:outline-none cursor-pointer appearance-none text-center">
+          <select id="selectYear" onchange="changeActiveMonthCombo()" class="bg-slate-50 dark:bg-slate-900 text-[11px] font-extrabold text-slate-800 dark:text-white rounded-lg px-2 py-1 focus:outline-none cursor-pointer appearance-none text-center">
             <option value="2026" selected>2026</option><option value="2027">2027</option><option value="2028">2028</option>
           </select>
         </div>
       </div>
 
       <!-- CARD GIGANTE COMPACTO -->
-      <div class="bg-gradient-to-r from-brand-card to-emerald-600 rounded-[1.2rem] p-3 text-white shadow-xl relative overflow-hidden">
-        <button onclick="toggleVisibility()" class="absolute top-3 right-3 p-1 hover:text-white/80 transition cursor-pointer z-50">
-          <i class="fa-solid fa-eye text-[11px]" id="eyeIcon"></i>
+      <div class="bg-gradient-to-r from-brand-card to-emerald-600 rounded-[1.5rem] p-4 text-white shadow-xl relative overflow-hidden">
+        <button onclick="toggleVisibility()" class="absolute top-4 right-4 p-1 hover:text-white/80 transition cursor-pointer z-50">
+          <i class="fa-solid fa-eye text-sm" id="eyeIcon"></i>
         </button>
 
         <div class="absolute bottom-0 right-0 opacity-20 w-32 h-16 flex items-end gap-1">
@@ -155,64 +153,61 @@
         </div>
 
         <div class="relative z-10 flex flex-col pr-8">
-          <div class="flex items-center text-white/80 font-bold text-[9px] mb-0.5">
-            <span class="flex items-center gap-1"><i class="fa-solid fa-chart-simple"></i> Saldo Atual</span>
+          <div class="flex items-center text-white/80 font-bold text-[11px] mb-0.5">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-chart-simple"></i> Saldo Atual</span>
           </div>
-          <div id="statBigBalance" class="text-2xl font-black tracking-tighter truncate">R$ 0,00</div>
+          <div id="statBigBalance" class="text-3xl font-black tracking-tighter truncate">R$ 0,00</div>
         </div>
       </div>
 
       <!-- 2 MINI CARDS HORIZONTAIS -->
-      <div class="grid grid-cols-2 gap-2 shrink-0">
-        <div class="bg-white dark:bg-slate-800 p-2 rounded-[1rem] shadow-sm flex flex-col justify-center border border-slate-50 dark:border-slate-700/50">
-          <div class="flex items-center gap-1.5 mb-1">
-            <div class="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <i class="fa-solid fa-arrow-trend-up text-[10px]"></i>
+      <div class="grid grid-cols-2 gap-3 shrink-0">
+        <div class="bg-white dark:bg-slate-800 p-3.5 rounded-[1.25rem] shadow-sm flex flex-col justify-center border border-slate-50 dark:border-slate-700/50">
+          <div class="flex items-center gap-2 mb-1.5">
+            <div class="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-arrow-trend-up text-[13px]"></i>
             </div>
-            <span class="text-[9px] font-extrabold text-slate-500 dark:text-slate-400">Entradas</span>
+            <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">Entradas</span>
           </div>
-          <div id="statIncome" class="text-[13px] font-black text-emerald-600 dark:text-emerald-400 tracking-tighter truncate">R$ 0,00</div>
+          <div id="statIncome" class="text-[15px] font-black text-emerald-600 dark:text-emerald-400 tracking-tighter truncate">R$ 0,00</div>
         </div>
 
-        <div class="bg-white dark:bg-slate-800 p-2 rounded-[1rem] shadow-sm flex flex-col justify-center border border-slate-50 dark:border-slate-700/50">
-          <div class="flex items-center gap-1.5 mb-1">
-            <div class="w-6 h-6 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-              <i class="fa-solid fa-arrow-trend-down text-[10px]"></i>
+        <div class="bg-white dark:bg-slate-800 p-3.5 rounded-[1.25rem] shadow-sm flex flex-col justify-center border border-slate-50 dark:border-slate-700/50">
+          <div class="flex items-center gap-2 mb-1.5">
+            <div class="w-8 h-8 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-arrow-trend-down text-[13px]"></i>
             </div>
-            <span class="text-[9px] font-extrabold text-slate-500 dark:text-slate-400">Saídas</span>
+            <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">Saídas</span>
           </div>
-          <div id="statExpense" class="text-[13px] font-black text-rose-600 dark:text-rose-400 tracking-tighter truncate">R$ 0,00</div>
+          <div id="statExpense" class="text-[15px] font-black text-rose-600 dark:text-rose-400 tracking-tighter truncate">R$ 0,00</div>
         </div>
       </div>
 
       <!-- CONTAINER METAS -->
-      <div class="bg-white dark:bg-slate-900 p-2 rounded-[1.5rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-2 shrink-0">
-        <div class="flex items-center justify-between cursor-pointer px-1" onclick="openProfileModal()">
-          <div class="flex items-center gap-2">
-            <div class="text-amber-500 text-sm"><i class="fa-solid fa-trophy"></i></div>
-            <h3 class="text-[11px] font-extrabold text-slate-800 dark:text-slate-100">Progresso de Metas</h3>
+      <div class="bg-white dark:bg-slate-900 p-3 pt-4 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-2.5 shrink-0">
+        <div class="flex items-center justify-between cursor-pointer px-2" onclick="openProfileModal()">
+          <div class="flex items-center gap-2.5">
+            <div class="text-amber-500 text-lg"><i class="fa-solid fa-trophy"></i></div>
+            <h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Progresso de Metas</h3>
           </div>
-          <i class="fa-solid fa-chevron-right text-slate-400 text-[9px]"></i>
+          <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
         </div>
         
-        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-1.5 px-0.5">
+        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2 px-1">
           <!-- Renderizado via JS -->
         </div>
       </div>
       
-      <!-- NOVO BANNER DE DICAS (IDÊNTICO À IMAGEM 2) -->
-      <!-- O mb-8 afasta o banner do botão +, evitando sobreposição -->
-      <div onclick="proximaDica()" class="cursor-pointer bg-gradient-to-r from-[#063b27] via-[#095438] to-[#063b27] rounded-full py-2.5 px-4 flex items-center justify-between text-white shadow-md relative overflow-hidden mb-8 mt-1 border border-white/5 active:scale-[0.98] transition-transform">
-         <div class="flex items-center gap-3 z-10 w-full pr-6">
-           <div class="text-amber-400 text-[16px] flex-shrink-0">
-             <i class="fa-regular fa-lightbulb"></i>
-           </div>
-           <div class="flex flex-col">
-             <h4 id="bannerTitulo" class="text-[11px] font-extrabold leading-tight mb-0.5 text-white">Você está indo bem!</h4>
-             <p id="bannerSubtitulo" class="text-[9px] text-white/80 leading-tight">Continue organizando suas finanças.</p>
-           </div>
+      <!-- BALÃO DE DICA (GRADIENTE ESCURO) -->
+      <div onclick="proximaDica()" class="cursor-pointer bg-gradient-to-r from-[#072f20] to-[#0a5238] rounded-[1.5rem] py-3.5 px-4 flex items-center gap-3 text-white shadow-md relative overflow-hidden active:scale-[0.98] transition-transform">
+         <div class="text-[#eab308] text-2xl flex-shrink-0 z-10">
+           <i class="fa-regular fa-lightbulb"></i>
          </div>
-         <i class="fa-solid fa-chevron-right text-[10px] text-white/70 absolute right-4 z-10"></i>
+         <div class="z-10 pr-6 flex-1">
+           <h4 id="bannerTitulo" class="text-[12px] font-extrabold leading-tight mb-0.5">Você está indo bem!</h4>
+           <p id="bannerSubtitulo" class="text-[10px] text-white/90 leading-tight">Continue organizando suas finanças.</p>
+         </div>
+         <i class="fa-solid fa-chevron-right text-[12px] text-white/40 absolute right-4 z-10"></i>
       </div>
 
     </div>
