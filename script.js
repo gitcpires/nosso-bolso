@@ -1293,11 +1293,76 @@ function renderTransactionsList(currentTx) {
     const isIncome = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
     const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
     const confirmado = t.confirmado === true;
+function renderTransactionsList(currentTx) {
+  const container = document.getElementById('txListContainer');
+  if (!container) return;
+
+  const transacoesDoMesAtivo = transactions.filter(t => t.month === activeMonth);
+
+  const search = (document.getElementById('searchExpense')?.value || '').toLowerCase();
+  const filtroMembro = document.getElementById('filterMember')?.value || '';
+  const filtroCat = document.getElementById('filterCategory')?.value || '';
+  
+  const checkboxesSubCat = document.querySelectorAll('.subcat-filter-checkbox');
+  const subCatsSelecionadas = Array.from(checkboxesSubCat).filter(cb => cb.checked).map(cb => cb.value);
+  
+  const filtroPaymentMethod = document.getElementById('filterPaymentMethod')?.value || '';
+
+  container.innerHTML = '';
+  
+  const filtered = transacoesDoMesAtivo.filter(t => {
+    const matchSearch = t.desc.toLowerCase().includes(search) || t.cat.toLowerCase().includes(search) || (t.subCat && t.subCat.toLowerCase().includes(search));
+    const matchMembro = filtroMembro === '' || t.userEmail === filtroMembro;
+    const matchCat = filtroCat === '' || t.cat === filtroCat;
+    const matchSubCat = subCatsSelecionadas.length === 0 || subCatsSelecionadas.includes(t.subCat);
+    const matchPayment = filtroPaymentMethod === '' || t.paymentMethod === filtroPaymentMethod;
+
+    return matchSearch && matchMembro && matchCat && matchSubCat && matchPayment;
+  });
+
+  filtered.sort((a, b) => {
+    const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
+    const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
+    if (timeA !== timeB) {
+      return timeB - timeA;
+    }
+    return new Date(b.date) - new Date(a.date);
+  });
+
+  const filterTotalBox = document.getElementById('filterTotalBox');
+  const filterTotalValue = document.getElementById('filterTotalValue');
+  const isAlgumFiltroAtivo = search !== '' || filtroMembro !== '' || filtroCat !== '' || subCatsSelecionadas.length > 0 || filtroPaymentMethod !== '';
+  
+  if (isAlgumFiltroAtivo) {
+    const somaFiltro = filtered.reduce((acc, t) => {
+      const ehEntrada = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
+      return ehEntrada ? acc + t.amount : acc - t.amount;
+    }, 0);
+
+    if (filterTotalValue) {
+      filterTotalValue.innerText = showBigBalance ? `R$ ${somaFiltro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
+    }
+    if (filterTotalBox) filterTotalBox.classList.remove('hidden');
+  } else {
+    if (filterTotalBox) filterTotalBox.classList.add('hidden');
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="p-6 text-center text-sm font-bold text-slate-400 bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm">Nenhuma movimentação encontrada neste mês.</div>`;
+    return;
+  }
+
+  filtered.forEach(t => {
+    const isIncome = t.type === 'INCOME' || t.cat === 'Salário' || t.cat === 'Renda Extra';
+    const autorNome = t.userEmail ? t.userEmail.split('@')[0] : 'Membro';
+    const confirmado = t.confirmado === true;
     
     const catBadge = t.cat ? `<span class="text-[9px] bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full font-bold">${t.cat}</span>` : '';
     const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full font-bold">${t.subCat}</span>` : '';
     const paymentBadge = t.paymentMethod ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold">${t.paymentMethod}</span>` : '';
     const userBadge = `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full font-semibold"><i class="fa-solid fa-user text-[8px] mr-1"></i>${autorNome}</span>`;
+
+    const valorExibicao = showBigBalance ? `${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}` : '•••••';
 
     container.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:border dark:border-slate-800">
@@ -1325,7 +1390,7 @@ function renderTransactionsList(currentTx) {
 
         <div class="flex flex-col items-end pl-2 shrink-0">
           <span class="text-sm sm:text-base font-black whitespace-nowrap ${isIncome ? 'text-brand-green' : 'text-rose-500 dark:text-rose-400'}">
-            ${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
+            ${valorExibicao}
           </span>
           <div class="flex items-center gap-3 mt-2">
             <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1 transition" title="Editar">
@@ -1340,6 +1405,7 @@ function renderTransactionsList(currentTx) {
     `;
   });
 }
+
 
 function renderInvestments(currentTx) {
   const investConfirmadosMes = currentTx.filter(t => t.cat === 'Investimentos' && t.confirmado);
