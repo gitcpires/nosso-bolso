@@ -1,29 +1,34 @@
-const CACHE_NAME = 'nossobolso-cache-v3'; 
+const CACHE_NAME = 'nosso-bolso-v2';
 
-const urlsToCache = [
+const ASSETS_TO_CACHE = [
   './',
-  './painel.html',
   './index.html',
+  './painel.html',
   './script.js',
   './manifest.json',
-  './icone-app.png',
-  './papel.jpg'
+  './icone-app.png'
 ];
 
-self.addEventListener('install', event => {
+// 1. Instalação: guarda os arquivos essenciais e ativa imediatamente
+self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS_TO_CACHE).catch(() => {
+        // Ignora falhas pontuais de cache inicial para não travar a instalação
+      });
+    })
   );
 });
 
-self.addEventListener('activate', event => {
+// 2. Ativação: apaga caches antigos e assume o controle das abas abertas
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
           }
         })
       );
@@ -31,27 +36,27 @@ self.addEventListener('activate', event => {
   );
 });
 
-self.addEventListener('fetch', event => {
-  // REGRA DE OURO: Ignorar conexões do Firebase e Google para não congelar o carregamento
-  if (event.request.url.includes('firestore.googleapis.com') || 
-      event.request.url.includes('securetoken.googleapis.com') ||
-      event.request.url.includes('identitytoolkit')) {
-    return; 
+// 3. Interceptação (Estratégia Network-First): busca sempre a versão mais nova na rede
+self.addEventListener('fetch', (event) => {
+  // Ignora requisições externas de APIs (Firebase, CDNs, etc.) ou métodos diferentes de GET
+  if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
+    return;
   }
 
   event.respondWith(
     fetch(event.request)
-      .then(response => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+      .then((networkResponse) => {
+        // Se conseguiu baixar da rede, atualiza o cache local com a versão nova
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-        var responseToCache = response.clone();
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, responseToCache);
-        });
-        return response;
+        return networkResponse;
       })
       .catch(() => {
+        // Se estiver offline, entrega o arquivo salvo no cache
         return caches.match(event.request);
       })
   );
