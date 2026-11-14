@@ -917,11 +917,14 @@ function renderAll() {
     const barraPreenchida = Math.min(pctGasto, 100);
     
     return `
-      <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform bg-slate-50 dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
         <div>
-          <div class="flex items-center gap-2 mb-2">
-            <i class="fa-solid ${icone} ${corTexto} text-base"></i>
-            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">${titulo}</span>
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid ${icone} ${corTexto} text-base"></i>
+              <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">${titulo}</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
           </div>
           <div class="text-sm font-black text-slate-900 dark:text-white">R$ ${gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
           <div class="text-[9px] font-medium text-slate-400 dark:text-slate-500 mt-1 mb-3">Meta: R$ ${metaEmReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
@@ -1328,40 +1331,6 @@ function exportarParaExcel() {
   document.body.removeChild(link);
 }
 
-function switchTab(tab) {
-  // Lista atualizada com todas as abas existentes no painel
-  ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
-    const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.add('hidden');
-  });
-
-  // Mostra estritamente a aba clicada
-  const activeEl = document.getElementById(`tab-${tab}`);
-  if (activeEl) activeEl.classList.remove('hidden');
-
-  if (tab === 'extrato') {
-    renderTransactionsList(transactions.filter(t => t.month === activeMonth));
-  }
-
-  // Atualiza o destaque visual e o indicador azul na barra inferior
-  ['resumo', 'extrato', 'invest', 'graficos'].forEach(name => {
-    const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
-    const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
-    
-    if (btn) {
-      if (name === tab) {
-        btn.className = 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95';
-        if (indicator) indicator.classList.remove('hidden');
-      } else {
-        btn.className = 'relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95';
-        if (indicator) indicator.classList.add('hidden');
-      }
-    }
-  });
-
-  renderAll();
-}
-
 function toggleDarkMode() {
   const isDark = document.documentElement.classList.toggle('dark');
   localStorage.setItem('nossoBolsoDarkMode', isDark ? 'enabled' : 'disabled');
@@ -1523,4 +1492,198 @@ function renderCarteiraLivre() {
       </div>
     `;
   });
+}
+
+// ==========================================
+// DETALHES DE CATEGORIAS (METAS - CLICK)
+// ==========================================
+
+function abrirDetalhesCategoria(nomeCategoria, metaValor) {
+  const currentTxConfirmadas = transactions.filter(t => t.month === activeMonth && t.confirmado && t.cat === nomeCategoria);
+  
+  const totalGasto = currentTxConfirmadas.reduce((s, t) => s + t.amount, 0);
+  const diferenca = metaValor - totalGasto;
+
+  document.getElementById('detalheCatTitulo').innerText = nomeCategoria;
+  
+  let iconeClass = "fa-list";
+  let bgIcon = "bg-blue-100 text-blue-600";
+  if (nomeCategoria === 'Gastos Fixos') { iconeClass = "fa-bullseye"; bgIcon = "bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400"; }
+  if (nomeCategoria === 'Gastos Gerais') { iconeClass = "fa-star"; bgIcon = "bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400"; }
+  if (nomeCategoria === 'Lazer') { iconeClass = "fa-cart-shopping"; bgIcon = "bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400"; }
+  if (nomeCategoria === 'Investimentos') { iconeClass = "fa-chart-column"; bgIcon = "bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400"; }
+  
+  const iconeEl = document.getElementById('detalheCatIcone');
+  iconeEl.className = `w-10 h-10 rounded-full flex items-center justify-center text-lg ${bgIcon}`;
+  iconeEl.innerHTML = `<i class="fa-solid ${iconeClass}"></i>`;
+
+  document.getElementById('detalheCatTotalGasto').innerText = `R$ ${totalGasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  document.getElementById('detalheCatMetaValor').innerText = `R$ ${metaValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+  const statusEl = document.getElementById('detalheCatStatus');
+  if (diferenca >= 0) {
+    statusEl.innerText = `Sobra: R$ ${diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    statusEl.className = "text-[11px] font-extrabold px-2 py-1 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400";
+  } else {
+    statusEl.innerText = `Passou: R$ ${Math.abs(diferenca).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    statusEl.className = "text-[11px] font-extrabold px-2 py-1 rounded-md bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400";
+  }
+
+  const listaEl = document.getElementById('detalheCatLista');
+  listaEl.innerHTML = '';
+
+  if (currentTxConfirmadas.length === 0) {
+    listaEl.innerHTML = '<p class="text-xs font-bold text-slate-400 text-center py-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">Nenhum lançamento registado.</p>';
+  } else {
+    currentTxConfirmadas.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(t => {
+      const dataFormatada = t.date ? t.date.split('-').reverse().join('/') : '';
+      const subCatBadge = t.subCat ? `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">${t.subCat}</span>` : '';
+      
+      listaEl.innerHTML += `
+        <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-50 dark:border-slate-700">
+          <div class="pr-2 truncate w-full">
+            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block truncate">${t.desc}</span>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px] font-bold text-slate-500"><i class="fa-regular fa-calendar mr-1"></i> ${dataFormatada}</span>
+              ${subCatBadge}
+            </div>
+          </div>
+          <span class="text-sm font-black text-rose-600 dark:text-rose-400 shrink-0">R$ ${t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+        </div>
+      `;
+    });
+  }
+
+  document.getElementById('detalhesCategoriaModal').classList.remove('hidden');
+}
+
+function fecharDetalhesCategoria() {
+  document.getElementById('detalhesCategoriaModal').classList.add('hidden');
+}
+
+// ==========================================
+// FUNÇÕES DE NAVEGAÇÃO E MUDANÇA DE ABA
+// ==========================================
+
+function switchTab(tab) {
+  // 1. Esconde todas as abas
+  ['resumo', 'extrato', 'invest', 'graficos'].forEach(t => {
+    const el = document.getElementById(`tab-${t}`);
+    if (el) el.classList.add('hidden');
+  });
+
+  // 2. Mostra apenas a aba solicitada
+  const activeEl = document.getElementById(`tab-${tab}`);
+  if (activeEl) activeEl.classList.remove('hidden');
+
+  if (tab === 'extrato') {
+    renderTransactionsList(transactions.filter(t => t.month === activeMonth));
+  }
+
+  // 3. Atualiza as cores do menu inferior
+  ['resumo', 'extrato', 'invest', 'graficos'].forEach(name => {
+    const btn = document.getElementById(`bottomNav${name.charAt(0).toUpperCase() + name.slice(1)}`);
+    const indicator = document.getElementById(`indicator${name.charAt(0).toUpperCase() + name.slice(1)}`);
+    
+    if (btn) {
+      if (name === tab) {
+        btn.className = 'relative flex flex-col items-center justify-center text-blue-600 transition active:scale-95';
+        if (indicator) indicator.classList.remove('hidden');
+      } else {
+        btn.className = 'relative flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-600 transition active:scale-95';
+        if (indicator) indicator.classList.add('hidden');
+      }
+    }
+  });
+
+  renderAll();
+}
+
+// ==========================================
+// GESTOS DE DESLIZAR (SWIPE REAL TIME HIPER-RÁPIDO)
+// ==========================================
+
+const containerSwipe = document.getElementById('mainSwipeContainer');
+let inicioX = 0;
+let movimentoX = 0;
+let deslizando = false;
+const ordemAbas = ['resumo', 'extrato', 'invest', 'graficos'];
+
+if (containerSwipe) {
+  containerSwipe.addEventListener('touchstart', (e) => {
+    inicioX = e.touches[0].clientX;
+    movimentoX = 0;
+    deslizando = true;
+    containerSwipe.style.transition = 'none'; 
+  }, { passive: true });
+
+  containerSwipe.addEventListener('touchmove', (e) => {
+    if (!deslizando) return;
+    movimentoX = e.touches[0].clientX - inicioX;
+    
+    // Descobre a aba atual
+    let abaAtivaIndex = 0;
+    for (let i = 0; i < ordemAbas.length; i++) {
+      const el = document.getElementById(`tab-${ordemAbas[i]}`);
+      if (el && !el.classList.contains('hidden')) {
+        abaAtivaIndex = i;
+        break;
+      }
+    }
+    
+    // Efeito de resistência nas pontas (primeira e última aba)
+    if (abaAtivaIndex === 0 && movimentoX > 0) movimentoX *= 0.3; 
+    if (abaAtivaIndex === ordemAbas.length - 1 && movimentoX < 0) movimentoX *= 0.3;
+
+    containerSwipe.style.transform = `translateX(${movimentoX}px)`;
+  }, { passive: true });
+
+  containerSwipe.addEventListener('touchend', () => {
+    deslizando = false;
+    const limite = 60; 
+    
+    let abaAtivaIndex = 0;
+    for (let i = 0; i < ordemAbas.length; i++) {
+      const el = document.getElementById(`tab-${ordemAbas[i]}`);
+      if (el && !el.classList.contains('hidden')) {
+        abaAtivaIndex = i;
+        break;
+      }
+    }
+
+    if (movimentoX < -limite && abaAtivaIndex < ordemAbas.length - 1) {
+      // Vai para a próxima aba (desliza pra ESQUERDA)
+      animarTrocaAba(abaAtivaIndex + 1, -1);
+    } else if (movimentoX > limite && abaAtivaIndex > 0) {
+      // Vai para a aba anterior (desliza pra DIREITA)
+      animarTrocaAba(abaAtivaIndex - 1, 1);
+    } else {
+      // Cancela hiper rápido (caso desista no meio do caminho)
+      containerSwipe.style.transition = 'transform 0.1s ease-out';
+      containerSwipe.style.transform = 'translateX(0px)';
+    }
+  });
+}
+
+function animarTrocaAba(novoIndex, direcao) {
+  // 1. Tira a tela atual BEM RÁPIDO para o lado (80ms)
+  containerSwipe.style.transition = 'transform 0.08s ease-in, opacity 0.08s ease-in';
+  containerSwipe.style.transform = `translateX(${direcao * 100}%)`; 
+  containerSwipe.style.opacity = '0';
+
+  setTimeout(() => {
+    // 2. Troca as abas no HTML
+    switchTab(ordemAbas[novoIndex]); 
+    
+    // 3. Joga o container invisível para o lado oposto mais perto (-30%)
+    containerSwipe.style.transition = 'none';
+    containerSwipe.style.transform = `translateX(${direcao * -30}%)`; 
+    
+    // 4. Traz a nova tela deslizando quase que instantaneamente (120ms)
+    setTimeout(() => {
+      containerSwipe.style.transition = 'transform 0.12s ease-out, opacity 0.12s ease-out';
+      containerSwipe.style.transform = 'translateX(0px)';
+      containerSwipe.style.opacity = '1';
+    }, 10);
+  }, 80); 
 }
