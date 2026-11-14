@@ -53,15 +53,57 @@
       background: radial-gradient(circle at top right, #104230 0%, #0c241c 70%);
     }
     .fade-transition { transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out; }
+
+    /* Animação das Moedas Caindo no Cofre */
+    @keyframes coinDrop {
+      0% { transform: translateY(-35px) scale(0.8); opacity: 0; }
+      30% { opacity: 1; }
+      70% { transform: translateY(8px) scale(1); opacity: 1; }
+      100% { transform: translateY(15px) scale(0.5); opacity: 0; }
+    }
+
+    @keyframes piggyBounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12, 0.92); }
+    }
+
+    .coin-anim-1 { animation: coinDrop 1.5s infinite ease-in; }
+    .coin-anim-2 { animation: coinDrop 1.5s infinite ease-in 0.5s; }
+    .coin-anim-3 { animation: coinDrop 1.5s infinite ease-in 1.0s; }
+    .piggy-anim { animation: piggyBounce 0.5s infinite ease-in-out; }
   </style>
 </head>
 <body class="bg-app-bg dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors duration-200 min-h-screen overflow-x-hidden flex flex-col">
 
   <div class="absolute top-0 left-0 right-0 h-[260px] bg-header-waves dark:bg-slate-900 rounded-b-[3rem] z-0 shadow-lg"></div>
 
-  <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-brand-dark text-white space-y-4">
-    <div class="w-12 h-12 border-4 border-brand-green border-t-transparent rounded-full animate-spin"></div>
-    <p class="text-xs font-bold tracking-wider">A carregar o seu Nosso Bolso...</p>
+  <!-- TELA DE CARREGAMENTO COM ANIMAÇÃO DO COFRE -->
+  <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-brand-dark text-white space-y-6">
+    <div class="relative w-24 h-24 flex items-end justify-center">
+      <!-- Fenda do Cofre -->
+      <div class="w-8 h-1.5 bg-black/50 rounded-full mb-11 z-10"></div>
+
+      <!-- Moedas Caindo -->
+      <div class="absolute top-2 text-amber-400 text-lg coin-anim-1 z-0">
+        <i class="fa-solid fa-coins"></i>
+      </div>
+      <div class="absolute top-2 text-yellow-300 text-base coin-anim-2 z-0">
+        <i class="fa-solid fa-circle-dollar-to-slot"></i>
+      </div>
+      <div class="absolute top-2 text-amber-400 text-lg coin-anim-3 z-0">
+        <i class="fa-solid fa-coins"></i>
+      </div>
+
+      <!-- Cofre de Porquinho -->
+      <div class="absolute bottom-0 text-brand-green text-5xl piggy-anim z-20 drop-shadow-[0_4px_12px_rgba(0,176,107,0.4)]">
+        <i class="fa-solid fa-piggy-bank"></i>
+      </div>
+    </div>
+
+    <div class="text-center space-y-1">
+      <p class="text-sm font-black tracking-wider text-white">Nosso Bolso</p>
+      <p class="text-[11px] font-medium text-white/60 animate-pulse">Organizando suas moedas...</p>
+    </div>
   </div>
 
   <div id="pendingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 p-4 hidden">
@@ -121,7 +163,6 @@
   </header>
 
   <!-- CONTEÚDO PRINCIPAL -->
-  <!-- O space-y-3.5 garante o espaçamento natural, e o pb-24 dá o espaço exato para a navegação -->
   <main id="mainSwipeContainer" class="relative z-30 mx-auto max-w-md px-4 flex-grow w-full flex flex-col">
     
     <!-- ABA RESUMO -->
@@ -144,10 +185,10 @@
 
       <!-- CARD GIGANTE COMPACTO -->
       <div class="bg-gradient-to-r from-brand-card to-emerald-600 rounded-[1.5rem] p-4 text-white shadow-xl relative overflow-hidden">
+        <!-- Botão Ocultar (Inicia fechado) -->
         <button onclick="toggleVisibility()" class="absolute top-4 right-4 p-1 hover:text-white/80 transition cursor-pointer z-50">
-  <i class="fa-solid fa-eye-slash text-[11px] text-white/50" id="eyeIcon"></i>
-</button>
-
+          <i class="fa-solid fa-eye-slash text-[11px] text-white/50" id="eyeIcon"></i>
+        </button>
 
         <div class="absolute bottom-0 right-0 opacity-20 w-32 h-16 flex items-end gap-1">
           <div class="w-4 bg-white rounded-t-sm h-4"></div><div class="w-4 bg-white rounded-t-sm h-8"></div><div class="w-4 bg-white rounded-t-sm h-12"></div><div class="w-4 bg-white rounded-t-sm h-16"></div>
@@ -157,7 +198,7 @@
           <div class="flex items-center text-white/80 font-bold text-[11px] mb-0.5">
             <span class="flex items-center gap-1.5"><i class="fa-solid fa-chart-simple"></i> Saldo Atual</span>
           </div>
-          <div id="statBigBalance" class="text-3xl font-black tracking-tighter truncate">R$ 0,00</div>
+          <div id="statBigBalance" class="text-3xl font-black tracking-tighter truncate">•••••</div>
         </div>
       </div>
 
@@ -170,7 +211,7 @@
             </div>
             <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">Entradas</span>
           </div>
-          <div id="statIncome" class="text-[15px] font-black text-emerald-600 dark:text-emerald-400 tracking-tighter truncate">R$ 0,00</div>
+          <div id="statIncome" class="text-[15px] font-black text-emerald-600 dark:text-emerald-400 tracking-tighter truncate">•••••</div>
         </div>
 
         <div class="bg-white dark:bg-slate-800 p-3.5 rounded-[1.25rem] shadow-sm flex flex-col justify-center border border-slate-50 dark:border-slate-700/50">
@@ -180,7 +221,7 @@
             </div>
             <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">Saídas</span>
           </div>
-          <div id="statExpense" class="text-[15px] font-black text-rose-600 dark:text-rose-400 tracking-tighter truncate">R$ 0,00</div>
+          <div id="statExpense" class="text-[15px] font-black text-rose-600 dark:text-rose-400 tracking-tighter truncate">•••••</div>
         </div>
       </div>
 
@@ -235,8 +276,8 @@
     <!-- ABA INVESTIMENTOS -->
     <div id="tab-invest" class="w-full space-y-3 hidden fade-transition pb-28 pt-2">
        <div class="grid grid-cols-2 gap-2">
-        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-4 rounded-[1.5rem] text-white shadow-lg space-y-1"><span class="text-[9px] font-bold text-indigo-300 uppercase block">Investido no Mês</span><div id="monthInvestTotalHeader" class="text-lg font-black text-emerald-400 truncate">R$ 0,00</div></div>
-        <div class="bg-gradient-to-br from-emerald-900 to-teal-950 p-4 rounded-[1.5rem] text-white shadow-lg space-y-1"><span class="text-[9px] font-bold text-emerald-300 uppercase block">Acumulado (Ano)</span><div id="yearInvestTotalHeader" class="text-lg font-black text-white truncate">R$ 0,00</div></div>
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-4 rounded-[1.5rem] text-white shadow-lg space-y-1"><span class="text-[9px] font-bold text-indigo-300 uppercase block">Investido no Mês</span><div id="monthInvestTotalHeader" class="text-lg font-black text-emerald-400 truncate">•••••</div></div>
+        <div class="bg-gradient-to-br from-emerald-900 to-teal-950 p-4 rounded-[1.5rem] text-white shadow-lg space-y-1"><span class="text-[9px] font-bold text-emerald-300 uppercase block">Acumulado (Ano)</span><div id="yearInvestTotalHeader" class="text-lg font-black text-white truncate">•••••</div></div>
       </div>
       <div id="monthInvestmentsList" class="space-y-2 pt-1"></div>
     </div>
@@ -294,8 +335,6 @@
       </div>
     </nav>
   </div>
-
-
 
   <!-- MODAIS Lançamento -->
   <div id="newTxModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 hidden backdrop-blur-md">
