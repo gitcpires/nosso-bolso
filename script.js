@@ -1346,7 +1346,9 @@ function renderInvestments(currentTx) {
   const totalMes = investConfirmadosMes.reduce((s, t) => s + t.amount, 0);
 
   const monthInvestEl = document.getElementById('monthInvestTotalHeader');
-  if (monthInvestEl) monthInvestEl.innerText = `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  if (monthInvestEl) {
+    monthInvestEl.innerText = showBigBalance ? `R$ ${totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
+  }
 
   const anoAtualSelecionado = activeMonth.split(' ')[1] || '2026';
   const totalYearInvested = transactions
@@ -1355,7 +1357,7 @@ function renderInvestments(currentTx) {
 
   const yearHeader = document.getElementById('yearInvestTotalHeader');
   if (yearHeader) {
-    yearHeader.innerText = `R$ ${totalYearInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    yearHeader.innerText = showBigBalance ? `R$ ${totalYearInvested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
   }
 
   const investList = document.getElementById('monthInvestmentsList');
@@ -1377,6 +1379,8 @@ function renderInvestments(currentTx) {
   investList.innerHTML = '';
   invests.forEach(t => {
     const confirmado = t.confirmado === true;
+    const valorExibicao = showBigBalance ? `R$ ${Number(t.amount).toFixed(2).replace('.', ',')}` : '•••••';
+
     investList.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:border dark:border-slate-800">
         <div class="space-y-1.5 pr-2 overflow-hidden w-full">
@@ -1393,7 +1397,7 @@ function renderInvestments(currentTx) {
 
         <div class="flex flex-col items-end pl-2 shrink-0">
           <span class="text-sm sm:text-base font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">
-            R$ ${Number(t.amount).toFixed(2).replace('.', ',')}
+            ${valorExibicao}
           </span>
           <div class="flex items-center gap-3 mt-2">
             <button onclick="openEditTransaction('${t.id}')" class="text-slate-400 hover:text-blue-600 p-1 transition" title="Editar">
@@ -1408,6 +1412,7 @@ function renderInvestments(currentTx) {
     `;
   });
 }
+
 
 function exportarParaExcel() {
   const currentTx = transactions.filter(t => t.month === activeMonth);
