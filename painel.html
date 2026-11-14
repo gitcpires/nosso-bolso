@@ -54,7 +54,6 @@
     }
     .fade-transition { transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out; }
 
-    /* Animação das Moedas Caindo no Cofre */
     @keyframes coinDrop {
       0% { transform: translateY(-35px) scale(0.8); opacity: 0; }
       30% { opacity: 1; }
@@ -72,7 +71,6 @@
     .coin-anim-3 { animation: coinDrop 1.5s infinite ease-in 1.0s; }
     .piggy-anim { animation: piggyBounce 0.5s infinite ease-in-out; }
 
-    /* Animação Toast */
     @keyframes slideDownFade {
       0% { transform: translate(-50%, -20px); opacity: 0; }
       100% { transform: translate(-50%, 0); opacity: 1; }
@@ -82,7 +80,7 @@
 </head>
 <body class="bg-app-bg dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors duration-200 min-h-screen overflow-x-hidden flex flex-col">
 
-  <!-- CONTAINER DE NOTIFICAÇÕES FLUTUANTES (TOASTS) -->
+  <!-- CONTAINER DE NOTIFICAÇÕES FLUTUANTES -->
   <div id="toastContainer" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 w-[90%] max-w-sm pointer-events-none"></div>
 
   <!-- MODAL DE CONFIRMAÇÃO MODERNO -->
@@ -143,6 +141,7 @@
     </div>
   </div>
 
+  <!-- CABEÇALHO FIXO COM BOTÃO DE OCULTAR ACESSÍVEL EM TODAS AS ABAS -->
   <header class="relative z-40 w-full pt-5 pb-2 px-5">
     <div class="mx-auto max-w-md flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -158,7 +157,10 @@
         </div>
       </div>
       
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5">
+        <button onclick="toggleVisibility()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Ocultar / Mostrar Valores">
+          <i id="eyeIcon" class="fa-solid fa-eye-slash text-sm text-white/60"></i>
+        </button>
         <button onclick="openCarteiraLivreModal()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Carteira Privada">
           <i class="fa-solid fa-user-secret text-sm"></i>
         </button>
@@ -195,10 +197,6 @@
 
       <!-- CARD GIGANTE COMPACTO -->
       <div class="bg-gradient-to-r from-brand-card to-emerald-600 rounded-[1.5rem] p-4 text-white shadow-xl relative overflow-hidden">
-        <button onclick="toggleVisibility()" class="absolute top-4 right-4 p-1 hover:text-white/80 transition cursor-pointer z-50">
-          <i class="fa-solid fa-eye-slash text-[11px] text-white/50" id="eyeIcon"></i>
-        </button>
-
         <div class="absolute bottom-0 right-0 opacity-20 w-32 h-16 flex items-end gap-1">
           <div class="w-4 bg-white rounded-t-sm h-4"></div><div class="w-4 bg-white rounded-t-sm h-8"></div><div class="w-4 bg-white rounded-t-sm h-12"></div><div class="w-4 bg-white rounded-t-sm h-16"></div>
         </div>
@@ -264,15 +262,15 @@
     <!-- ABA EXTRATO -->
     <div id="tab-extrato" class="w-full space-y-3 hidden fade-transition pb-28 pt-2">
        <div class="flex gap-2">
-        <input type="text" id="searchExpense" oninput="renderTransactionsList(transactions)" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1.5rem] px-5 py-3 text-sm font-bold focus:outline-none shadow-sm" />
+        <input type="text" id="searchExpense" oninput="renderTransactionsList()" placeholder="Pesquisar lançamento..." class="w-full bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1.5rem] px-5 py-3 text-sm font-bold focus:outline-none shadow-sm" />
       </div>
       <div class="grid grid-cols-3 gap-2">
-        <select id="filterStatus" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1rem] px-2.5 py-2 text-xs font-bold focus:outline-none shadow-sm">
+        <select id="filterStatus" onchange="renderTransactionsList()" class="bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1rem] px-2.5 py-2 text-xs font-bold focus:outline-none shadow-sm">
           <option value="">📋 Status</option>
           <option value="pending">⏳ Pendentes</option>
           <option value="confirmed">✓ Registados</option>
         </select>
-        <select id="filterCategory" onchange="renderTransactionsList(transactions)" class="bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1rem] px-2.5 py-2 text-xs font-bold focus:outline-none shadow-sm">
+        <select id="filterCategory" onchange="renderTransactionsList()" class="bg-white dark:bg-slate-800 border-none dark:text-white rounded-[1rem] px-2.5 py-2 text-xs font-bold focus:outline-none shadow-sm">
           <option value="">🏷️ Categorias</option>
           <option value="Gastos Fixos">Fixos</option>
           <option value="Gastos Gerais">Gerais</option>
@@ -284,7 +282,7 @@
         </button>
       </div>
 
-      <!-- BOTÃO CONFIRMAR TODOS OS PENDENTES (SÓ APARECE QUANDO FILTRADO POR PENDENTES) -->
+      <!-- BOTÃO CONFIRMAR TODOS OS PENDENTES -->
       <div id="btnConfirmAllContainer" class="hidden">
         <button onclick="confirmarTodosPendentes()" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-md flex items-center justify-center gap-2 transition active:scale-95">
           <i class="fa-solid fa-check-double"></i> Confirmar Todos os Pendentes (<span id="countPendentesBtn">0</span>)
@@ -295,11 +293,16 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <span class="text-[10px] font-bold text-slate-400 block mb-1.5 uppercase tracking-wider">Membro</span>
-            <select id="filterMember" onchange="renderTransactionsList(transactions)" class="w-full bg-slate-50 dark:bg-slate-900 border-none dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"><option value="">Todos</option></select>
+            <select id="filterMember" onchange="renderTransactionsList()" class="w-full bg-slate-50 dark:bg-slate-900 border-none dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"><option value="">Todos</option></select>
           </div>
           <div>
             <span class="text-[10px] font-bold text-slate-400 block mb-1.5 uppercase tracking-wider">Pagamento / Cartão</span>
-            <select id="filterPaymentMethod" onchange="renderTransactionsList(transactions)" class="w-full bg-slate-50 dark:bg-slate-900 border-none dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"><option value="">Todos</option></select>
+            <select id="filterPaymentMethod" onchange="renderTransactionsList()" class="w-full bg-slate-50 dark:bg-slate-900 border-none dark:text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-none">
+              <option value="">Todos</option>
+              <option value="PIX">⚡ PIX</option>
+              <option value="Cartão de Crédito">💳 Cartão (Geral)</option>
+              <option value="Outros">🔄 Outros</option>
+            </select>
           </div>
         </div>
         <div>
@@ -325,30 +328,41 @@
       <div id="monthInvestmentsList" class="space-y-2 pt-1"></div>
     </div>
 
-    <!-- ABA GRÁFICOS -->
-    <div id="tab-graficos" class="w-full space-y-4 hidden fade-transition pb-28 pt-2">
-      <!-- Gráfico 1: Distribuição por Categoria (Rosca mais ampla e limpa) -->
-      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] shadow-sm space-y-3">
-        <div class="flex items-center gap-2"><div class="text-blue-600 text-lg"><i class="fa-solid fa-chart-pie"></i></div><h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Distribuição por Categoria</h3></div>
-        <div class="h-36 relative w-full"><canvas id="categoryPieChart"></canvas></div>
+    <!-- ABA GRÁFICOS (LIMPA, ORGANIZADA E SEM REPETIÇÕES) -->
+    <div id="tab-graficos" class="w-full space-y-3.5 hidden fade-transition pb-28 pt-2">
+      <!-- 1. Evolução Mensal (Destaque principal no topo) -->
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.75rem] shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs"><i class="fa-solid fa-chart-line"></i></div>
+            <h3 class="text-xs font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-wide">Evolução (6 Meses)</h3>
+          </div>
+          <span class="text-[9px] font-bold text-slate-400">Entradas vs Saídas</span>
+        </div>
+        <div class="h-40 relative w-full"><canvas id="evolutionBarChart"></canvas></div>
       </div>
 
-      <!-- Gráfico 2: Evolução dos Últimos 6 Meses -->
-      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] shadow-sm space-y-3">
-        <div class="flex items-center gap-2"><div class="text-indigo-500 text-lg"><i class="fa-solid fa-chart-line"></i></div><h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Evolução (Últimos 6 Meses)</h3></div>
-        <div class="h-36 relative w-full"><canvas id="evolutionBarChart"></canvas></div>
+      <!-- 2. Distribuição por Categoria -->
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.75rem] shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs"><i class="fa-solid fa-chart-pie"></i></div>
+            <h3 class="text-xs font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-wide">Por Categoria</h3>
+          </div>
+          <span class="text-[9px] font-bold text-slate-400">Toque para ver valor</span>
+        </div>
+        <div class="h-40 relative w-full"><canvas id="categoryPieChart"></canvas></div>
       </div>
 
-      <!-- Gráfico 3: Subcategorias -->
-      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] shadow-sm space-y-3">
-        <div class="flex items-center gap-2"><div class="text-emerald-500 text-lg"><i class="fa-solid fa-tags"></i></div><h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Por Subcategoria</h3></div>
-        <div class="h-36 relative w-full"><canvas id="subCategoryBarChart"></canvas></div>
-      </div>
-
-      <!-- Gráfico 4: Formas de Pagamento / Cartões -->
-      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.5rem] shadow-sm space-y-3">
-        <div class="flex items-center gap-2"><div class="text-purple-500 text-lg"><i class="fa-solid fa-credit-card"></i></div><h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Formas de Pagamento</h3></div>
-        <div class="h-32 relative w-full"><canvas id="paymentMethodBarChart"></canvas></div>
+      <!-- 3. Gastos por Subcategoria -->
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-[1.75rem] shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs"><i class="fa-solid fa-tags"></i></div>
+            <h3 class="text-xs font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-wide">Por Subcategoria</h3>
+          </div>
+        </div>
+        <div class="h-40 relative w-full"><canvas id="subCategoryBarChart"></canvas></div>
       </div>
     </div>
   </main>
@@ -454,7 +468,6 @@
           </select>
         </div>
 
-        <!-- Opção de Parcelamento (Cartões) -->
         <div id="containerParcelas" class="space-y-3 p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 hidden">
           <div>
             <label class="block text-[11px] font-bold text-slate-500 mb-1">Tipo de Compra no Cartão</label>
@@ -470,7 +483,6 @@
           <p id="avisoFechamentoCartao" class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold hidden"></p>
         </div>
 
-        <!-- Opção de Recorrência / Assinatura (Apenas Saídas novas) -->
         <div id="containerRecorrencia" class="flex items-center justify-between p-3 bg-blue-50/60 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900/40">
           <div>
             <span class="text-xs font-extrabold text-slate-700 dark:text-slate-200 block">🔄 Assinatura / Mensal</span>
@@ -503,7 +515,6 @@
         <button onclick="copyWorkspaceCountCode()" class="px-3 py-2 bg-brand-green text-white rounded-xl text-[11px] font-extrabold shadow-sm"><i class="fa-solid fa-copy mr-1"></i>Copiar</button>
       </div>
 
-      <!-- GESTÃO DE CARTÕES DE CRÉDITO -->
       <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-[1.5rem] space-y-3">
         <div class="flex items-center justify-between">
           <div>
@@ -668,7 +679,7 @@
           <span id="detalheCatTotalGasto" class="text-xl font-black text-slate-900 dark:text-white">•••••</span>
         </div>
         <div class="flex items-center justify-between">
-          <span class="text-[10px] font-bold text-slate-400">Meta: <span id="detalheCatMetaValor"></span></span>
+          <span class="text-[10px] font-bold text-slate-400">Meta: <span id="detalheCatMetaValor">•••••</span></span>
           <span id="detalheCatStatus" class="text-[11px] font-extrabold px-2 py-1 rounded-md"></span>
         </div>
       </div>
