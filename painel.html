@@ -49,19 +49,21 @@
     * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     ::-webkit-scrollbar { width: 0px; background: transparent; }
     
-    /* Fundo dinâmico simulando as ondas do topo */
     .bg-header-waves {
       background: radial-gradient(circle at top right, #104230 0%, #0c241c 70%);
     }
     .fade-transition { transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out; }
+    
+    /* Degradê suave para o Banner de Dicas */
+    .bg-banner-dicas {
+      background: linear-gradient(135deg, #074836 0%, #00b06b 100%);
+    }
   </style>
 </head>
 <body class="bg-app-bg dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors duration-200 min-h-screen overflow-x-hidden flex flex-col">
 
-  <!-- Fundo Escuro do Topo -->
   <div class="absolute top-0 left-0 right-0 h-[280px] bg-header-waves dark:bg-slate-900 rounded-b-[3rem] z-0 shadow-lg"></div>
 
-  <!-- Telas de Carregamento / Pendente / Configuração -->
   <div id="loadingScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-brand-dark text-white space-y-4">
     <div class="w-12 h-12 border-4 border-brand-green border-t-transparent rounded-full animate-spin"></div>
     <p class="text-xs font-bold tracking-wider">A carregar o seu Nosso Bolso...</p>
@@ -94,7 +96,6 @@
     </div>
   </div>
 
-  <!-- CABEÇALHO COMPACTO -->
   <header class="relative z-40 w-full pt-6 pb-2 px-5">
     <div class="mx-auto max-w-md flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -114,7 +115,6 @@
         <button onclick="openCarteiraLivreModal()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Carteira Privada">
           <i class="fa-solid fa-user-secret text-sm"></i>
         </button>
-        <!-- BOTÃO DE TEMA ESCURO DE VOLTA -->
         <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Modo Escuro">
           <i id="darkModeIcon" class="fa-solid fa-moon text-sm"></i>
         </button>
@@ -125,13 +125,12 @@
     </div>
   </header>
 
-  <!-- CONTEÚDO PRINCIPAL COM GESTOS -->
+  <!-- CONTEÚDO PRINCIPAL -->
   <main id="mainSwipeContainer" class="relative z-30 mx-auto max-w-md px-4 flex-grow w-full flex flex-col">
     
     <!-- ABA RESUMO -->
-    <div id="tab-resumo" class="w-full flex flex-col space-y-2.5 flex-grow fade-transition">
+    <div id="tab-resumo" class="w-full flex flex-col space-y-3.5 flex-grow fade-transition pb-28">
       
-      <!-- Seletor de Mês -->
       <div class="flex items-center justify-between bg-white dark:bg-slate-800 py-1.5 px-3 rounded-[1rem] shadow-sm">
         <div class="flex items-center gap-1.5 pl-1 text-slate-500 dark:text-slate-400">
           <i class="fa-regular fa-calendar text-sm"></i>
@@ -147,24 +146,26 @@
         </div>
       </div>
 
-      <!-- CARD GIGANTE COMPACTO: Saldo Atual -->
+      <!-- CARD GIGANTE COMPACTO -->
       <div class="bg-gradient-to-r from-brand-card to-emerald-600 rounded-[1.5rem] p-4 text-white shadow-xl relative overflow-hidden">
+        <!-- Botão Ocultar na quina direita superior -->
+        <button onclick="toggleVisibility()" class="absolute top-4 right-4 p-1 hover:text-white/80 transition cursor-pointer z-50">
+          <i class="fa-solid fa-eye text-sm" id="eyeIcon"></i>
+        </button>
+
         <div class="absolute bottom-0 right-0 opacity-20 w-32 h-16 flex items-end gap-1">
           <div class="w-4 bg-white rounded-t-sm h-4"></div><div class="w-4 bg-white rounded-t-sm h-8"></div><div class="w-4 bg-white rounded-t-sm h-12"></div><div class="w-4 bg-white rounded-t-sm h-16"></div>
         </div>
 
-        <div class="relative z-10 flex flex-col">
-          <div class="flex items-center justify-between text-white/80 font-bold text-[11px] mb-0.5">
+        <div class="relative z-10 flex flex-col pr-8">
+          <div class="flex items-center text-white/80 font-bold text-[11px] mb-0.5">
             <span class="flex items-center gap-1.5"><i class="fa-solid fa-chart-simple"></i> Saldo Atual</span>
-            <button onclick="toggleVisibility()" class="p-1 hover:text-white transition cursor-pointer z-50">
-              <i class="fa-solid fa-eye text-sm" id="eyeIcon"></i>
-            </button>
           </div>
           <div id="statBigBalance" class="text-3xl font-black tracking-tighter truncate">R$ 0,00</div>
         </div>
       </div>
 
-      <!-- 2 MINI CARDS (MAIORES E DESTAQUE) -->
+      <!-- 2 MINI CARDS HORIZONTAIS -->
       <div class="grid grid-cols-2 gap-3 shrink-0">
         <div class="bg-white dark:bg-slate-800 p-3.5 rounded-[1.25rem] shadow-sm flex flex-col justify-center border border-slate-50 dark:border-slate-700/50">
           <div class="flex items-center gap-2 mb-1.5">
@@ -187,19 +188,31 @@
         </div>
       </div>
 
-      <!-- CONTAINER METAS: Flex-grow estica até em baixo abraçando o botão (Sem gap extra) -->
-      <div class="bg-white dark:bg-slate-900 p-3 pt-4 rounded-t-[2.5rem] shadow-[0_-8px_24px_rgba(0,0,0,0.03)] dark:border-t dark:border-slate-800 -mx-4 -mb-28 pb-[90px] mt-2 flex flex-col relative z-10 flex-grow">
-        <div class="flex items-center justify-between cursor-pointer px-2 mb-3" onclick="openProfileModal()">
+      <!-- CONTAINER METAS -->
+      <div class="bg-white dark:bg-slate-900 p-3 pt-4 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-2.5 shrink-0">
+        <div class="flex items-center justify-between cursor-pointer px-2" onclick="openProfileModal()">
           <div class="flex items-center gap-2.5">
             <div class="text-amber-500 text-lg"><i class="fa-solid fa-trophy"></i></div>
             <h3 class="text-sm font-extrabold text-slate-800 dark:text-slate-100">Progresso de Metas</h3>
           </div>
-          <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
+          <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
         </div>
         
         <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-2 px-1">
           <!-- Renderizado via JS -->
         </div>
+      </div>
+      
+      <!-- BANNER DE DICA DINÂMICA (Mensagem do Dia) -->
+      <div class="bg-banner-dicas rounded-[1.5rem] p-4 flex items-center gap-3 text-white shadow-md relative overflow-hidden mb-2">
+         <div class="text-amber-300 text-2xl flex-shrink-0 z-10">
+           <i class="fa-regular fa-lightbulb"></i>
+         </div>
+         <div class="z-10 pr-2">
+           <h4 id="bannerTitulo" class="text-[12px] font-extrabold leading-tight mb-0.5">Você está indo bem!</h4>
+           <p id="bannerSubtitulo" class="text-[10px] text-white/90 leading-tight">Continue organizando suas finanças.</p>
+         </div>
+         <i class="fa-solid fa-chevron-right text-xs text-white/50 absolute right-4 z-10"></i>
       </div>
 
     </div>
@@ -249,10 +262,10 @@
     </div>
   </main>
 
-  <!-- NAVEGAÇÃO INFERIOR E BOTÃO FLUTUANTE CENTRAL (+) -->
+  <!-- NAVEGAÇÃO INFERIOR E BOTÃO FLUTUANTE -->
   <div class="fixed bottom-0 left-0 right-0 z-40">
     <div class="absolute left-1/2 transform -translate-x-1/2 -top-6 z-50">
-      <button onclick="openNewTxModal()" class="w-14 h-14 bg-brand-green text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(0,176,107,0.4)] hover:scale-105 active:scale-95 transition-transform border-[5px] border-white dark:border-slate-900 text-xl">
+      <button onclick="openNewTxModal()" class="w-14 h-14 bg-brand-green text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(0,176,107,0.4)] hover:scale-105 active:scale-95 transition-transform border-[5px] border-app-bg dark:border-slate-950 text-xl">
         <i class="fa-solid fa-plus"></i>
       </button>
     </div>
