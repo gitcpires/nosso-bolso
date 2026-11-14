@@ -18,7 +18,7 @@ const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
 
 const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
-let showBigBalance = true; 
+let showBigBalance = false; 
 
 // Banco com 60 Mensagens (Dicas Financeiras e Motivacionais)
 const mensagensDiarias = [
