@@ -911,13 +911,14 @@ function renderAll() {
   const metas = getMetasAtuais();
   const baseEntradas = income > 0 ? income : 1; 
 
-  const criarCardMetaSoftUI = (titulo, icone, corTexto, corBarra, gasto, pctMeta) => {
+  // FUNÇÃO ATUALIZADA: Agora recebe extraClass para podermos modelar a quina dos cartões
+  const criarCardMetaSoftUI = (titulo, icone, corTexto, corBarra, gasto, pctMeta, extraClass = 'rounded-[1.25rem]') => {
     const metaEmReais = baseEntradas * (pctMeta / 100);
     const pctGasto = metaEmReais > 0 ? (gasto / metaEmReais) * 100 : 0;
     const barraPreenchida = Math.min(pctGasto, 100);
     
     return `
-      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform bg-slate-50 dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+      <div onclick="abrirDetalhesCategoria('${titulo}', ${metaEmReais})" class="cursor-pointer hover:scale-[1.02] active:scale-95 transition-transform bg-slate-50 dark:bg-slate-800 p-4 border border-slate-100 dark:border-slate-700 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)] ${extraClass}">
         <div>
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
@@ -942,10 +943,10 @@ function renderAll() {
   const containerCat = document.getElementById('cardsCategoryContainer');
   if (containerCat) {
     containerCat.innerHTML = `
-      ${criarCardMetaSoftUI('Gastos Fixos', 'fa-bullseye', 'text-blue-600', '#2563eb', fixed, metas.fixos)}
-      ${criarCardMetaSoftUI('Gastos Gerais', 'fa-star', 'text-amber-500', '#10b981', general, metas.gerais)}
-      ${criarCardMetaSoftUI('Lazer', 'fa-cart-shopping', 'text-purple-500', '#a855f7', leisure, metas.lazer)}
-      ${criarCardMetaSoftUI('Investimentos', 'fa-chart-column', 'text-amber-500', '#f59e0b', invest, metas.invest)}
+      ${criarCardMetaSoftUI('Gastos Fixos', 'fa-bullseye', 'text-blue-600', '#2563eb', fixed, metas.fixos, 'rounded-[1.25rem]')}
+      ${criarCardMetaSoftUI('Gastos Gerais', 'fa-star', 'text-amber-500', '#10b981', general, metas.gerais, 'rounded-[1.25rem]')}
+      ${criarCardMetaSoftUI('Lazer', 'fa-cart-shopping', 'text-purple-500', '#a855f7', leisure, metas.lazer, 'rounded-[1.25rem] rounded-br-[3.5rem]')}
+      ${criarCardMetaSoftUI('Investimentos', 'fa-chart-column', 'text-amber-500', '#f59e0b', invest, metas.invest, 'rounded-[1.25rem] rounded-bl-[3.5rem]')}
     `;
   }
 
@@ -1658,7 +1659,7 @@ if (containerSwipe) {
       // Vai para a aba anterior (desliza pra DIREITA)
       animarTrocaAba(abaAtivaIndex - 1, 1);
     } else {
-      // Cancela hiper rápido (caso desista no meio do caminho)
+      // Cancela rápido
       containerSwipe.style.transition = 'transform 0.1s ease-out';
       containerSwipe.style.transform = 'translateX(0px)';
     }
@@ -1679,7 +1680,7 @@ function animarTrocaAba(novoIndex, direcao) {
     containerSwipe.style.transition = 'none';
     containerSwipe.style.transform = `translateX(${direcao * -30}%)`; 
     
-    // 4. Traz a nova tela deslizando quase que instantaneamente (120ms)
+    // 4. Traz a nova tela deslizando instantaneamente (120ms)
     setTimeout(() => {
       containerSwipe.style.transition = 'transform 0.12s ease-out, opacity 0.12s ease-out';
       containerSwipe.style.transform = 'translateX(0px)';
