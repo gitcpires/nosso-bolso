@@ -114,7 +114,11 @@
         <button onclick="openCarteiraLivreModal()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Carteira Privada">
           <i class="fa-solid fa-user-secret text-sm"></i>
         </button>
-        <button onclick="openProfileModal()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm">
+        <!-- BOTÃO DE TEMA ESCURO DE VOLTA -->
+        <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Modo Escuro">
+          <i id="darkModeIcon" class="fa-solid fa-moon text-sm"></i>
+        </button>
+        <button onclick="openProfileModal()" class="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition shadow-sm" title="Configurações">
           <i class="fa-solid fa-gear text-sm"></i>
         </button>
       </div>
@@ -125,7 +129,7 @@
   <main id="mainSwipeContainer" class="relative z-30 mx-auto max-w-md px-4 flex-grow w-full flex flex-col">
     
     <!-- ABA RESUMO -->
-    <div id="tab-resumo" class="w-full flex flex-col space-y-3.5 flex-grow fade-transition">
+    <div id="tab-resumo" class="w-full flex flex-col space-y-2.5 flex-grow fade-transition">
       
       <!-- Seletor de Mês -->
       <div class="flex items-center justify-between bg-white dark:bg-slate-800 py-1.5 px-3 rounded-[1rem] shadow-sm">
@@ -183,10 +187,7 @@
         </div>
       </div>
 
-      <!-- ESPAÇADOR -->
-      <div class="flex-grow"></div>
-
-      <!-- CONTAINER METAS: Flex-grow estica até em baixo abraçando o botão -->
+      <!-- CONTAINER METAS: Flex-grow estica até em baixo abraçando o botão (Sem gap extra) -->
       <div class="bg-white dark:bg-slate-900 p-3 pt-4 rounded-t-[2.5rem] shadow-[0_-8px_24px_rgba(0,0,0,0.03)] dark:border-t dark:border-slate-800 -mx-4 -mb-28 pb-[90px] mt-2 flex flex-col relative z-10 flex-grow">
         <div class="flex items-center justify-between cursor-pointer px-2 mb-3" onclick="openProfileModal()">
           <div class="flex items-center gap-2.5">
