@@ -20,50 +20,71 @@ const agora = new Date();
 let activeMonth = `${mesesNomes[agora.getMonth()]} ${agora.getFullYear()}`;
 let showBigBalance = true; 
 
-// Banco de Mensagens Motivacionais Diárias (1 para cada dia do mês)
+// Banco com 60 Mensagens (Dicas Financeiras e Motivacionais)
 const mensagensDiarias = [
   { titulo: "Dia de planejar!", subtitulo: "O primeiro passo para o sucesso é o planejamento." },
   { titulo: "Pequenos passos", subtitulo: "Cada economia conta para sua meta maior." },
   { titulo: "Foco no futuro", subtitulo: "Invista hoje para colher amanhã." },
-  { titulo: "Você está no controle!", subtitulo: "Organização é a chave para a liberdade." },
+  { titulo: "Você no controle!", subtitulo: "Organização é a chave para a liberdade." },
   { titulo: "Dia de revisar", subtitulo: "Veja se seus gastos estão alinhados com suas metas." },
   { titulo: "Mente milionária", subtitulo: "O segredo é gastar menos do que se ganha." },
   { titulo: "Semana produtiva", subtitulo: "Mantenha o foco e evite compras por impulso." },
-  { titulo: "Disciplina é liberdade", subtitulo: "Suas escolhas financeiras definem seu futuro." },
+  { titulo: "Disciplina é ouro", subtitulo: "Suas escolhas financeiras definem seu futuro." },
   { titulo: "Progresso constante", subtitulo: "Um passo por vez em direção aos seus sonhos." },
   { titulo: "Celebre vitórias", subtitulo: "Atingiu uma meta hoje? Comemore!" },
-  { titulo: "Visão além do hoje", subtitulo: "A prosperidade é construída a longo prazo." },
-  { titulo: "Controle seus impulsos", subtitulo: "A gratificação adiada é um superpoder." },
-  { titulo: "Conhecimento é poder", subtitulo: "Quanto mais você entende seu dinheiro, mais ele cresce." },
-  { titulo: "Metade do mês!", subtitulo: "Como está seu saldo até aqui? Reajuste a rota." },
-  { titulo: "Equilíbrio", subtitulo: "Aproveite o hoje sem esquecer de poupar para o amanhã." },
+  { titulo: "Visão além de hoje", subtitulo: "A prosperidade é construída a longo prazo." },
+  { titulo: "Controle os impulsos", subtitulo: "A gratificação adiada é um superpoder." },
+  { titulo: "Conhecimento é poder", subtitulo: "Quanto mais entende seu dinheiro, mais ele cresce." },
+  { titulo: "Equilíbrio financeiro", subtitulo: "Aproveite o hoje sem esquecer de poupar." },
   { titulo: "Orçamento em dia", subtitulo: "Anotar tudo é o que te mantém focado." },
   { titulo: "Aja com sabedoria", subtitulo: "Seu dinheiro é a ferramenta para construir sua vida." },
   { titulo: "Menos é mais", subtitulo: "Reduza o excesso e foque no que importa." },
-  { titulo: "Resiliência", subtitulo: "Imprevistos acontecem, tenha sua reserva de emergência." },
+  { titulo: "Resiliência sempre", subtitulo: "Imprevistos acontecem, reforce a reserva." },
   { titulo: "Você é capaz!", subtitulo: "Qualquer objetivo financeiro é alcançável com tempo." },
   { titulo: "Hábitos enriquecem", subtitulo: "A repetição diária constrói fortunas." },
   { titulo: "Atenção aos detalhes", subtitulo: "Pequenos vazamentos afundam grandes navios." },
-  { titulo: "Pense no investimento", subtitulo: "Faça seu dinheiro trabalhar por você hoje." },
-  { titulo: "Quase no fim do mês", subtitulo: "Mantenha a firmeza para fechar no azul." },
-  { titulo: "Educação financeira", subtitulo: "Sempre há algo novo para aprender." },
+  { titulo: "Pense em investir", subtitulo: "Faça seu dinheiro trabalhar por você hoje." },
+  { titulo: "Força na reta final", subtitulo: "Mantenha a firmeza para fechar no azul." },
+  { titulo: "Educação financeira", subtitulo: "Sempre há algo novo para aprender hoje." },
   { titulo: "Rumo à liberdade", subtitulo: "Cada centavo economizado é um passo a mais." },
-  { titulo: "Agradeça", subtitulo: "A gratidão atrai mais prosperidade." },
+  { titulo: "Agradeça sempre", subtitulo: "A gratidão atrai mais prosperidade." },
   { titulo: "Mantenha a rota", subtitulo: "A consistência é o que traz o resultado real." },
-  { titulo: "Fechamento chegando", subtitulo: "Prepare-se para avaliar o mês que passou." },
-  { titulo: "Dia de avaliação", subtitulo: "O que deu certo? O que pode melhorar?" },
-  { titulo: "Ciclo completo", subtitulo: "Parabéns por mais um mês cuidando do seu dinheiro!" }
+  { titulo: "Avalie seus gastos", subtitulo: "O que deu certo? O que pode melhorar?" },
+  { titulo: "Mais um passo!", subtitulo: "Parabéns por cuidar bem do seu dinheiro!" },
+  { titulo: "Pague-se primeiro", subtitulo: "Guarde uma parte do seu ganho antes de gastar." },
+  { titulo: "Regra do 50-30-20", subtitulo: "Uma ótima forma de dividir seu orçamento." },
+  { titulo: "Cuidado com o crédito", subtitulo: "Cartão é ferramenta, não extensão do salário." },
+  { titulo: "Invista em si mesmo", subtitulo: "O melhor rendimento vem do seu conhecimento." },
+  { titulo: "O tempo a seu favor", subtitulo: "Os juros compostos são a oitava maravilha do mundo." },
+  { titulo: "Revise assinaturas", subtitulo: "Você realmente usa tudo que paga mensalmente?" },
+  { titulo: "Evite dívidas ruins", subtitulo: "Só financie se for para multiplicar capital." },
+  { titulo: "Metas claras", subtitulo: "Quem não sabe para onde vai, não chega a lugar nenhum." },
+  { titulo: "Dinheiro é energia", subtitulo: "Canalize-o para o que realmente te faz feliz." },
+  { titulo: "Diversifique", subtitulo: "Não coloque todos os ovos na mesma cesta." },
+  { titulo: "Viva abaixo do limite", subtitulo: "Gaste sempre menos do que você pode pagar." },
+  { titulo: "Automatize poupanças", subtitulo: "Facilite o ato de guardar dinheiro." },
+  { titulo: "Descontos contam", subtitulo: "Negociar é uma habilidade que gera riqueza." },
+  { titulo: "Valorize seu suor", subtitulo: "Pense em quantas horas de trabalho algo custa." },
+  { titulo: "Mude a mentalidade", subtitulo: "Pense como investidor, não só como consumidor." },
+  { titulo: "Dinheiro não aceita desaforo", subtitulo: "Seja intencional com cada real gasto." },
+  { titulo: "Crie novas rendas", subtitulo: "Não dependa de apenas uma fonte de dinheiro." },
+  { titulo: "A paciência paga", subtitulo: "Grandes fortunas não nascem da noite para o dia." },
+  { titulo: "Seja realista", subtitulo: "Metas impossíveis só geram frustração." },
+  { titulo: "Faça listas de compra", subtitulo: "Ir ao mercado com fome e sem lista é perigoso." },
+  { titulo: "Você está no caminho", subtitulo: "Apenas continue fazendo o básico bem feito." },
+  { titulo: "O poder do não", subtitulo: "Dizer não hoje é dizer sim para o seu futuro." },
+  { titulo: "Reveja prioridades", subtitulo: "Onde você gasta mostra o que você valoriza." },
+  { titulo: "Elimine os juros", subtitulo: "Quite as dívidas mais caras o quanto antes." },
+  { titulo: "Simplifique", subtitulo: "Uma vida financeira simples é uma vida em paz." },
+  { titulo: "Foque na solução", subtitulo: "Reclamar não aumenta saldo bancário." },
+  { titulo: "Você contra você", subtitulo: "Não compare seus bastidores com o palco dos outros." },
+  { titulo: "Cuide da saúde", subtitulo: "Saúde física é o seu maior ativo financeiro." },
+  { titulo: "Seja grato", subtitulo: "A abundância começa na mente." },
+  { titulo: "Construa o seu império", subtitulo: "Tijolo por tijolo, dia após dia." },
+  { titulo: "Amanhã é um novo dia", subtitulo: "Errou no orçamento? Recomece amanhã!" }
 ];
 
-const subcategoriasDisponiveis = [
-  'Transporte',
-  'Alimentação',
-  'Telefonia',
-  'Ticket Alimentação',
-  'Serviços Públicos',
-  'Outros'
-];
-
+let currentDicaIndex = 0;
 let categoryPieChartInstance = null;
 let categoryBarChartInstance = null;
 let subCategoryBarChartInstance = null;
@@ -119,7 +140,7 @@ auth.onAuthStateChanged(async (userAuth) => {
 
     document.getElementById('loadingScreen').classList.add('hidden');
     initUserSession();
-    atualizarMensagemMotivacional(); // Ativa a mensagem do dia
+    iniciarMensagemMotivacionalDiaria(); 
 
   } catch (err) {
     console.error(err);
@@ -127,13 +148,16 @@ auth.onAuthStateChanged(async (userAuth) => {
   }
 });
 
-function atualizarMensagemMotivacional() {
-  const diaAtual = new Date().getDate(); // Pega o dia de 1 a 31
-  // Garante que o dia sempre pegue uma mensagem (se for dia 31 e o mês tem 30, volta pro começo)
-  const indice = (diaAtual - 1) % mensagensDiarias.length;
-  
-  const msg = mensagensDiarias[indice];
-  
+// Inicializa a dica com base no dia do ano (para mudar todo dia e não apenas todo mês)
+function iniciarMensagemMotivacionalDiaria() {
+  const agora = new Date();
+  const diaDoAno = Math.floor((agora - new Date(agora.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+  currentDicaIndex = diaDoAno % mensagensDiarias.length;
+  renderizarDica();
+}
+
+function renderizarDica() {
+  const msg = mensagensDiarias[currentDicaIndex];
   const tituloEl = document.getElementById('bannerTitulo');
   const subEl = document.getElementById('bannerSubtitulo');
   
@@ -143,17 +167,23 @@ function atualizarMensagemMotivacional() {
   }
 }
 
+// Avança para a próxima dica no click (loop)
+function proximaDica() {
+  currentDicaIndex = (currentDicaIndex + 1) % mensagensDiarias.length;
+  renderizarDica();
+}
+
 function toggleVisibility() {
   showBigBalance = !showBigBalance;
   const icon = document.getElementById('eyeIcon');
   
   if(showBigBalance) {
-    icon.className = "fa-solid fa-eye text-sm";
+    icon.className = "fa-solid fa-eye text-[11px]";
   } else {
-    icon.className = "fa-solid fa-eye-slash text-sm text-white/50";
+    icon.className = "fa-solid fa-eye-slash text-[11px] text-white/50";
   }
   
-  renderAll(); // Atualiza a tela inteira para esconder TODOS os valores
+  renderAll(); 
 }
 
 function getMetasAtuais() {
@@ -503,6 +533,15 @@ function toggleFiltroAvancado() {
     caixa.classList.toggle('hidden');
   }
 }
+
+const subcategoriasDisponiveis = [
+  'Transporte',
+  'Alimentação',
+  'Telefonia',
+  'Ticket Alimentação',
+  'Serviços Públicos',
+  'Outros'
+];
 
 function renderSubCatCheckboxes() {
   const container = document.getElementById('filterSubCatCheckboxes');
@@ -964,7 +1003,6 @@ function renderAll() {
   const statExpense = document.getElementById('statExpense');
   const statBigBalance = document.getElementById('statBigBalance');
 
-  // Máscara de Ocultar Valores nos cartões superiores
   if (statIncome) statIncome.innerText = showBigBalance ? `R$ ${income.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
   if (statExpense) statExpense.innerText = showBigBalance ? `R$ ${expense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
   if (statBigBalance) statBigBalance.innerText = showBigBalance ? `R$ ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : `•••••`;
@@ -982,7 +1020,6 @@ function renderAll() {
     const pctGasto = metaEmReais > 0 ? (gasto / metaEmReais) * 100 : 0;
     const barraPreenchida = Math.min(pctGasto, 100);
     
-    // Máscara de Ocultar Valores nos cards de Metas
     const txtGasto = showBigBalance ? `R$ ${gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
     const txtMeta = showBigBalance ? `R$ ${metaEmReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '•••••';
     const txtPerc = showBigBalance ? `${pctGasto.toFixed(0)}%` : '••%';
@@ -1413,7 +1450,7 @@ function toggleDarkMode() {
 function atualizarIconeDarkMode(isDark) {
   const icon = document.getElementById('darkModeIcon');
   if (icon) {
-    icon.className = isDark ? 'fa-solid fa-sun text-sm text-amber-400' : 'fa-solid fa-moon text-sm text-white';
+    icon.className = isDark ? 'fa-solid fa-sun text-[10px] text-amber-400' : 'fa-solid fa-moon text-[10px] text-white';
   }
 }
 
