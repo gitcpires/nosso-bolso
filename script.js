@@ -289,7 +289,7 @@ async function deixarGrupo() {
     const wsIdAtual = currentWorkspace.id;
     const uidAtual = currentUser.id;
 
-    const membrosSnapshot = await db.collection('users').where('workspaceId', '==', wsIdAtual).get();
+    const membrosSnapshot = await db.collection('users').where('workspaceId', 'wsIdAtual').get();
     const éOUltimo = membrosSnapshot.size <= 1;
 
     if (éOUltimo) {
