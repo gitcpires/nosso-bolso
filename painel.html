@@ -259,9 +259,9 @@
 
   <!-- NAVEGAÇÃO INFERIOR E BOTÃO FLUTUANTE -->
   <div class="fixed bottom-0 left-0 right-0 z-40">
-    <!-- Botão flutuante ajustado para ficar 80% dentro e 20% fora -->
-    <div class="absolute left-1/2 transform -translate-x-1/2 -top-3 z-50">
-      <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-br from-[#0a5238] to-[#052e1f] text-white rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(5,46,31,0.4)] hover:scale-105 active:scale-95 transition-transform border-[4px] border-white dark:border-slate-900 text-2xl font-light">
+    <!-- Botão flutuante mais baixo (-top-1.5), sem borda e com sombra suave -->
+    <div class="absolute left-1/2 transform -translate-x-1/2 -top-1.5 z-50">
+      <button onclick="openNewTxModal()" class="w-14 h-14 bg-gradient-to-tr from-[#042418] to-[#0a5238] text-white rounded-full flex items-center justify-center shadow-[0_6px_16px_rgba(4,36,24,0.4)] hover:scale-105 active:scale-95 transition-all duration-200 text-2xl font-light">
         <i class="fa-solid fa-plus"></i>
       </button>
     </div>
@@ -293,6 +293,7 @@
       </div>
     </nav>
   </div>
+
 
 
   <!-- MODAIS Lançamento -->
