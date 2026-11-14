@@ -153,30 +153,54 @@
   <!-- ESTRUTURA ORIGINAL (S/ Flexbox - Altura respeitada perfeitamente) -->
   <main id="mainSwipeContainer" class="mx-auto max-w-md px-4 pt-1 space-y-5">
 
-    <!-- ABA RESUMO -->
-    <div id="tab-resumo" class="space-y-5">
-      <div class="grid grid-cols-3 gap-3">
-        <div class="bg-card-entrada dark:bg-emerald-900/20 p-3.5 rounded-3xl shadow-[0_4px_10px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[4/3]">
-          <div class="w-[30px] h-[30px] bg-emerald-400 text-white rounded-full flex items-center justify-center"><i class="fa-solid fa-arrow-trend-up text-xs"></i></div>
-          <div class="mt-2"><span class="text-[11px] font-medium text-slate-700 dark:text-emerald-500/80 block leading-tight">Entradas</span><div id="statIncome" class="text-sm font-black text-text-entrada dark:text-emerald-400 mt-0.5 truncate tracking-tight">R$ 0,00</div></div>
+          <!-- ABA RESUMO -->
+      <div id="tab-resumo" class="min-w-full px-4 space-y-5">
+        
+        <!-- CARDS TOPO: Ajuste de gap-2, p-3 e fontes para caber valores altos -->
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-card-entrada dark:bg-emerald-900/20 p-3 rounded-3xl shadow-[0_4px_10px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[4/3]">
+            <div class="w-[28px] h-[28px] bg-emerald-400 text-white rounded-full flex items-center justify-center">
+              <i class="fa-solid fa-arrow-trend-up text-[10px]"></i>
+            </div>
+            <div class="mt-2">
+              <span class="text-[10px] font-medium text-slate-700 dark:text-emerald-500/80 block leading-tight">Entradas</span>
+              <div id="statIncome" class="text-[13px] font-black text-text-entrada dark:text-emerald-400 mt-0.5 tracking-tighter leading-tight">R$ 0,00</div>
+            </div>
+          </div>
+          
+          <div class="bg-card-saida dark:bg-rose-900/20 p-3 rounded-3xl shadow-[0_4px_10px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[4/3]">
+            <div class="w-[28px] h-[28px] bg-rose-400 text-white rounded-full flex items-center justify-center">
+              <i class="fa-solid fa-arrow-trend-down text-[10px]"></i>
+            </div>
+            <div class="mt-2">
+              <span class="text-[10px] font-medium text-slate-700 dark:text-rose-500/80 block leading-tight">Saídas</span>
+              <div id="statExpense" class="text-[13px] font-black text-text-saida dark:text-rose-400 mt-0.5 tracking-tighter leading-tight">R$ 0,00</div>
+            </div>
+          </div>
+          
+          <div class="bg-card-saldo dark:bg-blue-900/20 p-3 rounded-3xl shadow-[0_4px_10px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[4/3]">
+            <div class="w-[28px] h-[28px] bg-blue-500 text-white rounded-full flex items-center justify-center">
+              <i class="fa-solid fa-scale-balanced text-[10px]"></i>
+            </div>
+            <div class="mt-2">
+              <span class="text-[10px] font-medium text-slate-700 dark:text-blue-500/80 block leading-tight">Saldo</span>
+              <div id="statBalance" class="text-[13px] font-black text-text-saldo dark:text-blue-300 mt-0.5 tracking-tighter leading-tight">R$ 0,00</div>
+            </div>
+          </div>
         </div>
-        <div class="bg-card-saida dark:bg-rose-900/20 p-3.5 rounded-3xl shadow-[0_4px_10px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[4/3]">
-          <div class="w-[30px] h-[30px] bg-rose-400 text-white rounded-full flex items-center justify-center"><i class="fa-solid fa-arrow-trend-down text-xs"></i></div>
-          <div class="mt-2"><span class="text-[11px] font-medium text-slate-700 dark:text-rose-500/80 block leading-tight">Saídas</span><div id="statExpense" class="text-sm font-black text-text-saida dark:text-rose-400 mt-0.5 truncate tracking-tight">R$ 0,00</div></div>
-        </div>
-        <div class="bg-card-saldo dark:bg-blue-900/20 p-3.5 rounded-3xl shadow-[0_4px_10px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[4/3]">
-          <div class="w-[30px] h-[30px] bg-blue-500 text-white rounded-full flex items-center justify-center"><i class="fa-solid fa-scale-balanced text-xs"></i></div>
-          <div class="mt-2"><span class="text-[11px] font-medium text-slate-700 dark:text-blue-500/80 block leading-tight">Saldo</span><div id="statBalance" class="text-sm font-black text-text-saldo dark:text-blue-300 mt-0.5 truncate tracking-tight">R$ 0,00</div></div>
+
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-4">
+          <div class="flex items-center justify-between cursor-pointer" onclick="openProfileModal()">
+            <div class="flex items-center gap-3">
+              <div class="text-amber-500 text-xl"><i class="fa-solid fa-trophy"></i></div>
+              <h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Progresso de Metas</h3>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-400 text-sm"></i>
+          </div>
+          <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-3 pt-2"></div>
         </div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 p-5 rounded-[2rem] shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:border dark:border-slate-800 space-y-4">
-        <div class="flex items-center justify-between cursor-pointer" onclick="openProfileModal()">
-          <div class="flex items-center gap-3"><div class="text-amber-500 text-xl"><i class="fa-solid fa-trophy"></i></div><h3 class="text-base font-extrabold text-slate-800 dark:text-slate-100">Progresso de Metas</h3></div><i class="fa-solid fa-chevron-right text-slate-400 text-sm"></i>
-        </div>
-        <div id="cardsCategoryContainer" class="grid grid-cols-2 gap-3 pt-2"></div>
-      </div>
-    </div>
 
     <!-- ABA EXTRATO -->
     <div id="tab-extrato" class="space-y-4 hidden">
