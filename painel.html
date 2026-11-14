@@ -259,13 +259,15 @@
 
   <!-- NAVEGAÇÃO INFERIOR E BOTÃO FLUTUANTE -->
   <div class="fixed bottom-0 left-0 right-0 z-40">
-    <div class="absolute left-1/2 transform -translate-x-1/2 -top-6 z-50">
-      <button onclick="openNewTxModal()" class="w-14 h-14 bg-brand-green text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(0,176,107,0.4)] hover:scale-105 active:scale-95 transition-transform border-[5px] border-app-bg dark:border-slate-950 text-xl">
+    <!-- Botão flutuante reposicionado e recolorido -->
+    <div class="absolute left-1/2 transform -translate-x-1/2 -top-7 z-50">
+      <button onclick="openNewTxModal()" class="w-14 h-14 bg-[#00b06b] text-white rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(0,176,107,0.3)] hover:scale-105 active:scale-95 transition-transform border-[4px] border-white dark:border-slate-900 text-2xl font-light">
         <i class="fa-solid fa-plus"></i>
       </button>
     </div>
 
-    <nav class="bg-white dark:bg-slate-900 rounded-t-[1.5rem] px-3 pt-3 pb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:border-t dark:border-slate-800">
+    <!-- Barra de navegação inferior -->
+    <nav class="bg-white dark:bg-slate-900 rounded-t-[1.5rem] px-3 pt-3 pb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:border-t dark:border-slate-800 relative z-40">
       <div class="mx-auto max-w-md grid grid-cols-5 items-end">
         <button onclick="switchTab('resumo')" id="bottomNavResumo" class="relative flex flex-col items-center justify-center text-brand-green pb-2">
           <i class="fa-solid fa-house text-xl mb-1"></i>
