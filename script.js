@@ -214,6 +214,7 @@ let gastosLivresGlobais = [];
 
 auth.onAuthStateChanged(async (userAuth) => {
   if (!userAuth) {
+    localStorage.removeItem('nossoBolsoSession');
     window.location.href = 'index.html';
     return;
   }
@@ -224,12 +225,37 @@ auth.onAuthStateChanged(async (userAuth) => {
   currentUser.email = email;
   currentUser.name = email.split('@')[0];
 
+  await persistenceReady;
+
+  // 1. Se já estava logado, abre imediatamente usando a sessão salva (ideal para offline)
+  const sessaoSalva = JSON.parse(localStorage.getItem('nossoBolsoSession') || 'null');
+  let sessaoIniciada = false;
+
+  if (sessaoSalva && sessaoSalva.uid === uid && sessaoSalva.status === 'approved' && sessaoSalva.workspaceId) {
+    currentWorkspace.id = sessaoSalva.workspaceId;
+    currentWorkspace.code = sessaoSalva.workspaceCode || '----';
+    carteiraLivreSaldos = sessaoSalva.carteiraLivreSaldos || {};
+
+    document.getElementById('loadingScreen').classList.add('hidden');
+    initUserSession();
+    iniciarMensagemMotivacionalDiaria();
+    sessaoIniciada = true;
+  }
+
+  // 2. Busca dados atualizados (do cache se offline, ou do servidor se online)
   try {
-    await persistenceReady;
     const userDocRef = db.collection('users').doc(uid);
-    let userDoc = await userDocRef.get();
-    
-    if (!userDoc.exists) {
+    let userDoc;
+
+    if (!navigator.onLine) {
+      userDoc = await userDocRef.get({ source: 'cache' }).catch(() => null);
+    } else {
+      userDoc = await userDocRef.get();
+    }
+
+    if (!userDoc || !userDoc.exists) {
+      if (!navigator.onLine && sessaoIniciada) return;
+
       await executarOperacaoFirestore(userDocRef.set({
         email: email,
         status: 'pending',
@@ -239,8 +265,16 @@ auth.onAuthStateChanged(async (userAuth) => {
     }
 
     const userData = userDoc.data();
-    carteiraLivreSaldos = userData.carteiraLivreSaldos || {}; 
-    
+    carteiraLivreSaldos = userData.carteiraLivreSaldos || {};
+
+    localStorage.setItem('nossoBolsoSession', JSON.stringify({
+      uid,
+      status: userData.status,
+      workspaceId: userData.workspaceId || '',
+      workspaceCode: userData.workspaceCode || '----',
+      carteiraLivreSaldos: carteiraLivreSaldos
+    }));
+
     if (userData.status !== 'approved') {
       document.getElementById('loadingScreen').classList.add('hidden');
       document.getElementById('pendingScreen').classList.remove('hidden');
@@ -256,13 +290,18 @@ auth.onAuthStateChanged(async (userAuth) => {
     currentWorkspace.id = userData.workspaceId;
     currentWorkspace.code = userData.workspaceCode || '----';
 
-    document.getElementById('loadingScreen').classList.add('hidden');
-    initUserSession();
-    iniciarMensagemMotivacionalDiaria(); 
-
+    if (!sessaoIniciada) {
+      document.getElementById('loadingScreen').classList.add('hidden');
+      initUserSession();
+      iniciarMensagemMotivacionalDiaria();
+    } else {
+      renderCarteiraLivre();
+    }
   } catch (err) {
     console.error(err);
-    document.getElementById('loadingScreen').innerHTML = `<p class="text-xs text-rose-600 font-bold px-4 text-center">Erro ao carregar dados. Conecte-se à internet pelo menos uma vez para ativar o modo offline.</p>`;
+    if (!sessaoIniciada) {
+      document.getElementById('loadingScreen').innerHTML = `<p class="text-xs text-rose-600 font-bold px-4 text-center">Erro ao carregar dados. Abra o app uma vez com internet para ativar o modo offline.</p>`;
+    }
   }
 });
 
@@ -652,6 +691,7 @@ async function deixarGrupo() {
       await batch.commit();
     }
 
+    localStorage.removeItem('nossoBolsoSession');
     showToast("Você saiu do grupo.");
     setTimeout(() => window.location.reload(), 800);
   } catch (err) {
@@ -702,6 +742,14 @@ async function criarNovoWorkspace() {
     currentWorkspace.code = novoCodigo;
     currentWorkspace.metasPorMes = { [activeMonth]: metasPadrao };
 
+    localStorage.setItem('nossoBolsoSession', JSON.stringify({
+      uid: currentUser.id,
+      status: 'approved',
+      workspaceId: workspaceId,
+      workspaceCode: novoCodigo,
+      carteiraLivreSaldos: carteiraLivreSaldos
+    }));
+
     document.getElementById('setupWorkspaceModal').classList.add('hidden');
     initUserSession();
   } catch (err) {
@@ -746,6 +794,14 @@ async function entrarGrupoExistente() {
     currentWorkspace.code = codigoInput;
     currentWorkspace.metasPorMes = wsData.metasPorMes || {};
     currentWorkspace.cartoes = wsData.cartoes || [];
+
+    localStorage.setItem('nossoBolsoSession', JSON.stringify({
+      uid: currentUser.id,
+      status: 'approved',
+      workspaceId: targetWorkspaceId,
+      workspaceCode: codigoInput,
+      carteiraLivreSaldos: carteiraLivreSaldos
+    }));
 
     document.getElementById('setupWorkspaceModal').classList.add('hidden');
     initUserSession();
@@ -1964,7 +2020,11 @@ window.addEventListener('DOMContentLoaded', () => {
 function copyWorkspaceCountCode() { 
   navigator.clipboard.writeText(currentWorkspace.code).then(() => showToast(`Código ${currentWorkspace.code} copiado!`)); 
 }
-function logout() { auth.signOut().then(() => window.location.replace('index.html')); }
+
+function logout() {
+  localStorage.removeItem('nossoBolsoSession');
+  auth.signOut().then(() => window.location.replace('index.html'));
+}
 
 // ==========================================
 // FUNÇÕES DA CARTEIRA LIVRE (POR MÊS)
