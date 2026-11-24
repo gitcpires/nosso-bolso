@@ -15,7 +15,7 @@ const db = firebase.firestore();
 // PERSISTÊNCIA OFFLINE E STATUS DE CONEXÃO
 // ==========================================
 
-db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+const persistenceReady = db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
   if (err.code === 'failed-precondition') {
     console.warn('Persistência offline indisponível: múltiplas abas abertas.');
   } else if (err.code === 'unimplemented') {
@@ -225,6 +225,7 @@ auth.onAuthStateChanged(async (userAuth) => {
   currentUser.name = email.split('@')[0];
 
   try {
+    await persistenceReady;
     const userDocRef = db.collection('users').doc(uid);
     let userDoc = await userDocRef.get();
     
@@ -879,11 +880,15 @@ function carregarDadosDoBanco() {
   if (!currentWorkspace.id) return;
   db.collection('transacoes')
     .where('workspaceId', '==', currentWorkspace.id)
-    .onSnapshot((snapshot) => {
+    .onSnapshot({ includeMetadataChanges: true }, (snapshot) => {
       transactions = [];
       snapshot.forEach((doc) => {
-        const data = doc.data();
-        transactions.push({ id: doc.id, ...data });
+        const data = doc.data({ serverTimestamps: 'estimate' });
+        transactions.push({
+          id: doc.id,
+          ...data,
+          isOffline: doc.metadata.hasPendingWrites
+        });
       });
       renderAll();
     });
@@ -1776,6 +1781,9 @@ function renderTransactionsList() {
     const subCatBadge = t.subCat ? `<span class="text-[9px] bg-purple-50 dark:bg-slate-800 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full font-bold">${t.subCat}</span>` : '';
     const paymentBadge = labelPagamento ? `<span class="text-[9px] bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold">${labelPagamento}</span>` : '';
     const userBadge = `<span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full font-semibold"><i class="fa-solid fa-user text-[8px] mr-1"></i>${autorNome}</span>`;
+    const offlineBadge = t.isOffline
+      ? `<span class="text-[9px] bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-extrabold"><i class="fa-solid fa-cloud-arrow-up text-[8px] mr-1"></i>Offline</span>`
+      : '';
 
     const valorExibicao = showBigBalance ? `${isIncome ? '+' : '-'} R$ ${Number(t.amount).toFixed(2).replace('.', ',')}` : '•••••';
 
@@ -1789,6 +1797,7 @@ function renderTransactionsList() {
             ${subCatBadge}
             ${paymentBadge}
             ${userBadge}
+            ${offlineBadge}
           </div>
 
           <div class="text-[10px] text-slate-500 flex items-center gap-2 pt-1">
@@ -1860,18 +1869,22 @@ function renderInvestments(currentTx) {
   invests.forEach(t => {
     const confirmado = t.confirmado === true;
     const valorExibicao = showBigBalance ? `R$ ${Number(t.amount).toFixed(2).replace('.', ',')}` : '•••••';
+    const offlineBadge = t.isOffline
+      ? `<span class="text-[9px] bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-extrabold"><i class="fa-solid fa-cloud-arrow-up text-[8px] mr-1"></i>Offline</span>`
+      : '';
 
     investList.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-[1.5rem] shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:border dark:border-slate-800">
         <div class="space-y-1.5 pr-2 overflow-hidden w-full">
           <div class="text-sm font-extrabold text-slate-900 dark:text-white">${t.desc}</div>
-          <div class="text-[10px] text-slate-500 flex items-center gap-2 mt-1">
+          <div class="text-[10px] text-slate-500 flex flex-wrap items-center gap-2 mt-1">
             <span class="font-bold"><i class="fa-regular fa-calendar mr-1"></i>${t.date.split('-').reverse().join('/')}</span>
             <button onclick="toggleConfirmTransaction('${t.id}')" class="text-[9px] font-extrabold px-2 py-0.5 rounded-md transition ${
               confirmado ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
             }">
               ${confirmado ? '✓ Registado' : '⏳ Pendente'}
             </button>
+            ${offlineBadge}
           </div>
         </div>
 
@@ -1999,10 +2012,15 @@ function ouvinteCarteiraLivre() {
   
   db.collection('carteira_livre')
     .where('userId', '==', currentUser.id)
-    .onSnapshot(snapshot => {
+    .onSnapshot({ includeMetadataChanges: true }, (snapshot) => {
       gastosLivresGlobais = [];
       snapshot.forEach(doc => {
-        gastosLivresGlobais.push({ id: doc.id, ...doc.data() });
+        const data = doc.data({ serverTimestamps: 'estimate' });
+        gastosLivresGlobais.push({
+          id: doc.id,
+          ...data,
+          isOffline: doc.metadata.hasPendingWrites
+        });
       });
       gastosLivresGlobais.sort((a, b) => {
         const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
@@ -2093,12 +2111,15 @@ function renderCarteiraLivre() {
   gastosDoMes.forEach(g => {
     const dataFormatada = g.date ? g.date.split('-').reverse().join('/') : '';
     const valorGastoExibicao = showBigBalance ? `- R$ ${g.amount.toFixed(2).replace('.', ',')}` : '- •••••';
+    const offlineTag = g.isOffline
+      ? `<span class="ml-1.5 text-[9px] bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded-full font-extrabold"><i class="fa-solid fa-cloud-arrow-up text-[8px] mr-0.5"></i>Offline</span>`
+      : '';
     
     lista.innerHTML += `
       <div class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm dark:border dark:border-slate-700">
         <div class="truncate pr-2 w-full">
           <span class="text-sm font-extrabold text-slate-800 dark:text-slate-200 block truncate">${g.desc}</span>
-          <span class="text-[10px] font-bold text-slate-500 mt-1 block"><i class="fa-regular fa-calendar mr-1"></i>${dataFormatada}</span>
+          <span class="text-[10px] font-bold text-slate-500 mt-1 block"><i class="fa-regular fa-calendar mr-1"></i>${dataFormatada}${offlineTag}</span>
         </div>
         <div class="flex items-center gap-3 shrink-0 pl-2">
           <span class="text-sm font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">${valorGastoExibicao}</span>
