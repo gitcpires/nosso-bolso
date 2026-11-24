@@ -11,6 +11,47 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// ==========================================
+// PERSISTÊNCIA OFFLINE E STATUS DE CONEXÃO
+// ==========================================
+
+db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    console.warn('Persistência offline indisponível: múltiplas abas abertas.');
+  } else if (err.code === 'unimplemented') {
+    console.warn('Este navegador não suporta persistência offline.');
+  }
+});
+
+// Evita travar modais/botões quando offline (o Firestore grava no cache local na hora e sincroniza depois)
+function executarOperacaoFirestore(promise) {
+  if (!navigator.onLine) {
+    promise.catch((err) => console.error('Erro ao sincronizar operação offline:', err));
+    return Promise.resolve();
+  }
+  return promise;
+}
+
+function atualizarStatusConexao() {
+  const banner = document.getElementById('offlineBanner');
+  if (!banner) return;
+  if (navigator.onLine) {
+    banner.classList.add('hidden');
+  } else {
+    banner.classList.remove('hidden');
+  }
+}
+
+window.addEventListener('online', () => {
+  atualizarStatusConexao();
+  showToast('Conexão restabelecida! Sincronizando dados...', 'success');
+});
+
+window.addEventListener('offline', () => {
+  atualizarStatusConexao();
+  showToast('Modo offline ativado. Alterações serão sincronizadas ao conectar.', 'info');
+});
+
 let currentWorkspace = { id: '', code: '', metasPorMes: {}, cartoes: [] };
 let currentUser = { id: '', name: '', email: '' };
 let transactions = [];
@@ -188,11 +229,11 @@ auth.onAuthStateChanged(async (userAuth) => {
     let userDoc = await userDocRef.get();
     
     if (!userDoc.exists) {
-      await userDocRef.set({
+      await executarOperacaoFirestore(userDocRef.set({
         email: email,
         status: 'pending',
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      }));
       userDoc = await userDocRef.get();
     }
 
@@ -220,7 +261,7 @@ auth.onAuthStateChanged(async (userAuth) => {
 
   } catch (err) {
     console.error(err);
-    document.getElementById('loadingScreen').innerHTML = `<p class="text-xs text-rose-600 font-bold">Erro ao carregar dados. Tente atualizar a página.</p>`;
+    document.getElementById('loadingScreen').innerHTML = `<p class="text-xs text-rose-600 font-bold px-4 text-center">Erro ao carregar dados. Conecte-se à internet pelo menos uma vez para ativar o modo offline.</p>`;
   }
 });
 
@@ -346,9 +387,11 @@ async function adicionarCartaoGrupo(e) {
   cartoesAtuais.push({ nome, fechamento });
 
   try {
-    await db.collection('workspaces').doc(currentWorkspace.id).set({
-      cartoes: cartoesAtuais
-    }, { merge: true });
+    await executarOperacaoFirestore(
+      db.collection('workspaces').doc(currentWorkspace.id).set({
+        cartoes: cartoesAtuais
+      }, { merge: true })
+    );
 
     document.getElementById('novoCartaoNome').value = '';
     document.getElementById('novoCartaoFechamento').value = '';
@@ -363,9 +406,11 @@ async function removerCartaoGrupo(index) {
   cartoesAtuais.splice(index, 1);
 
   try {
-    await db.collection('workspaces').doc(currentWorkspace.id).set({
-      cartoes: cartoesAtuais
-    }, { merge: true });
+    await executarOperacaoFirestore(
+      db.collection('workspaces').doc(currentWorkspace.id).set({
+        cartoes: cartoesAtuais
+      }, { merge: true })
+    );
     showToast("Cartão removido.");
   } catch (err) {
     showToast("Erro ao remover cartão.", "error");
@@ -380,7 +425,7 @@ function atualizarOpcoesPagamentoFiltro() {
   let html = `
     <option value="">Todos</option>
     <option value="PIX">⚡ PIX</option>
-    <option value="Ticket Alimentação">🎫 Ticket Alimentação</option> <!-- <--- Adicionado aqui -->
+    <option value="Ticket Alimentação">🎫 Ticket Alimentação</option>
     <option value="Cartão de Crédito">💳 Cartão (Geral)</option>
   `;
 
@@ -392,7 +437,6 @@ function atualizarOpcoesPagamentoFiltro() {
   selectFiltro.innerHTML = html;
   selectFiltro.value = valorAtual;
 }
-
 
 // ==========================================
 // METAS E PERFIL
@@ -552,9 +596,11 @@ async function salvarMetasGrupoConfig(e) {
     if (!currentWorkspace.metasPorMes) currentWorkspace.metasPorMes = {};
     currentWorkspace.metasPorMes[activeMonth] = novasMetasMes;
 
-    await db.collection('workspaces').doc(currentWorkspace.id).set({
-      metasPorMes: currentWorkspace.metasPorMes
-    }, { merge: true });
+    await executarOperacaoFirestore(
+      db.collection('workspaces').doc(currentWorkspace.id).set({
+        metasPorMes: currentWorkspace.metasPorMes
+      }, { merge: true })
+    );
 
     closeProfileModal();
     renderAll();
@@ -566,6 +612,11 @@ async function salvarMetasGrupoConfig(e) {
 }
 
 async function deixarGrupo() {
+  if (!navigator.onLine) {
+    showToast("Conecte-se à internet para sair do grupo.", "error");
+    return;
+  }
+
   try {
     const wsIdAtual = currentWorkspace.id;
     const uidAtual = currentUser.id;
@@ -609,6 +660,11 @@ async function deixarGrupo() {
 }
 
 async function criarNovoWorkspace() {
+  if (!navigator.onLine) {
+    mostrarSetupMsg("Conecte-se à internet para criar um novo grupo.", "erro");
+    return;
+  }
+
   try {
     mostrarSetupMsg("A gerar novo grupo...", "info");
     let novoCodigo = '';
@@ -654,6 +710,11 @@ async function criarNovoWorkspace() {
 }
 
 async function entrarGrupoExistente() {
+  if (!navigator.onLine) {
+    mostrarSetupMsg("Conecte-se à internet para entrar em um grupo.", "erro");
+    return;
+  }
+
   const codigoInput = document.getElementById('inputWorkspaceCode').value.trim();
   if (!codigoInput || codigoInput.length < 4) {
     mostrarSetupMsg("Digite um código válido de 4 dígitos.", "erro");
@@ -1011,7 +1072,7 @@ async function handleSaveTransaction(e) {
         date: dateStr,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
-      await db.collection('transacoes').doc(editingTxId).update(txData);
+      await executarOperacaoFirestore(db.collection('transacoes').doc(editingTxId).update(txData));
       showToast("Lançamento atualizado!");
     } else if (ehRecorrente) {
       const groupId = 'ass_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
@@ -1040,7 +1101,7 @@ async function handleSaveTransaction(e) {
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
       }
-      await batch.commit();
+      await executarOperacaoFirestore(batch.commit());
       showToast("Assinatura gerada para os próximos 12 meses!");
     } else {
       const parcelaGroupId = qtdParcelas > 1 ? ('grp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7)) : null;
@@ -1073,7 +1134,7 @@ async function handleSaveTransaction(e) {
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
       }
-      await batch.commit();
+      await executarOperacaoFirestore(batch.commit());
       showToast(qtdParcelas > 1 ? `Compra em ${qtdParcelas}x gerada com sucesso!` : "Lançamento guardado!");
     }
 
@@ -1094,10 +1155,12 @@ async function toggleConfirmTransaction(id) {
 
   const novoStatus = !tx.confirmado;
   try {
-    await db.collection('transacoes').doc(id).update({
-      confirmado: novoStatus,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    await executarOperacaoFirestore(
+      db.collection('transacoes').doc(id).update({
+        confirmado: novoStatus,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      })
+    );
     showToast(novoStatus ? "Lançamento confirmado!" : "Marcado como pendente.", "info");
   } catch (err) {
     showToast("Erro ao alterar status.", "error");
@@ -1125,7 +1188,7 @@ async function confirmarTodosPendentes() {
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     });
-    await batch.commit();
+    await executarOperacaoFirestore(batch.commit());
     showToast(`${pendentesDoMes.length} lançamentos confirmados!`);
   } catch (err) {
     console.error(err);
@@ -1149,19 +1212,16 @@ async function deleteTransaction(id) {
     if (resp === 'confirm') {
       try {
         const batch = db.batch();
-        const parcelasQuery = await db.collection('transacoes')
-          .where('workspaceId', '==', currentWorkspace.id)
-          .where('parcelaGroupId', '==', tx.parcelaGroupId)
-          .get();
-        parcelasQuery.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
+        const parcelasDoGrupo = transactions.filter(t => t.parcelaGroupId === tx.parcelaGroupId);
+        parcelasDoGrupo.forEach(p => batch.delete(db.collection('transacoes').doc(p.id)));
+        await executarOperacaoFirestore(batch.commit());
         showToast("Série completa removida!");
       } catch (err) {
         showToast("Erro ao remover série.", "error");
       }
     } else if (resp === 'extra') {
       try {
-        await db.collection('transacoes').doc(id).delete();
+        await executarOperacaoFirestore(db.collection('transacoes').doc(id).delete());
         showToast("Lançamento deste mês removido!");
       } catch (err) {
         showToast("Erro ao remover.", "error");
@@ -1179,7 +1239,7 @@ async function deleteTransaction(id) {
 
   if (resp === 'confirm') {
     try {
-      await db.collection('transacoes').doc(id).delete();
+      await executarOperacaoFirestore(db.collection('transacoes').doc(id).delete());
       showToast("Lançamento removido!");
     } catch (err) {
       showToast("Erro ao apagar transação.", "error");
@@ -1231,7 +1291,7 @@ function toggleTxTypeUI() {
     if (containerRec && !editingTxId) containerRec.classList.remove('hidden');
 
     let opcoesPagamento = `<option value="PIX">⚡ PIX</option>`;
-    opcoesPagamento += `<option value="Ticket Alimentação">🎫 Ticket Alimentação</option>`; // <--- Adicionado aqui
+    opcoesPagamento += `<option value="Ticket Alimentação">🎫 Ticket Alimentação</option>`;
     
     const cartoes = currentWorkspace.cartoes || [];
     if (cartoes.length > 0) {
@@ -1243,7 +1303,6 @@ function toggleTxTypeUI() {
     }
     opcoesPagamento += `<option value="Outros">🔄 Outros</option>`;
     selectPayment.innerHTML = opcoesPagamento;
-
 
     selectCat.innerHTML = `
       <option value="Gastos Fixos">🏠 Gastos Fixos</option>
@@ -1333,7 +1392,7 @@ async function importarGastosFixosMesAnterior() {
       });
     });
 
-    await batch.commit();
+    await executarOperacaoFirestore(batch.commit());
     showToast(`${paraImportar.length} gasto(s) fixo(s) importado(s) com sucesso!`);
     
   } catch (err) {
@@ -1881,6 +1940,7 @@ function atualizarIconeDarkMode(isDark) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  atualizarStatusConexao();
   const darkModePref = localStorage.getItem('nossoBolsoDarkMode');
   if (darkModePref === 'enabled') {
     document.documentElement.classList.add('dark');
@@ -1920,9 +1980,11 @@ async function salvarSaldoLivre() {
   try {
     carteiraLivreSaldos[activeMonth] = novoValor;
     
-    await db.collection('users').doc(currentUser.id).set({
-      carteiraLivreSaldos: carteiraLivreSaldos
-    }, { merge: true });
+    await executarOperacaoFirestore(
+      db.collection('users').doc(currentUser.id).set({
+        carteiraLivreSaldos: carteiraLivreSaldos
+      }, { merge: true })
+    );
     
     toggleEditSaldoLivre();
     renderCarteiraLivre();
@@ -1959,14 +2021,16 @@ async function adicionarGastoLivre(e) {
   if(!desc || isNaN(amount)) return;
 
   try {
-    await db.collection('carteira_livre').add({
-      userId: currentUser.id,
-      desc: desc,
-      amount: amount,
-      date: new Date().toISOString().split('T')[0],
-      month: activeMonth, 
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    await executarOperacaoFirestore(
+      db.collection('carteira_livre').add({
+        userId: currentUser.id,
+        desc: desc,
+        amount: amount,
+        date: new Date().toISOString().split('T')[0],
+        month: activeMonth, 
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      })
+    );
     document.getElementById('descGastoLivre').value = '';
     document.getElementById('valorGastoLivre').value = '';
     showToast("Gasto descontado da carteira livre!");
@@ -1985,7 +2049,7 @@ async function deletarGastoLivre(id) {
 
   if (resp === 'confirm') {
     try {
-      await db.collection('carteira_livre').doc(id).delete();
+      await executarOperacaoFirestore(db.collection('carteira_livre').doc(id).delete());
       showToast("Item removido.");
     } catch(err) {
       showToast("Erro ao excluir.", "error");
@@ -2044,7 +2108,6 @@ function renderCarteiraLivre() {
     `;
   });
 }
-
 
 // ==========================================
 // DETALHES DE CATEGORIAS (METAS - PRIVACIDADE 100% APLICADA)
