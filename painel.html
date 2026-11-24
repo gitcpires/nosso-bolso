@@ -80,6 +80,12 @@
 </head>
 <body class="bg-app-bg dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors duration-200 min-h-screen overflow-x-hidden flex flex-col">
 
+  <!-- FAIXA DISCRETA DE MODO OFFLINE -->
+  <div id="offlineBanner" class="hidden sticky top-0 z-[95] w-full bg-amber-500 text-slate-950 text-[10px] font-extrabold py-1.5 px-4 text-center flex items-center justify-center gap-1.5 shadow-md">
+    <i class="fa-solid fa-wifi-slash"></i>
+    <span>Modo Offline • Seus dados serão sincronizados ao conectar</span>
+  </div>
+
   <!-- CONTAINER DE NOTIFICAÇÕES FLUTUANTES CENTRALIZADO -->
   <div id="toastContainer" class="fixed top-5 left-0 right-0 z-[100] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
 
